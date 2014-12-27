@@ -80,6 +80,7 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 #include "SkyManager.h"
 #include "SoundScriptManager.h"
 #include "TerrainManager.h"
+#include "Timer.h"
 #include "TruckHUD.h"
 #include "TurboProp.h"
 #include "Utils.h"
@@ -123,6 +124,9 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 #if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
 //#include <CFUserNotification.h>
 #endif
+
+// The overhead of the profiler is negligible. Tested on simple2.terrn2 with AGORA-L
+#define ENABLE_INPUTMANAGER_PROFILING 1 
 
 using namespace Ogre;
 using namespace RoR;
@@ -1175,7 +1179,14 @@ bool RoRFrameListener::frameStarted(const FrameEvent& evt)
 	rtime+=dt; //real time
 
 	// update GUI
+#if ENABLE_INPUTMANAGER_PROFILING // Temporary code
+	PrecisionTimer input_capture_timer;
+#endif
 	RoR::Application::GetInputEngine()->Capture();
+	RoR::Application::GetInputEngine()->UpdateEventValues();
+#if ENABLE_INPUTMANAGER_PROFILING // Temporary code
+	long long input_capture_performance_ticks = input_capture_timer.ElapsedTicks();
+#endif
 
 	//if (gEnv->collisions) 	printf("> ground model used: %s\n", gEnv->collisions->last_used_ground_model->name);
 
@@ -1303,13 +1314,33 @@ bool RoRFrameListener::frameStarted(const FrameEvent& evt)
 		//if (loadedTerrain == "simple.terrn2")
 			//BeamFactory::getSingleton().updateAI(dt);
 	}
-
-
+#if ENABLE_INPUTMANAGER_PROFILING // Temporary code
+	PrecisionTimer update_events_timer;
+#endif
 	if (!updateEvents(dt))
 	{
 		LOG("exiting...");
 		return false;
 	}
+
+#if ENABLE_INPUTMANAGER_PROFILING // Temporary code
+	if (BeamFactory::getSingleton().getCurrentTruck() != nullptr)
+	{
+		static int loop_count;
+		++loop_count;
+		if (loop_count % 40)
+		{
+			char msg[500];
+			LARGE_INTEGER resolution;
+			QueryPerformanceFrequency(&resolution);
+			sprintf(msg, "RoR | Performance | updateEvents(): %lld ticks | InputEngine::Capture(): %lld ticks", 
+				update_events_timer.ElapsedTicks(), 
+				input_capture_performance_ticks, 
+				resolution.QuadPart);
+			LOG(msg);
+		}
+	}
+#endif // End temporary code
 
 	// update gui 3d arrow
 	if (RoR::Application::GetOverlayWrapper() && dirvisible && loading_state==ALL_LOADED)

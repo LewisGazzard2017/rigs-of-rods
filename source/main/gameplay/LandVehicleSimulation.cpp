@@ -149,10 +149,10 @@ void LandVehicleSimulation::UpdateVehicle(Beam* curr_truck, float seconds_since_
 	if (!curr_truck->replaymode)
 	{
 		// steering
-		float tmp_left_digital  = RoR::Application::GetInputEngine()->getEventValue(EV_TRUCK_STEER_LEFT,  false, InputEngine::ET_DIGITAL);
-		float tmp_right_digital = RoR::Application::GetInputEngine()->getEventValue(EV_TRUCK_STEER_RIGHT, false, InputEngine::ET_DIGITAL);
-		float tmp_left_analog   = RoR::Application::GetInputEngine()->getEventValue(EV_TRUCK_STEER_LEFT,  false, InputEngine::ET_ANALOG);
-		float tmp_right_analog  = RoR::Application::GetInputEngine()->getEventValue(EV_TRUCK_STEER_RIGHT, false, InputEngine::ET_ANALOG);
+		float tmp_left_digital  = RoR::Application::GetInputEngine()->GetEventValueSteerLeftDigital();  //getEventValue(EV_TRUCK_STEER_LEFT,  false, InputEngine::ET_DIGITAL);
+		float tmp_right_digital = RoR::Application::GetInputEngine()->GetEventValueSteerRightDigital(); //getEventValue(EV_TRUCK_STEER_RIGHT, false, InputEngine::ET_DIGITAL);
+		float tmp_left_analog   = RoR::Application::GetInputEngine()->GetEventValueSteerLeftAnalog();   //getEventValue(EV_TRUCK_STEER_LEFT,  false, InputEngine::ET_ANALOG);
+		float tmp_right_analog  = RoR::Application::GetInputEngine()->GetEventValueSteerRightAnalog();  //getEventValue(EV_TRUCK_STEER_RIGHT, false, InputEngine::ET_ANALOG);
 
 		float sum = -std::max(tmp_left_digital,tmp_left_analog)+ std::max(tmp_right_digital,tmp_right_analog);
 

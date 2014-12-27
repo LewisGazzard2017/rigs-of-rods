@@ -391,18 +391,28 @@ enum events
 	EV_MODE_LAST
 };
 
-struct eventInfo_t
+struct EventInfo
 {
-	Ogre::String name;
-	int eventID;
-	Ogre::String defaultKey;
-	Ogre::UTFString description;
+	// Use C-string for storage efficiency. See [http://jovislab.com/blog/?p=76]
+	const char*     name;
+	int             eventID;
+	const char*     defaultKey;
+	const wchar_t*  description;
 };
 
-extern eventInfo_t eventInfo[];
+extern EventInfo eventInfo[];
 
-struct event_trigger_t
+struct EventTrigger
 {
+	friend class InputEngine;
+
+	EventTrigger()
+	{
+		memset(this, 0, sizeof(EventTrigger));
+	}
+
+	inline int GetEventId() const { return m_event_id; }
+
 	// general
 	enum eventtypes eventtype;
 	// keyboard
@@ -441,6 +451,9 @@ struct event_trigger_t
 	char tmp_eventname[128];
 	char comments[1024];
 	int suid; //session unique id
+
+private:
+	int m_event_id;
 };
 
 class InputEngine :
@@ -454,84 +467,132 @@ class InputEngine :
 
 public:
 
-	void Capture();
+	static const int KEY_MAPPING_ARRAY_SIZE = 256;   // Maximum number of keys for OIS.
+	static const int EVENT_MAPPING_ARRAY_SIZE = 350;
 
-	enum {ET_ANY, ET_DIGITAL, ET_ANALOG};
-	//valueSource: ET_ANY=digital and analog devices, ET_DIGITAL=only digital, ET_ANALOG=only analog
-	float getEventValue(int eventID, bool pure = false, int valueSource = ET_ANY);
+	static const char KEY_PRESSED         =  1;
+	static const char KEY_NOT_PRESSED     =  0;
 
+	enum EventValueSource 
+	{
+		ET_ANY, 
+		ET_DIGITAL, 
+		ET_ANALOG
+	};
+
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// NOTE: comments with ~~~ are usage analysis
+	//       made by only_a_ptr on 29/11/2014
+
+	// ~~~ Total 3 calls: Used by Sim + RigEditor + MainMenu
+	/// TIGHT-LOOP; called once per frame in main thread.
+	void Capture(); 
+
+	// ~~~ Total: 40 calls in simulation
+	/// TIGHT-LOOP;
 	bool getEventBoolValue(int eventID);
+
+	// ~~~ Total: 1 call in simulation (aircraft)
 	bool isEventAnalog(int eventID);
+
+	// ~~~ Total: 105 (!) calls in simulation
+	/// TIGHT-LOOP;
 	bool getEventBoolValueBounce(int eventID, float time=0.2f);
+
+	// ~~~ 1 call in simulation (RoRFrameListener)
 	float getEventBounceTime(int eventID);
-	// we need to use hwnd here, as we are also using this in the configurator
-	bool setup(Ogre::String hwnd, bool capture=false, bool capturemouse=false, int grabMode=0, bool captureKbd=true);
+
+	// LEGACY NOTE: we need to use hwnd here, as we are also using this in the configurator
+	bool setup(Ogre::String hwnd, bool capture=false, bool capturemouse=false, int m_grab_mode=0, bool captureKbd=true);
+	
+	// ~~~ 1 call in MainThread::Go()
 	Ogre::String getKeyForCommand(int eventID);
+
+	// ~~~ 15 calls in simulation
 	bool isKeyDown(OIS::KeyCode mod);
+
+	// ~~~ 2 calls (camera manager)
 	bool isKeyDownValueBounce(OIS::KeyCode mod, float time=0.2f);
 
-	std::map<int, std::vector<event_trigger_t> > &getEvents() { return events; };
-
-	Ogre::String getDeviceName(event_trigger_t evt);
-	std::string getEventTypeName(int type);
-
-	int getCurrentKeyCombo(std::string *combo);
-	int getCurrentJoyButton(int &joystickNumber, int &button);
-	int getCurrentPovValue(int &joystickNumber, int &pov, int &povdir);
-	std::string getKeyNameForKeyCode(OIS::KeyCode keycode);
+	// ~~~ 5 calls: GUI + main menu loop
 	void resetKeys();
-	OIS::JoyStickState *getCurrentJoyState(int joystickNumber);
-	int getJoyComponentCount(OIS::ComponentType type, int joystickNumber);
-	std::string getJoyVendor(int joystickNumber);
+
+	// ~~~ 4 calls in AircraftSimulation
 	void smoothValue(float &ref, float value, float rate);
-	bool saveMapping(std::string outfile=CONFIGFILENAME, Ogre::String hwnd=0, int joyNum=-10);
-	bool appendLineToConfig(std::string line, std::string outfile=CONFIGFILENAME);
-	bool loadMapping(std::string outfile=CONFIGFILENAME, bool append=false, int deviceID=-1);
 
-	void destroy();
-
+	// ~~~ 2 calls in TruckHUD
 	Ogre::String getEventCommand(int eventID);
-	static int resolveEventName(Ogre::String eventName);
-	static Ogre::String eventIDToName(int eventID);
-	event_trigger_t *getEventBySUID(int suid);
 
+	// ~~~ 3 calls (TruckHUD x 2, RigSpawner x 1)
+	static int resolveEventName(Ogre::String eventName);
+
+	// ~~~ 1 call in MainThread::Go()
 	void setupDefault(Ogre::String inputhwnd = "");
 
+	// ~~~ 3 calls (1x AircraftSimulation, 2x RoRFrameListener)
 	bool isEventDefined(int eventID);
-	void addEvent(int eventID, event_trigger_t t);
-	bool deleteEventBySUID(int suid);
-	bool getInputsChanged() { return inputsChanged; };
+
+	// ~~~ 1 call in RoRFrameListener
+	bool getInputsChanged() { return m_inputs_changed; };
+
+	// ~~~ 1 call in RoRFrameListener
 	void prepareShutdown();
+
+	// ~~~ 2 calls in RoRFrameListener
 	OIS::MouseState getMouseState();
-	// some custom methods
+
+	// ~~~ 1 call in RoRFrameListener
 	void windowResized(Ogre::RenderWindow* rw);
 
-	bool reloadConfig(std::string outfile=CONFIGFILENAME);
-	bool updateConfigline(event_trigger_t *t);
-
-	void grabMouse(bool enable);
-	void hideMouse(bool visible);
+	// ~~~ 2 calls in GUIINputManager
 	void setMousePosition(int x, int y, bool padding=true);
 
+	// ~~~ 1 call in LobbyGUI
 	int getKeboardKeyForCommand(int eventID);
 
+	// ~~~ 1 call in RoRFrameListener, 1 call in MainThread
 	void updateKeyBounces(float dt);
-	void completeMissingEvents();
-	int getNumJoysticks() { return free_joysticks; };
-	OIS::ForceFeedback* getForceFeedbackDevice() {return mForceFeedback;};
 
+	// ~~~ 2 calls in MainThread
+	OIS::ForceFeedback* getForceFeedbackDevice() {return m_ois_force_feedback;};
+
+	// ~~~ 1 call in RigEditor
 	void SetKeyboardListener(OIS::KeyListener* keyboard_listener);
 
+	// ~~~ 1 call in RigEditor
 	OIS::MouseState SetMouseListener(OIS::MouseListener* mouse_listener);
 
+	// ~~~ 2 calls in MainThread
 	void RestoreMouseListener();
 
+	// ~~~ 2 calls in MainThread
 	void RestoreKeyboardListener();
 
+	// ~~~ 1 call in RigEditor
 	OIS::Keyboard* GetOisKeyboard()
 	{
-		return mKeyboard;
+		return m_ois_keyboard;
 	}
+
+	// ~~~ Total: 40 direct calls in simulation
+	/// TIGHT-LOOP;
+	inline float InputEngine::getEventValue(int event_id) const
+	{
+		return m_event_values[event_id];
+	}
+
+	float getEventValueAnalogDigital(bool analog);
+
+	void UpdateEventValues();
+
+	inline float GetEventValueSteerLeftDigital() const  { return m_event_value_steer_left_digital; }
+	inline float GetEventValueSteerLeftAnalog() const   { return m_event_value_steer_left_analog; }
+	inline float GetEventValueSteerRightDigital() const { return m_event_value_steer_right_digital; }
+	inline float GetEventValueSteerRightAnalog() const  { return m_event_value_steer_right_analog; }
+
+	EventTrigger* GetFirstTriggerForEvent(int event_id);
+
+	float GetEventValuePureAnalog(int eventID);
 
 protected:
 
@@ -540,14 +601,51 @@ protected:
 	InputEngine(const InputEngine&);
 	InputEngine& operator= (const InputEngine&);
 
-	//OIS Input devices
-	OIS::InputManager* mInputManager;
-	OIS::Mouse*    mMouse;
-	OIS::Keyboard* mKeyboard;
-	OIS::JoyStick* mJoy[MAX_JOYSTICKS];
-	int free_joysticks;
-	OIS::ForceFeedback* mForceFeedback;
-	int uniqueCounter;
+	// ~~~ internal
+	// Only used in saveMapping()
+	// std::string getEventTypeName(int type);
+
+	// ~~~ internal
+	std::string getKeyNameForKeyCode(OIS::KeyCode keycode);
+
+	// ~~~ internal
+	OIS::JoyStickState *getCurrentJoyState(int joystickNumber);
+
+	// ~~~ internal
+	int getJoyComponentCount(OIS::ComponentType type, int joystickNumber);
+
+	// ~~~ internal
+	std::string getJoyVendor(int joystickNumber);
+
+	// ~~~ internal
+	// Unused, excluded from compiling
+	//bool saveMapping(std::string outfile=CONFIGFILENAME, Ogre::String hwnd=0, int joyNum=-10);
+
+	// ~~~ internal
+	bool loadMapping(std::string outfile=CONFIGFILENAME, bool append=false, int deviceID=-1);
+
+	// ~~~ internal
+	void destroy();
+
+	// ~~~ internal
+	static Ogre::String eventIDToName(int eventID);
+
+	// some custom methods
+
+	// ~~~ internal
+	bool reloadConfig(std::string outfile=CONFIGFILENAME);
+
+	// ~~~ internal
+	void grabMouse(bool enable);
+
+	// ~~~ internal
+	void hideMouse(bool visible);
+
+	// ~~~ internal
+	void completeMissingEvents();
+
+	// ~~~ internal
+	int getNumJoysticks() { return m_ois_joysticks_free_slot; };
 
 	// JoyStickListener
 	bool buttonPressed( const OIS::JoyStickEvent &arg, int button );
@@ -565,34 +663,50 @@ protected:
 	bool mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
 	bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
 
-	// this stores the key/button/axis values
-	std::map<int, bool> keyState;
-	OIS::JoyStickState joyState[MAX_JOYSTICKS];
-	OIS::MouseState mouseState;
-
-	// define event aliases
-	std::map<int, std::vector<event_trigger_t> > events;
-	std::map<int, float > event_times;
-
-
+	// Mapping file loader function
 	bool processLine(char *line, int deviceID = -1);
-	bool captureMode;
-
-	//RoRFrameListener *mefl;
 
 	void initAllKeys();
-	std::map<std::string, OIS::KeyCode> allkeys;
-	std::map<std::string, OIS::KeyCode>::iterator allit;
 
 	float deadZone(float axis, float dz);
 	float axisLinearity(float axisValue, float linearity);
 
 	float logval(float val);
 	std::string getEventGroup(Ogre::String eventName);
-	bool mappingLoaded;
 
-	bool inputsChanged;
-	int grabMode;
+	// ------------------------------------------------------------------------
+	// Member variables
+	// ------------------------------------------------------------------------
 
-	event_trigger_t newEvent();
+	bool                 m_inputs_changed;
+	int                  m_grab_mode;
+	bool                 m_mapping_loaded;
+	bool                 m_capture_mode;
+
+	// Event triggers
+	std::vector<EventTrigger> m_event_triggers;
+	// Events attributes (Indexed by event IDs)
+	float                     m_event_values[EVENT_MAPPING_ARRAY_SIZE];   
+	float                     m_event_times [EVENT_MAPPING_ARRAY_SIZE];   
+	float                     m_event_value_steer_left_digital;
+	float                     m_event_value_steer_left_analog;
+	float                     m_event_value_steer_right_digital;
+	float                     m_event_value_steer_right_analog;
+
+	//OIS Input devices
+	OIS::InputManager*   m_ois_input_manager;
+	OIS::Mouse*          m_ois_mouse;
+	OIS::Keyboard*       m_ois_keyboard;
+	OIS::JoyStick*       m_ois_joysticks[MAX_JOYSTICKS];
+	int                  m_ois_joysticks_free_slot;
+	OIS::ForceFeedback*  m_ois_force_feedback;
+
+	// this stores the key/button/axis values
+	char                 m_keys_pressed[KEY_MAPPING_ARRAY_SIZE]; ///< Indexed by OIS::KeyCode
+	OIS::JoyStickState   m_joystick_states[MAX_JOYSTICKS];
+	OIS::MouseState      m_mouse_state;
+
+	// Key mapping table for loading and startup. Public access through getKeyForCommand()
+	std::map<std::string, OIS::KeyCode> m_all_keys; 
+		
 };

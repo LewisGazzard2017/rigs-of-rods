@@ -1,6 +1,5 @@
 // license: do whatever you want to do with it ;)
-#ifndef TIMER_H__
-#define TIMER_H__
+#pragma once
 
 #include "RoRPrerequisites.h"
 
@@ -15,12 +14,6 @@
 
 class PrecisionTimer : public ZeroedMemoryAllocator
 {
-protected:
-#ifdef _WIN32
-    LARGE_INTEGER start;
-#else
-    struct timeval start;
-#endif // _WIN32
 
 public:
     PrecisionTimer()
@@ -28,16 +21,39 @@ public:
         restart();
     }
 
+	long long ElapsedMilliseconds()
+	{
+#ifdef WIN32
+		LARGE_INTEGER tick;
+		QueryPerformanceCounter(&tick);
+		return (tick.QuadPart - m_start_timestamp) / (m_ticks_per_second / 1000);
+#else
+		struct timeval now;
+        gettimeofday(&now, NULL); // TODO: Known to be inaccurate, use clock_gettime()
+        return ((now.tv_sec - start.tv_sec)*1000) + ((now.tv_usec - start.tv_usec)/1000.0);
+#endif
+	}
+
+	long long ElapsedTicks()
+	{
+#ifdef WIN32
+		LARGE_INTEGER tick;
+		QueryPerformanceCounter(&tick);
+		return (tick.QuadPart - m_start_timestamp);
+#else
+		return 0; // TODO
+#endif
+	}
+
     double elapsed()
     {
 #ifdef _WIN32
-        LARGE_INTEGER tick, ticksPerSecond;
-        QueryPerformanceFrequency(&ticksPerSecond);
+        LARGE_INTEGER tick;
         QueryPerformanceCounter(&tick);
-        return ((double)tick.QuadPart - (double)start.QuadPart) / (double)ticksPerSecond.QuadPart;
+        return ((double)tick.QuadPart - (double)m_start_timestamp) / (double)m_ticks_per_second;
 #else
         struct timeval now;
-        gettimeofday(&now, NULL);
+        gettimeofday(&now, NULL); // TODO: Known to be inaccurate, use clock_gettime()
         return (now.tv_sec - start.tv_sec) + (now.tv_usec - start.tv_usec)/1000000.0;
 #endif // _WIN32
     }
@@ -45,11 +61,21 @@ public:
     void restart()
     {
 #ifdef _WIN32
+		LARGE_INTEGER start, ticks_per_second;
         QueryPerformanceCounter(&start);
+		QueryPerformanceFrequency(&ticks_per_second);
+		m_start_timestamp = start.QuadPart;
+		m_ticks_per_second = ticks_per_second.QuadPart;
 #else
         gettimeofday(&start, NULL);
 #endif // _WIN32
     }
-};
 
-#endif //TIMER_H__
+private:
+#ifdef WIN32
+    long long m_start_timestamp;
+	long long m_ticks_per_second;
+#else
+    struct timeval m_start;
+#endif
+};
