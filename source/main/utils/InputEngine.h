@@ -402,6 +402,30 @@ struct EventInfo
 
 extern EventInfo eventInfo[];
 
+struct KeyboardEventTrigger
+{
+	friend class InputEngine;
+
+	inline int          GetEventId() const    { return m_event_id; }
+	inline bool         IsExplicit() const    { return explicite; }
+	inline bool         NeedsCtrl() const     { return ctrl; }
+	inline bool         NeedsShift() const    { return shift; }
+	inline bool         NeedsAlt() const      { return alt; }
+	
+	inline Ogre::String const & GetConfigLine() const { return m_config_line; }
+
+	// keyboard
+	int keyCode;
+	bool explicite;
+	bool ctrl;
+	bool shift;
+	bool alt;
+
+private:
+	int           m_event_id;
+	Ogre::String  m_config_line;
+};
+
 struct EventTrigger
 {
 	friend class InputEngine;
@@ -411,16 +435,12 @@ struct EventTrigger
 		memset(this, 0, sizeof(EventTrigger));
 	}
 
-	inline int GetEventId() const { return m_event_id; }
+	inline int          GetEventId() const    { return m_event_id; }
+	inline eventtypes   GetEventType() const  { return eventtype; }
 
 	// general
 	enum eventtypes eventtype;
-	// keyboard
-	int keyCode;
-	bool explicite;
-	bool ctrl;
-	bool shift;
-	bool alt;
+	
 	//mouse
 	int mouseButtonNumber;
 	//joystick buttons
@@ -590,8 +610,6 @@ public:
 	inline float GetEventValueSteerRightDigital() const { return m_event_value_steer_right_digital; }
 	inline float GetEventValueSteerRightAnalog() const  { return m_event_value_steer_right_analog; }
 
-	EventTrigger* GetFirstTriggerForEvent(int event_id);
-
 	float GetEventValuePureAnalog(int eventID);
 
 protected:
@@ -600,6 +618,10 @@ protected:
 	~InputEngine();
 	InputEngine(const InputEngine&);
 	InputEngine& operator= (const InputEngine&);
+
+	KeyboardEventTrigger* GetFirstKeyboardTriggerForEvent(int event_id);
+
+	EventTrigger* GetFirstTriggerForEvent(int event_id);
 
 	// ~~~ internal
 	// Only used in saveMapping()
@@ -684,7 +706,8 @@ protected:
 	bool                 m_capture_mode;
 
 	// Event triggers
-	std::vector<EventTrigger> m_event_triggers;
+	std::vector<EventTrigger>          m_event_triggers; // General (with type attribute)
+	std::vector<KeyboardEventTrigger>  m_keyboard_event_triggers; // Keyboard only
 	// Events attributes (Indexed by event IDs)
 	float                     m_event_values[EVENT_MAPPING_ARRAY_SIZE];   
 	float                     m_event_times [EVENT_MAPPING_ARRAY_SIZE];   

@@ -1040,6 +1040,11 @@ void InputEngine::smoothValue(float &ref, float value, float rate)
 
 String InputEngine::getEventCommand(int event_id)
 {
+	KeyboardEventTrigger* kt = GetFirstKeyboardTriggerForEvent(event_id);
+	if (kt != nullptr)
+	{
+		return kt->GetConfigLine();
+	}
 	EventTrigger* t = GetFirstTriggerForEvent(event_id);
 	if (t != nullptr)
 	{
@@ -1050,14 +1055,19 @@ String InputEngine::getEventCommand(int event_id)
 
 bool InputEngine::isEventDefined(int event_id)
 {
+	KeyboardEventTrigger* kt = GetFirstKeyboardTriggerForEvent(event_id);
+	if (kt != nullptr)
+	{
+		return true;
+	}
 	EventTrigger* t = GetFirstTriggerForEvent(event_id);
 	return (t != nullptr && t->eventtype != ET_NONE);
 }
 
 int InputEngine::getKeboardKeyForCommand(int event_id)
 {
-	EventTrigger* t = GetFirstTriggerForEvent(event_id);
-	if (t != nullptr && t->eventtype == ET_Keyboard)
+	KeyboardEventTrigger* t = GetFirstKeyboardTriggerForEvent(event_id);
+	if (t != nullptr)
 	{
 		return t->keyCode;
 	}
@@ -1230,10 +1240,55 @@ void InputEngine::UpdateEventValues()
 {
 	// Reset
 	memset(m_event_values, 0, sizeof(m_event_values));
-	m_event_value_steer_left_digital  = 0.f;
 	m_event_value_steer_left_analog   = 0.f;
-	m_event_value_steer_right_digital = 0.f;
 	m_event_value_steer_right_analog  = 0.f;
+	m_event_value_steer_left_digital = 0.f;
+	m_event_value_steer_right_digital = 0.f;
+
+	// Loop keyboard triggers
+	bool shift_is_down = (m_keys_pressed[KC_LSHIFT] || m_keys_pressed[KC_RSHIFT]);
+	bool ctrl_is_down = (m_keys_pressed[KC_LCONTROL] || m_keys_pressed[KC_RCONTROL]);
+	bool alt_is_down = (m_keys_pressed[KC_LMENU] || m_keys_pressed[KC_RMENU]);
+	auto keyb_end = m_keyboard_event_triggers.end();
+	auto keyb_itor = m_keyboard_event_triggers.begin();
+	for ( ; keyb_itor != keyb_end; ++keyb_itor)
+	{
+		KeyboardEventTrigger & t = *keyb_itor;
+		
+		m_event_values[t.GetEventId()] = 0.f;
+		if (!m_keys_pressed[t.keyCode])
+			continue;
+		// only use explicite mapping, if two keys with different modifiers exist, i.e. F1 and SHIFT+F1.
+		// check for modificators
+		if (t.explicite)
+		{
+			bool explicit_match = ((t.NeedsCtrl() == ctrl_is_down) && (t.NeedsAlt() == alt_is_down) && (t.NeedsShift() == shift_is_down));
+			if (!explicit_match)
+			{
+				continue;
+			}
+		} 
+		else 
+		{
+			if ((t.ctrl && !ctrl_is_down) || (t.shift && !shift_is_down) || (t.alt && !alt_is_down))
+			{
+				continue;
+			}
+		}
+		bool is_steering_event = ((t.GetEventId() == EV_TRUCK_STEER_LEFT) | (t.GetEventId() == EV_TRUCK_STEER_RIGHT));
+		m_event_values[t.GetEventId()] = 1.f;
+		if (is_steering_event)
+		{
+			if (t.GetEventId() == EV_TRUCK_STEER_LEFT)
+			{
+				m_event_value_steer_left_digital = 1.f;
+			}
+			else // Steer right
+			{
+				m_event_value_steer_right_digital = 1.f;
+			}
+		}
+	}
 
 	// Loop triggers and resolve events
 	auto itor_end = m_event_triggers.end();
@@ -1252,34 +1307,6 @@ void InputEngine::UpdateEventValues()
 		switch(t.eventtype)
 		{
 			case ET_NONE: 
-				break;
-			case ET_Keyboard:
-				if (!m_keys_pressed[t.keyCode])
-				{
-					break;
-				}
-
-				// only use explicite mapping, if two keys with different modifiers exist, i.e. F1 and SHIFT+F1.
-				// check for modificators
-				if (t.explicite)
-				{
-					if (t.ctrl != (m_keys_pressed[KC_LCONTROL] || m_keys_pressed[KC_RCONTROL]))
-						break;
-					if (t.shift != (m_keys_pressed[KC_LSHIFT] || m_keys_pressed[KC_RSHIFT]))
-						break;
-					if (t.alt != (m_keys_pressed[KC_LMENU] || m_keys_pressed[KC_RMENU]))
-						break;
-				} 
-				else 
-				{
-					if (t.ctrl && !(m_keys_pressed[KC_LCONTROL] || m_keys_pressed[KC_RCONTROL]))
-						break;
-					if (t.shift && !(m_keys_pressed[KC_LSHIFT] || m_keys_pressed[KC_RSHIFT]))
-						break;
-					if (t.alt && !(m_keys_pressed[KC_LMENU] || m_keys_pressed[KC_RMENU]))
-						break;
-				}
-				value = 1;
 				break;
 			case ET_MouseButton:
 				//if (t.mouseButtonNumber == 0)
@@ -1613,22 +1640,16 @@ bool InputEngine::processLine(char *line, int deviceID)
 				LOG("Error while processing input config: Unknown Event: "+String(eventName));
 				return false;
 			}
-			EventTrigger t_key;
-			t_key.eventtype = ET_Keyboard;
+			KeyboardEventTrigger t_key;
 			t_key.shift     = shift;
 			t_key.ctrl      = ctrl;
 			t_key.alt       = alt;
 			t_key.keyCode   = key;
 			t_key.explicite = expl;
-			
-			strncpy(t_key.configline, keycodes, 128);
-			strncpy(t_key.group, getEventGroup(eventName).c_str(), 128);
-			strncpy(t_key.tmp_eventname, eventName, 128);
-
-			strncpy(t_key.comments, cur_comment.c_str(), 1024);
+			t_key.m_config_line = keycodes;
 			t_key.m_event_id = eventID;
-			m_event_triggers.push_back(t_key);
 
+			m_keyboard_event_triggers.push_back(t_key);
 			return true;
 		}
 	case ET_JoystickButton:
@@ -1988,6 +2009,11 @@ void InputEngine::completeMissingEvents()
 		{
 			continue; // Already loaded, skip
 		}
+		KeyboardEventTrigger* keyboard_trigger = GetFirstKeyboardTriggerForEvent(event_id);
+		if (keyboard_trigger != nullptr)
+		{
+			continue; // Already loaded, skip
+		}
 
 		// Not loaded and default exists, insert default
 		char tmp[256] = "";
@@ -2244,9 +2270,22 @@ EventTrigger* InputEngine::GetFirstTriggerForEvent(int event_id)
 	return nullptr;
 }
 
+KeyboardEventTrigger* InputEngine::GetFirstKeyboardTriggerForEvent(int event_id)
+{
+	auto itor_end = m_keyboard_event_triggers.end();
+	for (auto itor = m_keyboard_event_triggers.begin(); itor != itor_end; ++itor)
+	{
+		if (itor->GetEventId() == event_id)
+		{
+			return &(*itor);
+		}
+	}
+	return nullptr;
+}
+
 String InputEngine::getKeyForCommand( int event_id )
 {
-	EventTrigger* trigger = GetFirstTriggerForEvent(event_id);
+	KeyboardEventTrigger* trigger = GetFirstKeyboardTriggerForEvent(event_id);
 	if (trigger != nullptr)
 	{
 		return getKeyNameForKeyCode(static_cast<OIS::KeyCode>(trigger->keyCode));
