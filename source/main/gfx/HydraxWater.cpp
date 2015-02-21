@@ -129,12 +129,12 @@ void HydraxWater::update()
 	{
 		Ogre::Vector3 sunPosition = gEnv->mainCamera->getDerivedPosition();
 		sunPosition -= gEnv->sky->getCaelumSys()->getSun()->getLightDirection() * 80000;
-		mHydrax->setSunPosition(sunPosition);
+		setSunPosition(sunPosition);
 		mHydrax->setSunColor(Ogre::Vector3(gEnv->sky->getCaelumSys()->getSun()->getBodyColour().r, gEnv->sky->getCaelumSys()->getSun()->getBodyColour().g, gEnv->sky->getCaelumSys()->getSun()->getBodyColour().b));
 	}
 	else if (!gEnv->SkyX)
 	{
-		mHydrax->setSunPosition(gEnv->sceneManager->getLight("MainLight")->getPosition());
+		setSunPosition(gEnv->sceneManager->getLight("MainLight")->getPosition());
 	}
 }
 

@@ -251,6 +251,18 @@ void TerrainManager::loadTerrain(String filename)
 
 	collisions->finishLoadingTerrain();
 	LOG(" ===== TERRAIN LOADING DONE " + filename);
+
+	if (use_skyx)
+	{
+		TerrainGroup::TerrainIterator ti = geometry_manager->getTerrainGroup()->getTerrainIterator();
+		while (ti.hasMoreElements())
+		{
+			Terrain* t = ti.getNext()->instance;
+			MaterialPtr ptr = t->getMaterial();
+			gEnv->SkyX->GetSkyX()->getGPUManager()->addGroundPass(
+				static_cast<Ogre::MaterialPtr>(ptr)->getTechnique(0)->createPass(), 5000, Ogre::SBT_TRANSPARENT_COLOUR);
+		}
+	}
 }
 
 void TerrainManager::initSubSystems()
