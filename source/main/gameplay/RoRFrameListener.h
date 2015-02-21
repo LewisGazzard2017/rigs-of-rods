@@ -118,6 +118,7 @@ protected:
 	void windowClosed(Ogre::RenderWindow* rw);
 	void windowFocusChange(Ogre::RenderWindow* rw);
 
+	int PreDefineSkyXExemple; //For predefined skyx weathers
 public: // public methods
 
 	bool RTSSgenerateShadersForMaterial(Ogre::String curMaterialName, Ogre::String normalTextureName);

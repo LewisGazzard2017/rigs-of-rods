@@ -857,6 +857,40 @@ bool RoRFrameListener::updateEvents(float dt)
 		
 #endif // USE_CAELUM
 
+		if (SSETTING("Sky effects", "SkyX (best looking, slower)") == "SkyX (best looking, slower)")
+		{
+
+			if (RoR::Application::GetInputEngine()->getEventBoolValue(EV_CAELUM_INCREASE_TIME) && gEnv->terrainManager->getSkyXManager())
+			{
+				gEnv->terrainManager->getSkyXManager()->GetSkyX()->setTimeMultiplier(1.0f);
+			}
+			else if (RoR::Application::GetInputEngine()->getEventBoolValue(EV_CAELUM_INCREASE_TIME_FAST) && gEnv->terrainManager->getSkyXManager())
+			{
+				gEnv->terrainManager->getSkyXManager()->GetSkyX()->setTimeMultiplier(2.0f);
+			}
+			else if (RoR::Application::GetInputEngine()->getEventBoolValue(EV_CAELUM_DECREASE_TIME) && gEnv->terrainManager->getSkyXManager())
+			{
+				gEnv->terrainManager->getSkyXManager()->GetSkyX()->setTimeMultiplier(-1.0f);
+			}
+			else if (RoR::Application::GetInputEngine()->getEventBoolValue(EV_CAELUM_DECREASE_TIME_FAST) && gEnv->terrainManager->getSkyXManager())
+			{
+				gEnv->terrainManager->getSkyXManager()->GetSkyX()->setTimeMultiplier(-2.0f);
+			}
+			else if (RoR::Application::GetInputEngine()->getEventBoolValue(EV_COMMON_SECURE_LOAD /* temp */) && gEnv->terrainManager->getSkyXManager())
+			{
+				if (PreDefineSkyXExemple > 5)
+					PreDefineSkyXExemple = -1; //-1: back to default
+				
+				//Should make this into a GUI Window, to select SkyX Weather
+				gEnv->terrainManager->getSkyXManager()->setPreDefinedPreset(PreDefineSkyXExemple);
+				PreDefineSkyXExemple++;
+			}
+			else
+			{
+				gEnv->terrainManager->getSkyXManager()->GetSkyX()->setTimeMultiplier(0.01f);
+			}
+		}
+
 		if (RoR::Application::GetInputEngine()->getEventBoolValueBounce(EV_COMMON_TOGGLE_RENDER_MODE, 0.5f))
 		{
 			static int mSceneDetailIndex;
@@ -1365,7 +1399,10 @@ bool RoRFrameListener::frameStarted(const FrameEvent& evt)
 		if (sky && (gEnv->frameListener->loading_state == TERRAIN_LOADED || gEnv->frameListener->loading_state == ALL_LOADED))
 			sky->detectUpdate();
 #endif
-		
+		SkyXManager *SkyX = gEnv->terrainManager->getSkyXManager();
+		if (SkyX && (gEnv->frameListener->loading_state == TERRAIN_LOADED || gEnv->frameListener->loading_state == ALL_LOADED))
+			SkyX->update(dt); //Light update
+
 		gEnv->terrainManager->update(dt);
 	}
 

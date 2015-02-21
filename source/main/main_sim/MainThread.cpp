@@ -648,6 +648,9 @@ bool MainThread::SetupGameplayLoop(bool enable_network, Ogre::String preselected
 		if (SSETTING("Sky effects", "Caelum (best looking, slower)") == "Caelum (best looking, slower)")
 			RoR::Application::GetContentManager()->AddResourcePack(ContentManager::ResourcePack::CAELUM);
 
+		if (SSETTING("Sky effects", "SkyX (best looking, slower)") == "SkyX (best looking, slower)")
+			RoR::Application::GetContentManager()->AddResourcePack(ContentManager::ResourcePack::SKYX);
+
 		if (SSETTING("Vegetation", "None (fastest)") != "None (fastest)")
 			RoR::Application::GetContentManager()->AddResourcePack(ContentManager::ResourcePack::PAGED);
 

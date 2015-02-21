@@ -75,8 +75,10 @@ TerrainManager::TerrainManager() :
 	, use_caelum(false)
 	, version(1)
 	, water_line(0.0f)
+	, use_skyx(false)
 {
 	use_caelum = SSETTING("Sky effects", "Caelum (best looking, slower)") == "Caelum (best looking, slower)";
+	use_skyx = SSETTING("Sky effects", "SkyX (best looking, slower)") == "SkyX (best looking, slower)";
 }
 
 TerrainManager::~TerrainManager()
@@ -369,6 +371,11 @@ void TerrainManager::initSkySubSystem()
 
 	} else
 #endif //USE_CAELUM
+	if (use_skyx)
+	{
+		SkyX_manager = new SkyXManager();
+		gEnv->SkyX = SkyX_manager;
+	} else
 	{
 		String sandStormConfig = m_terrain_config.getSetting("SandStormCubeMap", "General");
 
@@ -391,7 +398,12 @@ void TerrainManager::initLight()
 #ifdef USE_CAELUM
 		main_light = sky_manager->getMainLight();
 #endif
-	} else
+	} 
+	else if (use_skyx)
+	{
+		main_light = SkyX_manager->getMainLight();
+	}
+	else
 	{
 		// screw caelum, we will roll our own light
 

@@ -78,7 +78,7 @@ public:
 		static const ResourcePack SUNBURN;
 		static const ResourcePack TEXTURES;
 		static const ResourcePack RIG_EDITOR;
-
+		static const ResourcePack SKYX;
 
 		Ogre::uint64 mask;
 		const char * name;

@@ -53,6 +53,7 @@ public:
 	Network *network;
 	RoRFrameListener *frameListener;
 	SkyManager *sky;
+	SkyXManager *SkyX;
 	TerrainManager *terrainManager;
 	ThreadPool *threadPool;
 

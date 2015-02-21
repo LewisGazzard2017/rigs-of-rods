@@ -158,6 +158,7 @@ class Screwprop;
 class Skidmark;
 class Skin;
 class SkyManager;
+class SkyXManager;
 class SlideNode;
 class ShadowManager;
 class SoundManager;

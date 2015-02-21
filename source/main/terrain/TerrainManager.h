@@ -23,6 +23,8 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 #include "ConfigFile.h"
 #include "IManager.h"
 #include "RoRFrameListener.h"
+#include "SkyXManager.h"
+#include "HydraxWater.h"
 
 class TerrainManager : public IManager
 {
@@ -58,6 +60,8 @@ public:
 	Ogre::Light *getMainLight() { return main_light; };
 	Ogre::Vector3 getSpawnPos() { return start_position; };
 
+	HydraxWater *getHydraxManager() { return hw; }
+
 	SkyManager *getSkyManager() 
 	{ 
 		if (gEnv->frameListener->loading_state == TERRAIN_LOADED || gEnv->frameListener->loading_state == ALL_LOADED)
@@ -65,6 +69,8 @@ public:
 		else
 			return nullptr;
 	};
+
+	SkyXManager *getSkyXManager() { return SkyX_manager; };
 
 	TerrainGeometryManager *getGeometryManager() { return geometry_manager; };
 	TerrainObjectManager *getObjectManager() { return object_manager; };
@@ -95,6 +101,7 @@ protected:
 	TerrainObjectManager *object_manager;
 	IWater *water;
 	HydraxWater *hw;
+	SkyXManager *SkyX_manager;
 
 	// properties
 	Ogre::ColourValue ambient_color;
@@ -107,6 +114,7 @@ protected:
 	Ogre::Vector3 start_position;
 	std::vector<authorinfo_t> authors;
 	bool use_caelum;
+	bool use_skyx;
 	float gravity;
 	float paged_detail_factor;
 	float water_line;
