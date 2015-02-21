@@ -183,6 +183,7 @@ bool SkyXManager::update(float dt)
 bool SkyXManager::UpdateSkyLight()
 {
 	Ogre::Vector3 lightDir = -getMainLightDirection();
+	Ogre::Vector3 sunPos = gEnv->mainCamera->getDerivedPosition() - lightDir*mSkyX->getMeshManager()->getSkydomeRadius(gEnv->mainCamera);
 
 	// Calculate current color gradients point
 	float point = (-lightDir.y + 1.0f) / 2.0f;
@@ -193,17 +194,31 @@ bool SkyXManager::UpdateSkyLight()
 	mLight0 = gEnv->sceneManager->getLight("Light0");
 	mLight1 = gEnv->sceneManager->getLight("Light1");
 
-	mLight0->setPosition(gEnv->mainCamera->getDerivedPosition() - lightDir*mSkyX->getMeshManager()->getSkydomeRadius(gEnv->mainCamera)*0.1);
+	mLight0->setPosition(sunPos*0.02);
 	mLight1->setDirection(lightDir);
-	gEnv->terrainManager->getWater()->setSunPosition(gEnv->mainCamera->getDerivedPosition() - lightDir*mSkyX->getMeshManager()->getSkydomeRadius(gEnv->mainCamera)*0.02);
+	if (gEnv->terrainManager->getWater()) gEnv->terrainManager->getWater()->setSunPosition(sunPos*0.1);
 
 	Ogre::Vector3 sunCol = mSunGradient.getColor(point);
 	mLight0->setSpecularColour(sunCol.x, sunCol.y, sunCol.z);
-	gEnv->terrainManager->getWater()->setFadeColour(Ogre::ColourValue(sunCol.x, sunCol.y, sunCol.z));
+	if (gEnv->terrainManager->getWater()) gEnv->terrainManager->getWater()->setFadeColour(Ogre::ColourValue(sunCol.x, sunCol.y, sunCol.z));
 
 	Ogre::Vector3 ambientCol = mAmbientGradient.getColor(point);
 	mLight1->setDiffuseColour(ambientCol.x, ambientCol.y, ambientCol.z);
 	mLight1->setPosition(100,100,100);
+
+	if (mBasicController->getTime().x > 12)
+	{
+		if (mBasicController->getTime().x > mBasicController->getTime().z)
+			mLight0->setVisible(false);
+		else
+			mLight0->setVisible(true);
+	} else
+	if (mBasicController->getTime().x < mBasicController->getTime().z)
+		mLight0->setVisible(false);
+	else
+		mLight0->setVisible(true);
+
+
 	return true;
 }
 
