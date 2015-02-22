@@ -876,15 +876,6 @@ bool RoRFrameListener::updateEvents(float dt)
 			{
 				gEnv->terrainManager->getSkyXManager()->GetSkyX()->setTimeMultiplier(-2.0f);
 			}
-			else if (RoR::Application::GetInputEngine()->getEventBoolValue(EV_COMMON_SECURE_LOAD /* temp */) && gEnv->terrainManager->getSkyXManager())
-			{
-				if (PreDefineSkyXExemple > 5)
-					PreDefineSkyXExemple = -1; //-1: back to default
-				
-				//Should make this into a GUI Window, to select SkyX Weather
-				gEnv->terrainManager->getSkyXManager()->setPreDefinedPreset(PreDefineSkyXExemple);
-				PreDefineSkyXExemple++;
-			}
 			else
 			{
 				gEnv->terrainManager->getSkyXManager()->GetSkyX()->setTimeMultiplier(0.01f);

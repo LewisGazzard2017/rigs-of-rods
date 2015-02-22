@@ -41,6 +41,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include "VClouds/FastFakeRandom.h"
 #include "VClouds/Ellipsoid.h"
 #include "VClouds/DataManager.h"
+#include "SCfgFileManager.h"
 
 namespace SkyX
 {
@@ -343,6 +344,16 @@ namespace SkyX
 			return mTimeOffset;
 		}
 
+		inline CfgFileManager* getCfgFileManager()
+		{
+			return mCfgFileManager;
+		}
+
+		inline const bool loadCfg(const Ogre::String &File) const
+		{
+			return mCfgFileManager->load(File);
+		}
+
 	private:
 		/// Is SkyX created?
 		bool mCreated;
@@ -390,6 +401,8 @@ namespace SkyX
 		Ogre::Real mTimeMultiplier;
 		/// Time offset
 		Ogre::Real mTimeOffset;
+
+		CfgFileManager *mCfgFileManager;
 	};
 }
 

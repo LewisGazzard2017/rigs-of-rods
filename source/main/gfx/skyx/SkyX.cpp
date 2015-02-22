@@ -64,6 +64,9 @@ namespace SkyX
 		delete mCloudsManager;
 		delete mVCloudsManager;
 
+		if (mCfgFileManager)
+			delete mCfgFileManager;
+
 		if (mController->getDeleteBySkyX())
 		{
 			delete mController;

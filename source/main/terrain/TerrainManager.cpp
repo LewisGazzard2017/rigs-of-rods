@@ -385,7 +385,14 @@ void TerrainManager::initSkySubSystem()
 #endif //USE_CAELUM
 	if (use_skyx)
 	{
-		SkyX_manager = new SkyXManager();
+		// try to load caelum config
+		String skyxConfig = m_terrain_config.getSetting("SkyXConfigFile", "General");
+
+		if (!skyxConfig.empty() && ResourceGroupManager::getSingleton().resourceExistsInAnyGroup(skyxConfig))
+			SkyX_manager = new SkyXManager(skyxConfig);
+		else
+			SkyX_manager = new SkyXManager("SkyXDefault.skx");
+
 		gEnv->SkyX = SkyX_manager;
 	} else
 	{
