@@ -79,7 +79,7 @@ namespace SkyX
 			if (mSkyX->getCloudsManager()->getCloudLayers().empty())
 			{
 				mSkyX->getCloudsManager()->add(CloudLayer::Options(
-					_getFloatValue(CfgFile, "Height"),
+					_getFloatValue(CfgFile, "lHeight"),
 					_getFloatValue(CfgFile, "Scale"),
 					_getVector2Value(CfgFile, "WindDirection"),
 					_getFloatValue(CfgFile, "TimeMultiplier"),
@@ -94,6 +94,7 @@ namespace SkyX
 		{
 			mSkyX->getVCloudsManager()->setWindSpeed(_getFloatValue(CfgFile, "WindSpeed"));
 			mSkyX->getVCloudsManager()->setAutoupdate(_getBoolValue(CfgFile, "AutoUpdate"));
+			mSkyX->getVCloudsManager()->setHeight(_getVector2Value(CfgFile, "vHeight"));
 
 			VClouds::VClouds* vclouds = mSkyX->getVCloudsManager()->getVClouds();
 
@@ -102,7 +103,7 @@ namespace SkyX
 			vclouds->setAmbientColor(_getVector3Value(CfgFile, "AmbientColor"));
 			vclouds->setLightResponse(_getVector4Value(CfgFile, "LightResponse"));
 			vclouds->setAmbientFactors(_getVector4Value(CfgFile, "AmbientFactors"));
-			vclouds->setWheater(_getVector2Value(CfgFile, "Wheater").x, _getVector2Value(CfgFile, "Wheater").y, _getBoolValue(CfgFile, "AutoUpdate"));
+			vclouds->setWheater(_getVector2Value(CfgFile, "Wheater").x, _getVector2Value(CfgFile, "Wheater").y, _getBoolValue(CfgFile, "DelayedResponse"));
 
 			// Create VClouds
 			if (!mSkyX->getVCloudsManager()->isCreated())

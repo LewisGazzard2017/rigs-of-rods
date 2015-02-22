@@ -38,8 +38,8 @@ SkyXManager::SkyXManager(Ogre::String configFile)
 	mBasicController = new SkyX::BasicController();
 	mSkyX = new SkyX::SkyX(gEnv->sceneManager, mBasicController);
 
-	SkyX::CfgFileManager *cfg = new SkyX::CfgFileManager(mSkyX, mBasicController, gEnv->mainCamera);
-	cfg->load(configFile);
+	mCfgFileManager = new SkyX::CfgFileManager(mSkyX, mBasicController, gEnv->mainCamera);
+	mCfgFileManager->load(configFile);
 
 	mSkyX->create();
 
