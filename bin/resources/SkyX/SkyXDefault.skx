@@ -40,8 +40,8 @@ SkyXVersion=0.4.0
 <vector3>AmbientColor=0.63x0.63x0.7
 <vector4>LightResponse=0.25x0.2x1.0x0.1
 <vector4>AmbientFactors=0.45x0.3x0.6x1.0
-<vector2>Wheater=0.5x1.0
-<bool>DelayedResponse=true
+<vector2>Wheater=0.1x0.6
+<bool>DelayedResponse=false
 
 #Lightnings 
 <bool>lightnings=false
