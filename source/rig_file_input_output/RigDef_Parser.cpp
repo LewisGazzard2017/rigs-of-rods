@@ -5016,19 +5016,22 @@ void Parser::ParseMeshWheels2(Ogre::String const & line)
 	mesh_wheel_2.node_defaults = m_user_node_defaults;
 	mesh_wheel_2.beam_defaults = m_user_beam_defaults; /* Rim is set-up this way, params in section are for tire. */
 
-	mesh_wheel_2.tyre_radius = STR_PARSE_REAL(results[1]);
-	mesh_wheel_2.rim_radius = STR_PARSE_REAL(results[2]);
-	mesh_wheel_2.width = STR_PARSE_REAL(results[3]);
-	mesh_wheel_2.num_rays = STR_PARSE_INT(results[4]);
-	mesh_wheel_2.nodes[0] = _ParseNodeRef(results[5]);
-	mesh_wheel_2.nodes[1] = _ParseNodeRef(results[6]);
+	mesh_wheel_2.tyre_radius  = STR_PARSE_REAL(results[1]);
+	mesh_wheel_2.rim_radius   = STR_PARSE_REAL(results[2]);
+	mesh_wheel_2.width        = STR_PARSE_REAL(results[3]);
+	mesh_wheel_2.num_rays     = STR_PARSE_INT(results[4]);
+	mesh_wheel_2.nodes[0]     = _ParseNodeRef(results[5]);
+	mesh_wheel_2.nodes[1]     = _ParseNodeRef(results[6]);
 
 	/* Axle rigidity node (9999 = null) */
-	mesh_wheel_2.rigidity_node = _ParseNodeRef(results[7]);
-	if (mesh_wheel_2.rigidity_node.IsValidAnyState() && mesh_wheel_2.rigidity_node.Num() == 9999)
-	{
-		mesh_wheel_2.rigidity_node.Invalidate();
-	}
+    if (results[7] == "9999")
+    {
+        mesh_wheel_2.rigidity_node.Invalidate();
+    }
+    else
+    {
+	    mesh_wheel_2.rigidity_node = _ParseNodeRef(results[7]);
+    }
 
     if (m_sequential_importer.IsEnabled())
     {
