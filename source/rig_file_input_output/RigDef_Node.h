@@ -59,8 +59,9 @@ struct Node
         void SetStr(std::string const & id_str);
 
         // Getters
-        inline std::string const & Str() const { return m_id_str; }
-        inline unsigned int        Num() const { return m_id_num; }
+        inline std::string const & Str() const           { return m_id_str; }
+        inline unsigned int        Num() const           { return m_id_num; }
+        inline unsigned int        GetFlagsRaw() const   { return m_flags; }
 
         // Util
         void Invalidate();
@@ -143,6 +144,8 @@ struct Node
 		_has_load_weight_override(false),
 		detacher_group(0) /* Global detacher group */
 	{}
+
+    Ref CreateRef();
 
 	BITMASK_PROPERTY( options,  1, OPTION_n_MOUSE_GRAB        , HasFlag_n, SetFlag_n)
 	BITMASK_PROPERTY( options,  2, OPTION_m_NO_MOUSE_GRAB     , HasFlag_m, SetFlag_m)
