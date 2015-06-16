@@ -28,6 +28,7 @@
 #include "GUI_RigEditorMenubar.h"
 
 #include "RigEditor_GuiPopupWheelsList.h"
+#include "RigEditor_GuiPopupFlaresList.h"
 
 #include <MyGUI.h>
 
@@ -51,6 +52,12 @@ RigEditorMenubar::RigEditorMenubar(RigEditor::IMain* rig_editor_interface)
 		new RigEditor::GuiPopupWheelsList(
 			rig_editor_interface, m_wheels_popup,
 			m_wheels_popup_item_select_all, m_wheels_popup_item_deselect_all)
+		);
+
+    m_flares_list = std::unique_ptr<RigEditor::GuiPopupFlaresList>(
+		new RigEditor::GuiPopupFlaresList(
+			rig_editor_interface, m_flares_popup,
+			m_flares_popup_item_select_all, m_flares_popup_item_deselect_all)
 		);
 }
 
@@ -78,6 +85,16 @@ void RigEditorMenubar::UpdateLandVehicleWheelsList(std::vector<RigEditor::LandVe
 void RigEditorMenubar::ClearLandVehicleWheelsList()
 {
 	m_wheels_list->ClearWheelsList();
+}
+
+void RigEditorMenubar::UpdateFlaresList(std::vector<RigEditor::Flare*> & list)
+{
+	m_flares_list->UpdateFlaresList(list);
+}
+
+void RigEditorMenubar::ClearFlaresList()
+{
+	m_flares_list->ClearFlaresList();
 }
 
 // ============================================================================

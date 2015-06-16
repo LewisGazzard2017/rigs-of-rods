@@ -914,15 +914,15 @@ struct Flare2
 		TYPE_INVALID         = 0xFFFFFFFF
 	};
 
-	Node::Ref reference_node;
-	Node::Ref node_axis_x;
-    Node::Ref node_axis_y;
-	Ogre::Vector3 offset;
-	Type type;
-	int control_number;
-	int blink_delay_milis;
-	float size;
-	Ogre::String material_name;
+    Node::Ref      reference_node;
+    Node::Ref      node_axis_x;
+    Node::Ref      node_axis_y;
+    Ogre::Vector3  offset;
+    Type           type;
+    int            control_number;
+    int            blink_delay_milis;
+    float          size;
+    Ogre::String   material_name;
 };
 
 /* -------------------------------------------------------------------------- */
