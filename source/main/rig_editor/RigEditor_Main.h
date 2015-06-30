@@ -113,10 +113,18 @@ public:
 	virtual void CommandSetAllWheelsHovered          (bool state_selected);
 
     // Flare list
+    virtual void CommandShowFlaresList();
 	virtual void CommandScheduleSetFlareSelected (Flare* flare_ptr, int flare_index, bool state_selected);
 	virtual void CommandSetFlareHovered          (Flare* flare_ptr, int flare_index, bool state_hovered);
 	virtual void CommandScheduleSetAllFlaresSelected (bool state_selected);
 	virtual void CommandSetAllFlaresHovered          (bool state_selected);
+
+    // Interface getters
+    virtual RigEditor::Node*      GetCurrentRigLastSelectedNode();
+
+    // Interface factories
+    virtual PointListDynamicMesh*    CreateInstanceOfPointListDynamicMesh(float point_size, size_t estimate_point_count);
+    virtual LineListDynamicMesh*     CreateInstanceOfLineListDynamicMesh(size_t estimate_line_count);
 
 	// GUI callbacks
 	void NotifyFileSelectorEnded(RoR::GUI::Dialog* dialog, bool result);
@@ -176,7 +184,6 @@ private:
     unsigned int         m_state_flags;
 
 	// GUI
-	MyGUI::TextBox*                                             m_debug_box;
 	std::unique_ptr<GUI::RigEditorMenubar>                      m_gui_menubar;
 	std::unique_ptr<GUI::OpenSaveFileDialog>                    m_gui_open_save_file_dialog;
 	std::unique_ptr<GUI::RigEditorDeleteMenu>                   m_gui_delete_menu;
@@ -185,8 +192,10 @@ private:
 	std::unique_ptr<GUI::RigEditorBeamsPanel>                   m_beams_panel;
 	std::unique_ptr<GUI::RigEditorHydrosPanel>                  m_hydros_panel;
 	std::unique_ptr<GUI::RigEditorShocksPanel>                  m_shocks_panel;
+    std::unique_ptr<GUI::RigEditorFlaresPanel>                  m_flares_panel;
 	std::unique_ptr<GUI::RigEditorShocks2Panel>                 m_shocks2_panel;
 	std::unique_ptr<GUI::RigEditorCommands2Panel>               m_commands2_panel;
+    std::unique_ptr<GUI::RigEditorFlaresListPanel>              m_flares_list_panel;
     std::unique_ptr<GUI::RigEditorMeshWheels2Panel>             m_meshwheels2_panel;
     std::unique_ptr<GUI::RigEditorFlexBodyWheelsPanel>          m_flexbodywheels_panel;
     std::unique_ptr<GUI::RigEditorRigPropertiesWindow>          m_gui_rig_properties_window;

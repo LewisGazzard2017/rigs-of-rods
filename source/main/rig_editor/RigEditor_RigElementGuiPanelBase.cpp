@@ -434,25 +434,3 @@ void RigElementGuiPanelBase::ComboboxCommitValue(GenericFieldSpec* spec)
 		*spec->GetSourceString() = combox->getCaption(); // Save value
 	}
 }
-
-// ----------------------------------------------------------------------------
-// Other
-// ----------------------------------------------------------------------------
-
-void RigElementGuiPanelBase::AlignToScreen(RigEditor::GuiPanelPositionData* position_data)
-{
-	MyGUI::IntSize screenSize = m_panel_widget->getParentSize();
-	int x = position_data->margin_left_px; // Anchor: left
-	int y = position_data->margin_top_px; // Anchor: top
-	if (position_data->anchor_right)
-	{
-		x = screenSize.width - GetWidthPixels() - position_data->margin_right_px;
-	}
-	if (position_data->anchor_bottom)
-	{
-		y = screenSize.height - GetHeightPixels() - position_data->margin_bottom_px;
-	}
-	SetPosition(x, y);
-}
-
-

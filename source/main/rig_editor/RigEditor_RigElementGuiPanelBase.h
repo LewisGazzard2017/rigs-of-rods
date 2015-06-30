@@ -213,9 +213,6 @@ protected:
     void ComboboxRestoreValue(GenericFieldSpec* spec);
     void ComboboxCommitValue(GenericFieldSpec* spec);
 
-	// GUI panel utility
-	void AlignToScreen(RigEditor::GuiPanelPositionData* position_data);
-
 	RigEditor::IMain* m_rig_editor_interface;
     unsigned int m_flags;
 

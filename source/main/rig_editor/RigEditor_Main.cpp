@@ -33,6 +33,8 @@
 #include "GUI_RigEditorBeamsPanel.h"
 #include "GUI_RigEditorCommands2Panel.h"
 #include "GUI_RigEditorDeleteMenu.h"
+#include "GUI_RigEditorFlaresListPanel.h"
+#include "GUI_RigEditorFlaresPanel.h"
 #include "GUI_RigEditorFlexBodyWheelsPanel.h"
 #include "GUI_RigEditorHelpWindow.h"
 #include "GUI_RigEditorHydrosPanel.h"
@@ -53,7 +55,9 @@
 #include "RigEditor_CameraHandler.h"
 #include "RigEditor_Config.h"
 #include "RigEditor_InputHandler.h"
+#include "RigEditor_LineListDynamicMesh.h"
 #include "RigEditor_Node.h"
+#include "RigEditor_PointListDynamicMesh.h"
 #include "RigEditor_Rig.h"
 #include "RigEditor_RigProperties.h"
 #include "RigEditor_RigElementsAggregateData.h"
@@ -83,7 +87,6 @@ Main::Main(Config* config):
 	m_rig_entity(nullptr),
 	m_exit_loop_requested(false),
 	m_input_handler(nullptr),
-	m_debug_box(nullptr),
 	m_rig(nullptr),
     m_state_flags(0)
 {
@@ -109,12 +112,6 @@ Main::Main(Config* config):
 	m_camera_handler->SetOrthoZoomRatio(config->ortho_camera_zoom_ratio);
 	m_camera->setPosition(Ogre::Vector3(10,5,10));
 
-	/* Debug output box */
-	m_debug_box = MyGUI::Gui::getInstance().createWidget<MyGUI::TextBox>
-		("TextBox", 10, 30, 400, 100, MyGUI::Align::Top, "Main", "rig_editor_quick_debug_text_box");
-	m_debug_box->setCaption("Hello\nRigEditor!");
-	m_debug_box->setTextColour(MyGUI::Colour(0.8, 0.8, 0.8));
-	m_debug_box->setFontName("DefaultBig");
 }
 
 Main::~Main()
@@ -146,9 +143,6 @@ void Main::EnterMainLoop()
 	RoR::Application::GetInputEngine()->SetKeyboardListener(m_input_handler);
 	RoR::Application::GetInputEngine()->SetMouseListener(m_input_handler);
 
-	/* Show debug box */
-	m_debug_box->setVisible(true);
-
 	while (! m_exit_loop_requested)
 	{
 		UpdateMainLoop();
@@ -176,18 +170,17 @@ void Main::EnterMainLoop()
 		m_gui_open_save_file_dialog->endModal(); // Hides the dialog
 	}
 	m_gui_delete_menu->Hide();
-	// Supress node/beam panels (if visible)
-	m_nodes_panel    ->HideTemporarily();
-	m_beams_panel    ->HideTemporarily();
-	m_hydros_panel   ->HideTemporarily();
-	m_commands2_panel->HideTemporarily();
-	m_shocks_panel   ->HideTemporarily();
-	m_shocks2_panel  ->HideTemporarily();
+
+	// Supress panels (if visible)
+	m_nodes_panel           ->HideTemporarily();
+	m_beams_panel           ->HideTemporarily();
+	m_hydros_panel          ->HideTemporarily();
+	m_commands2_panel       ->HideTemporarily();
+	m_shocks_panel          ->HideTemporarily();
+	m_shocks2_panel         ->HideTemporarily();
     m_meshwheels2_panel     ->HideTemporarily();
     m_flexbodywheels_panel  ->HideTemporarily();
-
-	/* Hide debug box */
-	m_debug_box->setVisible(false);
+    m_flares_list_panel     ->HideTemporarily();
 
 	m_exit_loop_requested = false;
 }
@@ -254,10 +247,10 @@ void Main::UpdateMainLoop()
 		}
 	}
 
-	// RIG MANIPULATION \\
+	// RIG MANIPULATION
 
-	if (m_rig != nullptr)
-	{
+    if (m_rig != nullptr)
+    {
 		bool node_selection_changed = false;
 		bool node_hover_changed = false;
 		bool node_mouse_selecting_disabled = m_gui_delete_menu->IsVisible();// || m_gui_rig_properties_window->IsVisible();
@@ -576,6 +569,18 @@ void Main::UpdateMainLoop()
             }
         }
 
+        if (m_flares_panel->GetFlaresData()->IsAnythingUpdated())
+        {
+            bool visuals_dirty = m_rig->UpdateSelectedFlaresData(m_flares_panel->GetFlaresData());
+            if (visuals_dirty)
+            {
+                this->m_rig->RefreshFlaresDynamicMesh(this->m_scene_manager->getRootSceneNode(), this);
+            }
+            RigAggregateFlaresData query;
+            m_rig->QuerySelectedFlaresData(&query);
+            m_flares_panel->UpdateFlaresData(&query);
+        }
+
 		// ==== Update visuals ====
         Ogre::SceneNode* parent_scene_node = m_scene_manager->getRootSceneNode();
 		if (rig_updated || node_selection_changed || node_hover_changed)
@@ -594,21 +599,9 @@ void Main::UpdateMainLoop()
         }
         m_rig->CheckAndRefreshWheelsSelectionHighlights(this, parent_scene_node, force_refresh_wheel_selection_boxes);
 	    m_rig->CheckAndRefreshWheelsMouseHoverHighlights(this, parent_scene_node);
-	}
-
-	/* Update devel console */
-	std::stringstream msg;
-	msg << "Camera pos: [X "<<m_camera->getPosition().x <<", Y "<<m_camera->getPosition().y << ", Z "<<m_camera->getPosition().z <<"] "<<std::endl;
-	msg << "Mouse node: ";
-	if (m_rig != nullptr && m_rig->GetMouseHoveredNode() != nullptr)
-	{
-		msg << m_rig->GetMouseHoveredNode()->GetId().ToString() << std::endl;
-	}
-	else
-	{
-		msg << "[null]"<< std::endl;
-	}
-	m_debug_box->setCaption(msg.str());
+        m_rig->CheckAndRefreshFlaresSelectionHighlights(this, parent_scene_node, false);
+        m_rig->CheckAndRefreshFlaresMouseHoverHighlights(this, parent_scene_node);
+    }
 }
 
 void Main::CommandShowDialogOpenRigFile()
@@ -628,6 +621,15 @@ void Main::CommandShowDialogSaveRigFileAs()
 		m_gui_open_save_file_dialog->setMode(OpenSaveFileDialogMode::MODE_SAVE_TRUCK_AS);
 		m_gui_open_save_file_dialog->doModal(); // Shows the dialog
 	}
+}
+
+PointListDynamicMesh*    Main::CreateInstanceOfPointListDynamicMesh(float point_size, size_t estimate_point_count)
+{
+    return new PointListDynamicMesh(this, point_size, estimate_point_count);
+}
+LineListDynamicMesh*     Main::CreateInstanceOfLineListDynamicMesh(size_t estimate_line_count)
+{
+    return new LineListDynamicMesh(this, estimate_line_count);
 }
 
 void Main::CommandSaveRigFile()
@@ -847,8 +849,17 @@ void Main::OnNewRigCreatedOrLoaded(Ogre::SceneNode* parent_scene_node)
 	m_gui_menubar->ClearLandVehicleWheelsList();
 	m_gui_menubar->UpdateLandVehicleWheelsList(m_rig->GetWheels());
 
-    m_gui_menubar->ClearFlaresList();
-	m_gui_menubar->UpdateFlaresList(m_rig->GetFlares());
+    m_flares_list_panel->ClearFlaresList();
+    m_flares_list_panel->UpdateFlaresList(m_rig->GetFlares());
+}
+
+RigEditor::Node* Main::GetCurrentRigLastSelectedNode()
+{
+    if (m_rig != nullptr)
+    {
+        return m_rig->GetLastSelectedNode();
+    }
+    return nullptr;
 }
 
 void Main::CommandCurrentRigDeleteSelectedNodes()
@@ -945,6 +956,7 @@ void Main::InitializeOrRestoreGui()
 	INIT_OR_RESTORE_RIG_ELEMENT_PANEL( m_hydros_panel,           RigEditorHydrosPanel);
 	INIT_OR_RESTORE_RIG_ELEMENT_PANEL( m_commands2_panel,        RigEditorCommands2Panel);
 	INIT_OR_RESTORE_RIG_ELEMENT_PANEL( m_shocks_panel,           RigEditorShocksPanel);
+    INIT_OR_RESTORE_RIG_ELEMENT_PANEL( m_flares_panel,           RigEditorFlaresPanel);
 	INIT_OR_RESTORE_RIG_ELEMENT_PANEL( m_shocks2_panel,          RigEditorShocks2Panel);
     INIT_OR_RESTORE_RIG_ELEMENT_PANEL( m_meshwheels2_panel,      RigEditorMeshWheels2Panel);
     INIT_OR_RESTORE_RIG_ELEMENT_PANEL( m_flexbodywheels_panel,   RigEditorFlexBodyWheelsPanel);
@@ -980,6 +992,11 @@ void Main::InitializeOrRestoreGui()
 	if (m_gui_help_window.get() == nullptr)
 	{
 		m_gui_help_window = std::unique_ptr<GUI::RigEditorHelpWindow>(new GUI::RigEditorHelpWindow(this));
+	}
+    if (m_flares_list_panel.get() == nullptr)
+	{
+		m_flares_list_panel = std::unique_ptr<GUI::RigEditorFlaresListPanel>(new GUI::RigEditorFlaresListPanel(this, m_config));
+        m_flares_list_panel->StretchToScreen(&m_config->gui_flares_list_panel_position, false, true);
 	}
 }
 
@@ -1024,6 +1041,12 @@ void Main::CommandRigSelectedCommands2UpdateAttributes(const RigAggregateCommand
 }
 
 // ====================== Flares list =============================
+
+void Main::CommandShowFlaresList()
+{
+    assert(m_flares_list_panel != nullptr);
+    m_flares_list_panel->Show();
+}
 
 void Main::CommandScheduleSetFlareSelected(Flare* flare_ptr, int flare_index, bool state_selected)
 {

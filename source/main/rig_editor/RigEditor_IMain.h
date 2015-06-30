@@ -78,11 +78,20 @@ public:
 	virtual void CommandSetAllWheelsHovered          (bool state_selected) = 0;
 	
     // Flares list
+    virtual void CommandShowFlaresList() = 0;
 	virtual void CommandScheduleSetFlareSelected (Flare* flare_ptr, int flare_index, bool state_selected) = 0;
 	virtual void CommandSetFlareHovered          (Flare* flare_ptr, int flare_index, bool state_hovered) = 0;
 	virtual void CommandScheduleSetAllFlaresSelected(bool state_selected) = 0;
 	virtual void CommandSetAllFlaresHovered         (bool state_selected) = 0;
-	
+
+    // GETTERS
+
+    virtual RigEditor::Node*      GetCurrentRigLastSelectedNode() = 0;
+
+    // FACTORIES
+
+    virtual PointListDynamicMesh*    CreateInstanceOfPointListDynamicMesh(float point_size, size_t estimate_point_count) = 0;
+    virtual LineListDynamicMesh*     CreateInstanceOfLineListDynamicMesh(size_t estimate_line_count) = 0;
 };
 
 } // namespace RigEditor

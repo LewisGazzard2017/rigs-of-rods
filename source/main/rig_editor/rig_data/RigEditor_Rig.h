@@ -107,9 +107,14 @@ public:
 
 	void RefreshAllNodesScreenPositions(CameraHandler* camera_handler);
 
-	Node* GetMouseHoveredNode() const
+	inline Node* GetMouseHoveredNode() const
 	{
 		return m_mouse_hovered_node;
+	}
+
+    inline Node* GetLastSelectedNode() const
+	{
+		return m_last_selected_node;
 	}
 
 	void AttachToScene(Ogre::SceneNode* parent_scene_node);
@@ -139,8 +144,6 @@ public:
 	int DeleteAttachedBeams(Node* node);
 
 	void DeleteSelectedNodes();
-
-	bool DeleteNode(Node* node);
 
 	bool DeleteBeam(Beam* beam);
 
@@ -276,6 +279,7 @@ private:
 
 	/* STATE */
 	Node*                m_mouse_hovered_node;
+    Node*                m_last_selected_node;
 	std::list<Beam*>     m_selected_beams;
 
 	/* VISUALS */

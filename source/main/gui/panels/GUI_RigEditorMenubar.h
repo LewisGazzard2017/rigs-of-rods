@@ -28,7 +28,6 @@
 */
 
 #include "ForwardDeclarations.h"
-#include "RigEditor_GuiPopupWheelsList.h"
 #include "GUI_RigEditorMenubarLayout.h"
 #include "RigEditor_ForwardDeclarations.h"
 #include "RigEditor_GuiPopupWheelsList.h"
@@ -59,10 +58,9 @@ public:
 	void UpdateLandVehicleWheelsList(std::vector<RigEditor::LandVehicleWheel*> & list);
 	void ClearLandVehicleWheelsList();
 
-    void UpdateFlaresList(std::vector<RigEditor::Flare*> & list);
-	void ClearFlaresList();
-
 private:
+
+    inline RigEditor::GuiPopupWheelsList* GetWheelsList() { return m_wheels_list.get(); }
 
 	/* Event handlers */
 
@@ -82,14 +80,13 @@ private:
 
 	void MenubarItemHelpClicked(MyGUI::Widget* sender);
 
-	inline RigEditor::GuiPopupWheelsList* GetWheelsList() { return m_wheels_list.get(); }
+    void FlaresListItemClicked(MyGUI::Widget* sender);
 
 private:
 
 	RigEditor::IMain*      m_rig_editor_interface;
 
 	std::unique_ptr<RigEditor::GuiPopupWheelsList> m_wheels_list;
-    std::unique_ptr<RigEditor::GuiPopupFlaresList> m_flares_list;
 
 };
 

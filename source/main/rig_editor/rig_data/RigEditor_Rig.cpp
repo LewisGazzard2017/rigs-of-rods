@@ -87,6 +87,7 @@ Ogre::String RigBuildingReport::ToString() const
 
 Rig::Rig(Config* config):
 	m_mouse_hovered_node(nullptr),
+    m_last_selected_node(nullptr),
 	m_aabb(Ogre::AxisAlignedBox::BOX_NULL),
 	m_config(config),
 	m_modified(false)
@@ -933,7 +934,16 @@ bool Rig::ToggleMouseHoveredNodeSelected()
 	{
 		return false;
 	}
-	m_mouse_hovered_node->SetSelected(! m_mouse_hovered_node->IsSelected());
+    bool target_state = ! m_mouse_hovered_node->IsSelected();
+	m_mouse_hovered_node->SetSelected(target_state);
+    if (target_state == true)
+    {
+        m_last_selected_node = m_mouse_hovered_node;
+    }
+    else
+    {
+        m_last_selected_node = nullptr;
+    }
 	return true;
 }
 
@@ -957,6 +967,11 @@ void Rig::ClearMouseHoveredNode()
 }
 
 void Rig::RefreshWheelsDynamicMesh(Ogre::SceneNode* parent_scene_node, RigEditor::Main* rig_editor)
+{
+	m_wheel_visuals->RefreshWheelsDynamicMeshes(parent_scene_node, rig_editor, m_wheels);
+}
+
+void Rig::RefreshFlaresDynamicMesh(Ogre::SceneNode* parent_scene_node, RigEditor::Main* rig_editor)
 {
 	m_wheel_visuals->RefreshWheelsDynamicMeshes(parent_scene_node, rig_editor, m_wheels);
 }
@@ -1117,27 +1132,9 @@ void Rig::DeleteSelectedNodes()
 			{
 				m_mouse_hovered_node = nullptr;
 			}
-			itor = m_nodes.erase(itor); // Erase the node, advance iterator
-		}
-		else
-		{
-			++itor; // Just advance iterator
-		}
-	}
-}
-
-bool Rig::DeleteNode(Node* node_to_delete)
-{
-	// Search & destroy!
-	for (auto itor = m_nodes.begin(); itor != m_nodes.end(); ++itor)
-	{
-		Node* node = &itor->second;
-		if (node->IsSelected())
-		{
-			DeleteAttachedBeams(node);
-			if (m_mouse_hovered_node == node)
+            if (m_last_selected_node == node)
 			{
-				m_mouse_hovered_node = nullptr;
+				m_last_selected_node = nullptr;
 			}
 			itor = m_nodes.erase(itor); // Erase the node, advance iterator
 		}
@@ -1146,7 +1143,6 @@ bool Rig::DeleteNode(Node* node_to_delete)
 			++itor; // Just advance iterator
 		}
 	}
-	return false; // Node not found
 }
 
 void Rig::ExtrudeSelectedNodes()

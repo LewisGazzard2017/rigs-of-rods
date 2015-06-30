@@ -28,7 +28,6 @@
 #include "GUI_RigEditorMenubar.h"
 
 #include "RigEditor_GuiPopupWheelsList.h"
-#include "RigEditor_GuiPopupFlaresList.h"
 
 #include <MyGUI.h>
 
@@ -37,28 +36,25 @@ using namespace GUI;
 
 RigEditorMenubar::RigEditorMenubar(RigEditor::IMain* rig_editor_interface)
 {
-	m_rig_editor_interface = rig_editor_interface;
+    m_rig_editor_interface = rig_editor_interface;
 
-	m_file_popup_item_open           ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::OpenFileItemClicked);
-	m_file_popup_item_close          ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::CloseRigItemClicked);
-	m_file_popup_item_quit           ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::QuitEditorItemClicked);
-	m_file_popup_item_properties     ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::RigPropertiesItemClicked);
-	m_file_popup_item_land_properties->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::LandVehiclePropertiesItemClicked);
-	m_file_popup_item_save_as        ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::SaveFileAsItemClicked);
-    m_file_popup_item_create_empty   ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::CreateEmptyRigItemClicked);
-	m_menubar_item_help              ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::MenubarItemHelpClicked);
+    m_file_popup_item_open              ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::OpenFileItemClicked);
+    m_file_popup_item_close             ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::CloseRigItemClicked);
+    m_file_popup_item_quit              ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::QuitEditorItemClicked);
+    m_file_popup_item_save_as           ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::SaveFileAsItemClicked);
+    m_file_popup_item_create_empty      ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::CreateEmptyRigItemClicked);
 
-	m_wheels_list = std::unique_ptr<RigEditor::GuiPopupWheelsList>(
-		new RigEditor::GuiPopupWheelsList(
-			rig_editor_interface, m_wheels_popup,
-			m_wheels_popup_item_select_all, m_wheels_popup_item_deselect_all)
-		);
+    m_project_popup_item_properties     ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::RigPropertiesItemClicked);
+    m_project_popup_item_land_properties->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::LandVehiclePropertiesItemClicked);
+    m_project_popup_item_flares         ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::FlaresListItemClicked);
 
-    m_flares_list = std::unique_ptr<RigEditor::GuiPopupFlaresList>(
-		new RigEditor::GuiPopupFlaresList(
-			rig_editor_interface, m_flares_popup,
-			m_flares_popup_item_select_all, m_flares_popup_item_deselect_all)
-		);
+    m_menubar_item_help                 ->eventMouseButtonClick += MyGUI::newDelegate(this, &RigEditorMenubar::MenubarItemHelpClicked);
+
+    m_wheels_list = std::unique_ptr<RigEditor::GuiPopupWheelsList>(
+        new RigEditor::GuiPopupWheelsList(
+            rig_editor_interface, m_wheels_popup,
+            m_wheels_popup_item_select_all, m_wheels_popup_item_deselect_all)
+    );
 }
 
 void RigEditorMenubar::Show()
@@ -87,19 +83,14 @@ void RigEditorMenubar::ClearLandVehicleWheelsList()
 	m_wheels_list->ClearWheelsList();
 }
 
-void RigEditorMenubar::UpdateFlaresList(std::vector<RigEditor::Flare*> & list)
-{
-	m_flares_list->UpdateFlaresList(list);
-}
-
-void RigEditorMenubar::ClearFlaresList()
-{
-	m_flares_list->ClearFlaresList();
-}
-
 // ============================================================================
 // Event handlers
 // ============================================================================
+
+void RigEditorMenubar::FlaresListItemClicked(MyGUI::Widget* sender)
+{
+	m_rig_editor_interface->CommandShowFlaresList();
+}
 
 void RigEditorMenubar::OpenFileItemClicked(MyGUI::Widget* sender)
 {

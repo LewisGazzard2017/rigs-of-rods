@@ -43,14 +43,15 @@ namespace RoR
 		struct Config;
         class  Flare;
 		class  FlexBodyWheel;
+        class  GuiDynamicListPanelBase;
 		struct GuiPanelPositionData;
 		class  GuiPopupDynamicListBase;
-        class  GuiPopupFlaresList;
 		class  GuiPopupWheelsList;
 		class  HighlightBoxesDynamicMesh;
 		class  IMain;
 		class  InputHandler;
 		class  LandVehicleWheel;
+        class  LineListDynamicMesh;
 		class  Main;
 		class  MeshWheel;
 		class  MeshWheel2;
@@ -58,6 +59,7 @@ namespace RoR
         struct MixedWheelsAggregateData;
 		class  Module;
 		class  Node;
+        class  PointListDynamicMesh;
 		class  Rig;
 		class  RigProperties;
         class  RigFlareVisuals;
@@ -81,6 +83,8 @@ namespace RoR
 		class  RigEditorBeamsPanel;
 		class  RigEditorCommands2Panel;
 		class  RigEditorDeleteMenu;
+        class  RigEditorFlaresListPanel;
+        class  RigEditorFlaresPanel;
         class  RigEditorFlexBodyWheelsPanel;
 		class  RigEditorHelpWindow;
 		class  RigEditorHydrosPanel;
