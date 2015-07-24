@@ -58,7 +58,7 @@
 #include "OutProtocol.h"
 #include "PlayerColours.h"
 #include "RigEditor_Config.h"
-#include "RigEditor_Main.h"
+#include "RigEditor_ScriptEngine.h"
 #include "RoRFrameListener.h"
 #include "ScriptEngine.h"
 #include "Scripting.h"
@@ -88,7 +88,7 @@ MainThread::MainThread():
 	m_exit_loop_requested(false),
 	m_application_state(Application::STATE_NONE),
 	m_next_application_state(Application::STATE_NONE),
-	m_rig_editor(nullptr)
+	m_rig_editor_script_engine(nullptr)
 {
 	pthread_mutex_init(&m_lock, nullptr);
 	RoR::Application::SetMainThreadLogic(this);
@@ -540,15 +540,16 @@ void MainThread::Go()
 			// Rig editor
 			// ================================================================
 
-			if (m_rig_editor == nullptr)
+			if (m_rig_editor_script_engine == nullptr)
 			{
-				RoR::Application::GetContentManager()->AddResourcePack(ContentManager::ResourcePack::RIG_EDITOR);
-				Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("RigEditor");
-
-				RigEditor::Config* rig_editor_config = new RigEditor::Config(SSETTING("Config Root", "") + "rig_editor.cfg");
-				assert(rig_editor_config != nullptr);
-				m_rig_editor = new RigEditor::Main(rig_editor_config);
-				assert(m_rig_editor != nullptr);
+				m_rig_editor_script_engine = new RigEditor::ScriptEngine();
+                assert (m_rig_editor_script_engine != nullptr);
+                int result = m_rig_editor_script_engine->Init();
+                if (result != 0)
+                {
+                    delete m_rig_editor_script_engine;
+                    m_rig_editor_script_engine = nullptr;
+                }
 			}
 			if (previous_application_state == Application::STATE_SIMULATION)
 			{
@@ -582,7 +583,10 @@ void MainThread::Go()
 				menu_wallpaper_widget->setVisible(false);
 			}
 
-			m_rig_editor->EnterMainLoop();
+            if (m_rig_editor_script_engine != nullptr)
+            {
+			    m_rig_editor_script_engine->EnterRigEditor();
+            }
 
 			m_application_state = Application::STATE_NONE;
 			m_next_application_state = previous_application_state;
@@ -614,6 +618,10 @@ void MainThread::Go()
 	// Cleanup
 	// ========================================================================
 
+    if (m_rig_editor_script_engine)
+    {
+        m_rig_editor_script_engine->ShutDown();
+    }
 	LoadingWindow::freeSingleton();
 	RoR::Application::GetGuiManager()->getMainSelector()->~MainSelector();
 

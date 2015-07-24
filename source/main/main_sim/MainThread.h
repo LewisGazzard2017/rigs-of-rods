@@ -34,10 +34,17 @@
 
 #include <pthread.h>
 
+// Forward decl.
 class GameScript;
 
 namespace RoR
 {
+
+// Forward decl.
+namespace RigEditor
+{
+    class ScriptEngine;
+}
 
 class MainThread
 {
@@ -89,16 +96,16 @@ protected:
 
 	void ShowSurveyMap(bool hide);
 
-	bool               m_no_rendering;
-	bool               m_exit_loop_requested;
-	bool               m_shutdown_requested;
-	bool               m_restart_requested;
-	pthread_mutex_t    m_lock;
-	unsigned long      m_start_time;
-	Application::State m_next_application_state;
-	Application::State m_application_state;
-	RigEditor::Main*   m_rig_editor;
-	bool			   m_base_resource_loaded;
+	bool                       m_no_rendering;
+	bool                       m_exit_loop_requested;
+	bool                       m_shutdown_requested;
+	bool                       m_restart_requested;
+	pthread_mutex_t            m_lock;
+	unsigned long              m_start_time;
+	Application::State         m_next_application_state;
+	Application::State         m_application_state;
+	RigEditor::ScriptEngine*   m_rig_editor_script_engine;
+	bool			           m_base_resource_loaded;
 
 	std::map<std::string, bool> isLoadedMap;
 };

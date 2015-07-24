@@ -400,6 +400,7 @@ bool Settings::setupPaths()
 {
 	char program_path[1024] = {};
 	char resources_path[1024] = {};
+	char scripts_path[1024] = {};
 	//char streams_path[1024] = {};
 	char user_path[1024] = {};
 	char config_root[1024] = {};
@@ -421,6 +422,7 @@ bool Settings::setupPaths()
 	// check for resource folder: first the normal version (in the executables directory)
 	strcpy(resources_path, program_path);
 	path_add(resources_path, "resources");
+	path_add(scripts_path, "scripts");
 	if (! FolderExists(resources_path))
 	{
 		// if not existing: check one dir up (dev version)
@@ -443,6 +445,19 @@ bool Settings::setupPaths()
 			}
 		}
 	}
+    if (! FolderExists(scripts_path))
+	{
+		// if not existing: check one dir up (dev version)
+		strcpy(scripts_path, program_path);
+		path_descend(scripts_path);
+		path_add(scripts_path, "scripts");
+		if (! FolderExists(scripts_path))
+		{
+			ErrorUtils::ShowError(_L("Startup error"), _L("Scripts folder not found. Check if correctly installed."));
+			exit(1);
+		}
+	}
+
 
 	// change working directory to executable path
 #ifdef _WIN32
@@ -501,6 +516,13 @@ bool Settings::setupPaths()
 	char ogrelog_path[1024] = {};
 	strcpy(ogrelog_path, ogrelog_fname);
 	strcat(ogrelog_fname, "RoR.log");
+
+    {
+        char rig_editor_scripts_path[1024] = {};
+        strcpy(rig_editor_scripts_path, scripts_path);
+        path_add(rig_editor_scripts_path, "rig_editor");
+        settings["RigEditor Scripts Path"] = String(rig_editor_scripts_path);
+    }
 
 	// now update our settings with the results:
 

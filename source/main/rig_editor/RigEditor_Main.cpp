@@ -126,9 +126,9 @@ Main::~Main()
 	}
 }
 
-void Main::EnterMainLoop()
+void Main::OnEnter_SetupCameraAndViewport_UGLY()
 {
-	/* Setup 3D engine */
+    /* Setup 3D engine */
 	OgreSubsystem* ror_ogre_subsystem = RoR::Application::GetOgreSubsystem();
 	assert(ror_ogre_subsystem != nullptr);
 	m_viewport = ror_ogre_subsystem->GetRenderWindow()->addViewport(nullptr);
@@ -136,12 +136,22 @@ void Main::EnterMainLoop()
 	m_viewport->setBackgroundColour(m_config->viewport_background_color);
 	m_camera->setAspectRatio(m_viewport->getActualHeight() / viewport_width);
 	m_viewport->setCamera(m_camera);
+}
 
-	InitializeOrRestoreGui();
-
+void Main::OnEnter_SetupInput_UGLY()
+{
 	/* Setup input */
 	RoR::Application::GetInputEngine()->SetKeyboardListener(m_input_handler);
 	RoR::Application::GetInputEngine()->SetMouseListener(m_input_handler);
+}
+
+void Main::OnEnter_RunMainLoop_UGLY()
+{
+	// void Main::OnEnter_SetupCameraAndViewport_UGLY()
+
+	// InitializeOrRestoreGui();
+
+    //void Main::OnEnter_SetupInput_UGLY()
 
 	while (! m_exit_loop_requested)
 	{
@@ -949,7 +959,7 @@ void Main::CommandShowHelpWindow()
 	else \
 		(VAR)->ShowIfHiddenTemporarily();
 
-void Main::InitializeOrRestoreGui()
+void Main::OnEnter_InitializeOrRestoreGui_UGLY()
 {
 	INIT_OR_RESTORE_RIG_ELEMENT_PANEL( m_nodes_panel,            RigEditorNodePanel);
 	INIT_OR_RESTORE_RIG_ELEMENT_PANEL( m_beams_panel,            RigEditorBeamsPanel);
