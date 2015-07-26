@@ -55,8 +55,6 @@ public:
 
 	void EnterMainLoop();
 
-	void UpdateMainLoop();
-
 	Ogre::SceneManager* GetOgreSceneManager()
 	{
 		return m_scene_manager;
@@ -161,13 +159,18 @@ public:
 
     // ========== Angelscript interface ========== 
 
-    void AngelscriptRefCountAdd()     {} // Do nothing
-    void AngelscriptRefCountRelease() {} // Do nothing
+    void AS_RefCountAdd()     {} // Do nothing
+    void AS_RefCountRelease() {} // Do nothing
 
-    void OnEnter_SetupInput_UGLY();
-    void OnEnter_SetupCameraAndViewport_UGLY();
-    void OnEnter_InitializeOrRestoreGui_UGLY();
-    void OnEnter_RunMainLoop_UGLY();
+    void AS_OnEnter_SetupInput_UGLY();
+    void AS_OnEnter_SetupCameraAndViewport_UGLY();
+    void AS_OnEnter_InitializeOrRestoreGui_UGLY();
+
+	void AS_UpdateMainLoop_UGLY();
+	bool AS_WasExitLoopRequested_UGLY();
+
+	void AS_OnExit_HideGui_UGLY();
+	void AS_OnExit_ClearExitRequest_UGLY();
 
     // ========== END Angelscript interface ==========
     
@@ -191,8 +194,8 @@ private:
 	CameraHandler*       m_camera_handler;
 	Rig*                 m_rig;
 
-	bool                 m_exit_loop_requested;
     unsigned int         m_state_flags;
+	bool                 m_exit_loop_requested;
 
 	// GUI
 	std::unique_ptr<GUI::RigEditorMenubar>                      m_gui_menubar;

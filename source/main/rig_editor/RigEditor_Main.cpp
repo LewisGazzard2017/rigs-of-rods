@@ -126,7 +126,7 @@ Main::~Main()
 	}
 }
 
-void Main::OnEnter_SetupCameraAndViewport_UGLY()
+void Main::AS_OnEnter_SetupCameraAndViewport_UGLY()
 {
     /* Setup 3D engine */
 	OgreSubsystem* ror_ogre_subsystem = RoR::Application::GetOgreSubsystem();
@@ -138,42 +138,21 @@ void Main::OnEnter_SetupCameraAndViewport_UGLY()
 	m_viewport->setCamera(m_camera);
 }
 
-void Main::OnEnter_SetupInput_UGLY()
+void Main::AS_OnEnter_SetupInput_UGLY()
 {
 	/* Setup input */
 	RoR::Application::GetInputEngine()->SetKeyboardListener(m_input_handler);
 	RoR::Application::GetInputEngine()->SetMouseListener(m_input_handler);
 }
 
-void Main::OnEnter_RunMainLoop_UGLY()
+void Main::AS_OnExit_ClearExitRequest_UGLY()
 {
-	// void Main::OnEnter_SetupCameraAndViewport_UGLY()
+	m_exit_loop_requested = false;
+}
 
-	// InitializeOrRestoreGui();
-
-    //void Main::OnEnter_SetupInput_UGLY()
-
-	while (! m_exit_loop_requested)
-	{
-		UpdateMainLoop();
-
-		Ogre::RenderWindow* rw = RoR::Application::GetOgreSubsystem()->GetRenderWindow();
-		if (rw->isClosed())
-		{
-			RoR::Application::GetMainThreadLogic()->RequestShutdown();
-			break;
-		}
-
-		/* Render */
-		RoR::Application::GetOgreSubsystem()->GetOgreRoot()->renderOneFrame();
-
-		if (!rw->isActive() && rw->isVisible())
-		{
-			rw->update(); // update even when in background !
-		}
-	}
-
-	/* Hide GUI */
+void Main::AS_OnExit_HideGui_UGLY()
+{
+	// Hide GUI
 	m_gui_menubar->Hide();
 	if (m_gui_open_save_file_dialog->isModal())
 	{
@@ -191,11 +170,9 @@ void Main::OnEnter_RunMainLoop_UGLY()
     m_meshwheels2_panel     ->HideTemporarily();
     m_flexbodywheels_panel  ->HideTemporarily();
     m_flares_list_panel     ->HideTemporarily();
-
-	m_exit_loop_requested = false;
 }
 
-void Main::UpdateMainLoop()
+void Main::AS_UpdateMainLoop_UGLY()
 {
 	/* Process window events */
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32 || OGRE_PLATFORM == OGRE_PLATFORM_LINUX
@@ -953,13 +930,18 @@ void Main::CommandShowHelpWindow()
 	m_gui_help_window->CenterToScreen();
 }
 
+bool Main::AS_WasExitLoopRequested_UGLY()
+{
+	return m_exit_loop_requested;
+}
+
 #define INIT_OR_RESTORE_RIG_ELEMENT_PANEL(VAR, CLASSNAME) \
 	if ((VAR).get() == nullptr) \
 		(VAR) = std::unique_ptr<GUI::CLASSNAME>(new GUI::CLASSNAME(this, m_config)); \
 	else \
 		(VAR)->ShowIfHiddenTemporarily();
 
-void Main::OnEnter_InitializeOrRestoreGui_UGLY()
+void Main::AS_OnEnter_InitializeOrRestoreGui_UGLY()
 {
 	INIT_OR_RESTORE_RIG_ELEMENT_PANEL( m_nodes_panel,            RigEditorNodePanel);
 	INIT_OR_RESTORE_RIG_ELEMENT_PANEL( m_beams_panel,            RigEditorBeamsPanel);

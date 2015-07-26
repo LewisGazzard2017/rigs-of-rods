@@ -4,7 +4,7 @@ class Application
 {
     Application()
     {
-        @m_rig_editor_core = GetRigEditorInstance_UGLY();
+        @m_rig_editor_core = SYS_GetRigEditorInstance_UGLY();
         if (m_rig_editor_core !is null)
         {
             LogMessage("Application(): RigEditorCore_UGLY instance acquired");
@@ -12,7 +12,7 @@ class Application
         else
         {
             LogMessage("Application(): ERROR, GetRigEditorInstance_UGLY() returned NULL handle!!!");
-        } 
+        }
     }
     
     void Go()
@@ -28,12 +28,28 @@ class Application
         LogMessage("Application::Go() - OnEnter_SetupInput_UGLY() finished");
         
         // Run the main loop
-        // TODO: Implement the main loop in script!!!
-        m_rig_editor_core.OnEnter_RunMainLoop_UGLY();
+        m_exit_requested = false;
+        while (!m_exit_requested and !m_rig_editor_core.WasExitLoopRequested_UGLY())
+        {
+            if (SYS_IsRoRApplicationWindowClosed())
+            {
+                SYS_RequestRoRShutdown();
+                m_exit_requested = true;
+                continue;
+            }
+            
+            m_rig_editor_core.UpdateMainLoop_UGLY();
+            
+            SYS_RenderFrameAndUpdateWindow();
+        }
+        
+        m_rig_editor_core.OnExit_HideGui_UGLY();
+        m_rig_editor_core.OnExit_ClearExitRequest_UGLY();
     }
     
     // ===== Variables =====
     
     private RigEditorCore_UGLY@ m_rig_editor_core;
+    private bool                m_exit_requested;
     // More to come...
 }

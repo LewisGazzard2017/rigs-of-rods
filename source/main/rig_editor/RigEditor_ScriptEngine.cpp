@@ -26,10 +26,15 @@
 #include "Application.h"
 #include "ContentManager.h"
 #include "Settings.h"
+#include "MainThread.h"
+#include "OgreSubsystem.h"
 #include "PlatformUtils.h"
 #include "RigEditor_Config.h"
 #include "RigEditor_Main.h"
 #include "RoRPrerequisites.h"
+
+#include <OgreRoot.h>
+#include <OgreRenderWindow.h>
 
 // AS addons start
 #include "scriptstdstring/scriptstdstring.h"
@@ -58,15 +63,36 @@ using namespace AngelScript;
 using namespace std;
 
 // Temporary hack for exporting to AngelScript
+// Will be changed when AngelScript is updated.
 RigEditor::ScriptEngine* global_rig_editor_script_engine_instance;
-RigEditor::Main* GlobalGetRigEditorInstance()
+RigEditor::Main* AS_GetRigEditorInstance()
 {
     return global_rig_editor_script_engine_instance->GetRigEditorInstance();
 }
 
-void GlobalLogMessage(std::string msg)
+void AS_GlobalLogMessage(std::string msg)
 {
     global_rig_editor_script_engine_instance->LogMessage(msg);
+}
+
+bool AS_IsRoRApplicationWindowClosed()
+{
+	return RoR::Application::GetOgreSubsystem()->GetRenderWindow()->isClosed();
+}
+
+void AS_RequestRoRShutdown()
+{
+	RoR::Application::GetMainThreadLogic()->RequestShutdown();
+}
+
+void AS_RenderFrameAndUpdateWindow()
+{
+	RoR::Application::GetOgreSubsystem()->GetOgreRoot()->renderOneFrame();
+	Ogre::RenderWindow* rw = RoR::Application::GetOgreSubsystem()->GetRenderWindow();
+	if (!rw->isActive() && rw->isVisible())
+	{
+		rw->update(); // update even when in background !
+	}
 }
 
 // WORKAROUND
@@ -334,20 +360,28 @@ int ScriptEngine::RegisterSystemInterface()
 	AngelScriptSetupHelper A(m_log, m_engine);
 	try
 	{
-		A.RegisterGlobalFunction("void LogMessage(string msg)", asFUNCTION(GlobalLogMessage), asCALL_CDECL);
+		A.RegisterGlobalFunction("void LogMessage(string msg)", asFUNCTION(AS_GlobalLogMessage), asCALL_CDECL);
 
 		// RigEditor::Main
 		A.RegisterObjectType     ("RigEditorCore_UGLY", 0, asOBJ_REF);
-		A.RegisterObjectBehaviour("RigEditorCore_UGLY", asBEHAVE_ADDREF,  "void f()",     asMETHOD(RigEditor::Main, AngelscriptRefCountAdd),     asCALL_THISCALL);
-		A.RegisterObjectBehaviour("RigEditorCore_UGLY", asBEHAVE_RELEASE, "void f()",     asMETHOD(RigEditor::Main, AngelscriptRefCountRelease), asCALL_THISCALL);
+		A.RegisterObjectBehaviour("RigEditorCore_UGLY", asBEHAVE_ADDREF,  "void f()",     asMETHOD(RigEditor::Main, AS_RefCountAdd),     asCALL_THISCALL);
+		A.RegisterObjectBehaviour("RigEditorCore_UGLY", asBEHAVE_RELEASE, "void f()",     asMETHOD(RigEditor::Main, AS_RefCountRelease), asCALL_THISCALL);
 
-		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_SetupInput_UGLY()",             asMETHOD(RigEditor::Main, OnEnter_SetupInput_UGLY),             asCALL_THISCALL);
-		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_SetupCameraAndViewport_UGLY()", asMETHOD(RigEditor::Main, OnEnter_SetupCameraAndViewport_UGLY), asCALL_THISCALL);
-		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_InitializeOrRestoreGui_UGLY()", asMETHOD(RigEditor::Main, OnEnter_InitializeOrRestoreGui_UGLY), asCALL_THISCALL);
-		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_RunMainLoop_UGLY()",            asMETHOD(RigEditor::Main, OnEnter_RunMainLoop_UGLY),            asCALL_THISCALL);
+		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_SetupInput_UGLY()",             asMETHOD(RigEditor::Main, AS_OnEnter_SetupInput_UGLY),             asCALL_THISCALL);
+		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_SetupCameraAndViewport_UGLY()", asMETHOD(RigEditor::Main, AS_OnEnter_SetupCameraAndViewport_UGLY), asCALL_THISCALL);
+		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_InitializeOrRestoreGui_UGLY()", asMETHOD(RigEditor::Main, AS_OnEnter_InitializeOrRestoreGui_UGLY), asCALL_THISCALL);
 
-		// Getter function for Main
-		A.RegisterGlobalFunction("RigEditorCore_UGLY@ GetRigEditorInstance_UGLY()", asFUNCTION(GlobalGetRigEditorInstance), asCALL_CDECL);
+		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void UpdateMainLoop_UGLY()",                 asMETHOD(RigEditor::Main, AS_UpdateMainLoop_UGLY),                 asCALL_THISCALL);
+		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "bool WasExitLoopRequested_UGLY()",           asMETHOD(RigEditor::Main, AS_WasExitLoopRequested_UGLY),           asCALL_THISCALL);
+		
+		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnExit_HideGui_UGLY()",                 asMETHOD(RigEditor::Main, AS_OnExit_HideGui_UGLY),                 asCALL_THISCALL);
+		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnExit_ClearExitRequest_UGLY()",        asMETHOD(RigEditor::Main, AS_OnExit_ClearExitRequest_UGLY),        asCALL_THISCALL);
+
+		// RoR system interface
+		A.RegisterGlobalFunction("RigEditorCore_UGLY@ SYS_GetRigEditorInstance_UGLY()",    asFUNCTION(AS_GetRigEditorInstance),         asCALL_CDECL);
+		A.RegisterGlobalFunction("bool                SYS_IsRoRApplicationWindowClosed()", asFUNCTION(AS_IsRoRApplicationWindowClosed), asCALL_CDECL);
+		A.RegisterGlobalFunction("bool                SYS_RequestRoRShutdown()",           asFUNCTION(AS_RequestRoRShutdown),           asCALL_CDECL);
+		A.RegisterGlobalFunction("bool                SYS_RenderFrameAndUpdateWindow()",   asFUNCTION(AS_RenderFrameAndUpdateWindow),   asCALL_CDECL);
 
 		return 0;
 	}
@@ -458,6 +492,13 @@ void ScriptEngine::ShutDown()
 	    m_engine->Release();
         m_engine = nullptr;
     }
+
+	if (m_log != nullptr)
+	{
+		m_log->logMessage("ScriptEngine: Shutting down.");
+		delete m_log;
+		m_log = nullptr;
+	}
 }
 
 void ScriptEngine::LogMessage(std::string & msg)
