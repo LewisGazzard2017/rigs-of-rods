@@ -22,6 +22,7 @@
 #include "RigEditor_ScriptEngine.h"
 
 //#include "MainThread.h"
+#include "AngelScriptSetupHelper.h"
 #include "Application.h"
 #include "ContentManager.h"
 #include "Settings.h"
@@ -330,53 +331,30 @@ int ScriptEngine::Init()
 int ScriptEngine::RegisterSystemInterface()
 {
     using namespace AngelScript;
-    int result = 0;
-        
-    //result = m_engine->SetDefaultNamespace("ROR_SYSTEM"); // MUST UPDATE DEPS 
-    //if(result < 0) return result;
+	AngelScriptSetupHelper A(m_log, m_engine);
+	try
+	{
+		A.RegisterGlobalFunction("void LogMessage(string msg)", asFUNCTION(GlobalLogMessage), asCALL_CDECL);
 
-    result = m_engine->RegisterGlobalFunction("void LogMessage(string msg)",
-        AngelScript::asFUNCTION(GlobalLogMessage), AngelScript::asCALL_CDECL);
-    if(result < 0) return result;
+		// RigEditor::Main
+		A.RegisterObjectType     ("RigEditorCore_UGLY", 0, asOBJ_REF);
+		A.RegisterObjectBehaviour("RigEditorCore_UGLY", asBEHAVE_ADDREF,  "void f()",     asMETHOD(RigEditor::Main, AngelscriptRefCountAdd),     asCALL_THISCALL);
+		A.RegisterObjectBehaviour("RigEditorCore_UGLY", asBEHAVE_RELEASE, "void f()",     asMETHOD(RigEditor::Main, AngelscriptRefCountRelease), asCALL_THISCALL);
 
-    // RigEditor::Main
+		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_SetupInput_UGLY()",             asMETHOD(RigEditor::Main, OnEnter_SetupInput_UGLY),             asCALL_THISCALL);
+		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_SetupCameraAndViewport_UGLY()", asMETHOD(RigEditor::Main, OnEnter_SetupCameraAndViewport_UGLY), asCALL_THISCALL);
+		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_InitializeOrRestoreGui_UGLY()", asMETHOD(RigEditor::Main, OnEnter_InitializeOrRestoreGui_UGLY), asCALL_THISCALL);
+		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_RunMainLoop_UGLY()",            asMETHOD(RigEditor::Main, OnEnter_RunMainLoop_UGLY),            asCALL_THISCALL);
 
-    result = m_engine->RegisterObjectType("RigEditorCore_UGLY", 0, asOBJ_REF /*| asOBJ_NOCOUNT*/); // MUST UPDATE DEPS
-    if(result < 0) return result;
+		// Getter function for Main
+		A.RegisterGlobalFunction("RigEditorCore_UGLY@ GetRigEditorInstance_UGLY()", asFUNCTION(GlobalGetRigEditorInstance), asCALL_CDECL);
 
-    result = m_engine->RegisterObjectBehaviour("RigEditorCore_UGLY", asBEHAVE_ADDREF,
-        "void f()", asMETHOD(RigEditor::Main, AngelscriptRefCountAdd), asCALL_THISCALL);
-    if(result < 0) return result;
-    result = m_engine->RegisterObjectBehaviour("RigEditorCore_UGLY", asBEHAVE_RELEASE,
-        "void f()", asMETHOD(RigEditor::Main, AngelscriptRefCountRelease), asCALL_THISCALL);
-    if(result < 0) return result;
-
-    result = m_engine->RegisterGlobalFunction("RigEditorCore_UGLY@ GetRigEditorInstance_UGLY()",
-        AngelScript::asFUNCTION(GlobalGetRigEditorInstance), AngelScript::asCALL_CDECL);
-    if(result < 0) return result;
-
-    result = m_engine->RegisterObjectMethod("RigEditorCore_UGLY", "void OnEnter_SetupInput_UGLY()", 
-        asMETHOD(RigEditor::Main,OnEnter_SetupInput_UGLY), asCALL_THISCALL);
-    if(result < 0) return result;
-
-    result = m_engine->RegisterObjectMethod("RigEditorCore_UGLY", "void OnEnter_SetupCameraAndViewport_UGLY()", 
-        asMETHOD(RigEditor::Main,OnEnter_SetupCameraAndViewport_UGLY), asCALL_THISCALL);
-    if(result < 0) return result;
-
-    result = m_engine->RegisterObjectMethod("RigEditorCore_UGLY", "void OnEnter_InitializeOrRestoreGui_UGLY()", 
-        asMETHOD(RigEditor::Main, OnEnter_InitializeOrRestoreGui_UGLY), asCALL_THISCALL);
-    if(result < 0) return result;
-
-    result = m_engine->RegisterObjectMethod("RigEditorCore_UGLY", "void OnEnter_RunMainLoop_UGLY()", 
-        asMETHOD(RigEditor::Main,OnEnter_RunMainLoop_UGLY), asCALL_THISCALL);
-    if(result < 0) return result;
-
-    //m_engine->RegisterObjectMethod("mytype", "void ClassMethod()", asMETHOD(MyClass,ClassMethod), asCALL_THISCALL); assert( r >= 0 );
-
-    //result = m_engine->SetDefaultNamespace("");  // MUST UPDATE DEPS
-    if(result < 0) return result;
-
-    return 0;
+		return 0;
+	}
+	catch(...)
+	{
+		return -1;
+	}
 }
 
 RigEditor::Main* ScriptEngine::GetRigEditorInstance()
