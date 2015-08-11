@@ -90,9 +90,7 @@ Main::Main(Config* config):
 	m_exit_loop_requested(false),
 	m_input_handler(nullptr),
 	m_rig(nullptr),
-    m_state_flags(0),
-	m_as_usercommandcallback_object(nullptr),
-	m_as_usercommandcallback_method(nullptr)
+    m_state_flags(0)
 {
 	/* Setup 3D engine */
 	OgreSubsystem* ror_ogre_subsystem = RoR::Application::GetOgreSubsystem();
@@ -132,38 +130,15 @@ Main::~Main()
 
 void Main::InvokeAngelScriptUserCommandCallback(IMain::UserCommand command)
 {
-	using namespace AngelScript;
-
-	if (m_as_usercommandcallback_method == nullptr || m_as_usercommandcallback_object == nullptr)
+	if (! m_as_user_command_callback.IsBound())
 	{
 		return;
 	}
 
-	asIScriptContext* ctx = m_as_usercommandcallback_method->GetEngine()->CreateContext(); // Sub optimal, to be improved
-	int result = ctx->Prepare(m_as_usercommandcallback_method);
-	if (result != 0)
-	{
-		std::stringstream msg;
-		msg <<__FUNCTION__<< "(): Failed to Prepare() context, error code: " << ScriptEngine::ContextPrepare_ErrorCodeToString(result);
-		throw std::runtime_error(msg.str());
-	}
-	result = ctx->SetArgObject(0, static_cast<void*>(m_as_usercommandcallback_object));
-	if (result != 0)
-	{
-		std::stringstream msg;
-		msg <<__FUNCTION__<< "(): Failed to SetArgAddress(0, commandCallbackObject) to context, error code: " 
-			<< ScriptEngine::ContextSetArg_ErrorCodeToString(result);
-		throw std::runtime_error(msg.str());
-	}
-	result = ctx->SetArgDWord(1, static_cast<asDWORD>(command));
-	if (result != 0)
-	{
-		std::stringstream msg;
-		msg <<__FUNCTION__<< "(): Failed to SetArgDWord(1, command) to context, error code: " 
-			<< ScriptEngine::ContextSetArg_ErrorCodeToString(result);
-		throw std::runtime_error(msg.str());
-	}
-	ScriptEngine::ExecuteContext(ctx, m_as_usercommandcallback_method->GetEngine());
+	using namespace AngelScript;
+	asIScriptContext* ctx = m_as_user_command_callback.PrepareContext();
+	m_as_user_command_callback.SetArgInt(ctx, 1, static_cast<int>(command));
+	m_as_user_command_callback.ExecuteContext(ctx);
 }
 
 void Main::AS_OnEnter_SetupCameraAndViewport_UGLY()
@@ -180,8 +155,7 @@ void Main::AS_OnEnter_SetupCameraAndViewport_UGLY()
 
 void Main::AS_RegisterUserCommandCallback_UGLY(AngelScript::asIScriptObject* object, AngelScript::asIScriptFunction* method)
 {
-	m_as_usercommandcallback_object = object;
-	m_as_usercommandcallback_method = method;
+	m_as_user_command_callback.RegisterCallback(object, method);
 }
 
 void Main::AS_OnEnter_SetupInput_UGLY()
