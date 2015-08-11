@@ -54,6 +54,11 @@ public:
 
     void ShutDown();
 
+	static void        PrepareAndExecuteFunction(AngelScript::asIScriptFunction* func, AngelScript::asIScriptContext* ctx, AngelScript::asIScriptEngine* engine);
+	static void        ExecuteContext(AngelScript::asIScriptContext* ctx, AngelScript::asIScriptEngine* engine);
+	static const char* ContextPrepare_ErrorCodeToString(int err_code);
+	static const char* ContextSetArg_ErrorCodeToString(int err_code);
+
     // ===== Script interface =====
 
     RigEditor::Main* GetRigEditorInstance();

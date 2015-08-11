@@ -1,5 +1,7 @@
 // Rig editor application class
 
+#include "UserCommandHandler.as"
+
 class Application
 {
     Application()
@@ -27,6 +29,11 @@ class Application
         m_rig_editor_core.OnEnter_SetupInput_UGLY();
         LogMessage("Application::Go() - OnEnter_SetupInput_UGLY() finished");
         
+        @m_user_command_handler = UserCommandHandler(@m_rig_editor_core);
+        m_rig_editor_core.RegisterUserCommandCallback_UGLY(
+            @m_user_command_handler, HandleUglyUserCommand);
+        LogMessage("Application::Go() - User command callback registered.");
+        
         // Run the main loop
         m_exit_requested = false;
         while (!m_exit_requested and !m_rig_editor_core.WasExitLoopRequested_UGLY())
@@ -51,5 +58,6 @@ class Application
     
     private RigEditorCore_UGLY@ m_rig_editor_core;
     private bool                m_exit_requested;
+    private UserCommandHandler@ m_user_command_handler;
     // More to come...
 }

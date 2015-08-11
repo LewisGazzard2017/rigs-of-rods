@@ -34,6 +34,13 @@
 #include "RigEditor_ForwardDeclarations.h"
 #include "RoRPrerequisites.h"
 
+// Forward decl.
+namespace AngelScript
+{
+	class asIScriptObject;
+	class asIScriptFunction;
+}
+
 namespace RoR
 {
 
@@ -70,7 +77,7 @@ public:
 		return m_rig;
 	}
 
-	/* IMain implementations */
+	// ===== Command interface implementation ===== //
 
     // File management
 	virtual void CommandShowDialogOpenRigFile();
@@ -172,6 +179,29 @@ public:
 	void AS_OnExit_HideGui_UGLY();
 	void AS_OnExit_ClearExitRequest_UGLY();
 
+	void AS_RegisterUserCommandCallback_UGLY(AngelScript::asIScriptObject* object, AngelScript::asIScriptFunction* method);
+
+	// ===== Command interface handlers ===== //
+
+    // File management
+	void AS_HandleCommandShowDialogOpenRigFile_UGLY();
+	void AS_HandleCommandShowDialogSaveRigFileAs_UGLY();
+	void AS_HandleCommandSaveRigFile_UGLY();
+	void AS_HandleCommandCloseCurrentRig_UGLY();
+    void AS_HandleCommandCreateNewEmptyRig_UGLY();
+	void AS_HandleCommandCurrentRigDeleteSelectedNodes_UGLY();
+	void AS_HandleCommandCurrentRigDeleteSelectedBeams_UGLY();
+	void AS_HandleCommandQuitRigEditor_UGLY();
+	void AS_HandleCommandShowRigPropertiesWindow_UGLY();
+	void AS_HandleCommandSaveContentOfRigPropertiesWindow_UGLY();
+
+    // Land vehicle window
+	void AS_HandleCommandShowLandVehiclePropertiesWindow_UGLY();
+	void AS_HandleCommandSaveLandVehiclePropertiesWindowData_UGLY();
+
+    // Help window
+	void AS_HandleCommandShowHelpWindow_UGLY();
+
     // ========== END Angelscript interface ==========
     
 private:
@@ -184,6 +214,8 @@ private:
 	void SaveRigDefFile(MyGUI::UString const & directory, MyGUI::UString const & filename);
 
     void OnNewRigCreatedOrLoaded(Ogre::SceneNode* parent_scene_node);
+
+	void InvokeAngelScriptUserCommandCallback(IMain::UserCommand command);
 
 	Config*              m_config;
 	Ogre::SceneManager*  m_scene_manager;
@@ -214,7 +246,10 @@ private:
     std::unique_ptr<GUI::RigEditorFlexBodyWheelsPanel>          m_flexbodywheels_panel;
     std::unique_ptr<GUI::RigEditorRigPropertiesWindow>          m_gui_rig_properties_window;
 	std::unique_ptr<GUI::RigEditorLandVehiclePropertiesWindow>  m_gui_land_vehicle_properties_window;
-	
+
+	// AngelScript
+	AngelScript::asIScriptObject*   m_as_usercommandcallback_object;
+	AngelScript::asIScriptFunction* m_as_usercommandcallback_method;
 };
 
 } // namespace RigEditor

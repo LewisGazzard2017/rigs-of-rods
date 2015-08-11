@@ -287,7 +287,7 @@ int ScriptEngine::Init()
     if(result < 0)
     {
         std::stringstream msg;
-        msg << __FUNCTION__ << "Failed to set MessageCallback function, result:" << result;
+        msg << __FUNCTION__ << "(): Failed to set MessageCallback function, result:" << result;
         m_log->logMessage(msg.str());
         return result;
     }
@@ -307,7 +307,7 @@ int ScriptEngine::Init()
     if (result != 0)
     {
         std::stringstream msg;
-        msg << __FUNCTION__ << "Failed to RegisterSystemInterface(), result:" << result;
+        msg << __FUNCTION__ << "(): Failed to RegisterSystemInterface(), result:" << result;
         m_log->logMessage(msg.str());
         m_engine->Release();
         m_engine = nullptr;
@@ -318,7 +318,7 @@ int ScriptEngine::Init()
     if (result != 0)
     {
         std::stringstream msg;
-        msg << __FUNCTION__ << "Failed to LoadScripts(), result:" << result;
+        msg << __FUNCTION__ << "(): Failed to LoadScripts(), result:" << result;
         m_log->logMessage(msg.str());
         m_engine->Release();
         m_engine = nullptr;
@@ -330,7 +330,7 @@ int ScriptEngine::Init()
 	if( m_context == nullptr ) 
 	{
 		std::stringstream msg;
-        msg << __FUNCTION__ << "Failed to create AngelScript context, result:" << result;
+        msg << __FUNCTION__ << "(): Failed to create AngelScript context, result:" << result;
         m_log->logMessage(msg.str());
 		m_engine->Release();
         m_engine = nullptr;
@@ -342,7 +342,7 @@ int ScriptEngine::Init()
 	if( m_main_function == nullptr )
 	{
 		std::stringstream msg;
-        msg << __FUNCTION__ << "Failed to find function 'void Main()' in the loaded scripts.";
+        msg << __FUNCTION__ << "(): Failed to find function 'void Main()' in the loaded scripts.";
         m_log->logMessage(msg.str());
 		m_context->Release();
         m_context = nullptr;
@@ -367,15 +367,53 @@ int ScriptEngine::RegisterSystemInterface()
 		A.RegisterObjectBehaviour("RigEditorCore_UGLY", asBEHAVE_ADDREF,  "void f()",     asMETHOD(RigEditor::Main, AS_RefCountAdd),     asCALL_THISCALL);
 		A.RegisterObjectBehaviour("RigEditorCore_UGLY", asBEHAVE_RELEASE, "void f()",     asMETHOD(RigEditor::Main, AS_RefCountRelease), asCALL_THISCALL);
 
-		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_SetupInput_UGLY()",             asMETHOD(RigEditor::Main, AS_OnEnter_SetupInput_UGLY),             asCALL_THISCALL);
-		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_SetupCameraAndViewport_UGLY()", asMETHOD(RigEditor::Main, AS_OnEnter_SetupCameraAndViewport_UGLY), asCALL_THISCALL);
-		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnEnter_InitializeOrRestoreGui_UGLY()", asMETHOD(RigEditor::Main, AS_OnEnter_InitializeOrRestoreGui_UGLY), asCALL_THISCALL);
+		auto class_main_proxy = A.CreateObjectRegistrationProxy("RigEditorCore_UGLY");
+		class_main_proxy.AddMethod( "void OnEnter_SetupInput_UGLY()",                    asMETHOD(Main, AS_OnEnter_SetupInput_UGLY)            );
+		class_main_proxy.AddMethod( "void OnEnter_SetupCameraAndViewport_UGLY()",        asMETHOD(Main, AS_OnEnter_SetupCameraAndViewport_UGLY));
+		class_main_proxy.AddMethod( "void OnEnter_InitializeOrRestoreGui_UGLY()",        asMETHOD(Main, AS_OnEnter_InitializeOrRestoreGui_UGLY));
+								    											         
+		class_main_proxy.AddMethod( "void UpdateMainLoop_UGLY()",                        asMETHOD(Main, AS_UpdateMainLoop_UGLY)                );
+		class_main_proxy.AddMethod( "bool WasExitLoopRequested_UGLY()",                  asMETHOD(Main, AS_WasExitLoopRequested_UGLY)          );
+								    											         
+		class_main_proxy.AddMethod( "void OnExit_HideGui_UGLY()",                        asMETHOD(Main, AS_OnExit_HideGui_UGLY)                );
+		class_main_proxy.AddMethod( "void OnExit_ClearExitRequest_UGLY()",               asMETHOD(Main, AS_OnExit_ClearExitRequest_UGLY)       );
 
-		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void UpdateMainLoop_UGLY()",                 asMETHOD(RigEditor::Main, AS_UpdateMainLoop_UGLY),                 asCALL_THISCALL);
-		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "bool WasExitLoopRequested_UGLY()",           asMETHOD(RigEditor::Main, AS_WasExitLoopRequested_UGLY),           asCALL_THISCALL);
-		
-		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnExit_HideGui_UGLY()",                 asMETHOD(RigEditor::Main, AS_OnExit_HideGui_UGLY),                 asCALL_THISCALL);
-		A.RegisterObjectMethod   ("RigEditorCore_UGLY", "void OnExit_ClearExitRequest_UGLY()",        asMETHOD(RigEditor::Main, AS_OnExit_ClearExitRequest_UGLY),        asCALL_THISCALL);
+		class_main_proxy.AddMethod( "void HandleCommandShowDialogOpenRigFile_UGLY()",              asMETHOD(Main, AS_HandleCommandShowDialogOpenRigFile_UGLY));
+		class_main_proxy.AddMethod( "void HandleCommandShowDialogSaveRigFileAs_UGLY()",            asMETHOD(Main, AS_HandleCommandShowDialogSaveRigFileAs_UGLY));
+		class_main_proxy.AddMethod( "void HandleCommandCloseCurrentRig_UGLY()",                    asMETHOD(Main, AS_HandleCommandCloseCurrentRig_UGLY));
+		class_main_proxy.AddMethod( "void HandleCommandCreateNewEmptyRig_UGLY()",                  asMETHOD(Main, AS_HandleCommandCreateNewEmptyRig_UGLY));
+		class_main_proxy.AddMethod( "void HandleCommandCurrentRigDeleteSelectedNodes_UGLY()",      asMETHOD(Main, AS_HandleCommandCurrentRigDeleteSelectedNodes_UGLY));
+		class_main_proxy.AddMethod( "void HandleCommandCurrentRigDeleteSelectedBeams_UGLY()",      asMETHOD(Main, AS_HandleCommandCurrentRigDeleteSelectedBeams_UGLY));
+		class_main_proxy.AddMethod( "void HandleCommandQuitRigEditor_UGLY()",                      asMETHOD(Main, AS_HandleCommandQuitRigEditor_UGLY));
+		class_main_proxy.AddMethod( "void HandleCommandShowRigPropertiesWindow_UGLY()",            asMETHOD(Main, AS_HandleCommandShowRigPropertiesWindow_UGLY));
+		class_main_proxy.AddMethod( "void HandleCommandSaveContentOfRigPropertiesWindow_UGLY()",   asMETHOD(Main, AS_HandleCommandSaveContentOfRigPropertiesWindow_UGLY));
+		class_main_proxy.AddMethod( "void HandleCommandShowLandVehiclePropertiesWindow_UGLY()",    asMETHOD(Main, AS_HandleCommandShowLandVehiclePropertiesWindow_UGLY    ));
+		class_main_proxy.AddMethod( "void HandleCommandSaveLandVehiclePropertiesWindowData_UGLY()",asMETHOD(Main, AS_HandleCommandSaveLandVehiclePropertiesWindowData_UGLY));
+		class_main_proxy.AddMethod( "void HandleCommandShowHelpWindow_UGLY()",                     asMETHOD(Main, AS_HandleCommandShowHelpWindow_UGLY					  ));
+
+		// Command callback interface
+		auto enum_cmd_proxy = A.RegisterEnumWithProxy  ("RigEditorUserCommand_UGLY");
+		enum_cmd_proxy.AddField("USER_COMMAND_SHOW_DIALOG_OPEN_RIG_FILE"               , (int)IMain::USER_COMMAND_SHOW_DIALOG_OPEN_RIG_FILE);
+		enum_cmd_proxy.AddField("USER_COMMAND_SHOW_DIALOG_SAVE_RIG_FILE_AS"			   , (int)IMain::USER_COMMAND_SHOW_DIALOG_SAVE_RIG_FILE_AS);
+		enum_cmd_proxy.AddField("USER_COMMAND_SAVE_RIG_FILE"						   , (int)IMain::USER_COMMAND_SAVE_RIG_FILE);
+		enum_cmd_proxy.AddField("USER_COMMAND_CLOSE_CURRENT_RIG"					   , (int)IMain::USER_COMMAND_CLOSE_CURRENT_RIG);
+		enum_cmd_proxy.AddField("USER_COMMAND_CREATE_NEW_EMPTY_RIG"					   , (int)IMain::USER_COMMAND_CREATE_NEW_EMPTY_RIG);
+		enum_cmd_proxy.AddField("USER_COMMAND_CURRENT_RIG_DELETE_SELECTED_NODES"	   , (int)IMain::USER_COMMAND_CURRENT_RIG_DELETE_SELECTED_NODES);
+		enum_cmd_proxy.AddField("USER_COMMAND_CURRENT_RIG_DELETE_SELECTED_BEAMS"	   , (int)IMain::USER_COMMAND_CURRENT_RIG_DELETE_SELECTED_BEAMS);
+		enum_cmd_proxy.AddField("USER_COMMAND_QUIT_RIG_EDITOR"						   , (int)IMain::USER_COMMAND_QUIT_RIG_EDITOR);
+		enum_cmd_proxy.AddField("USER_COMMAND_SHOW_RIG_PROPERTIES_WINDOW"			   , (int)IMain::USER_COMMAND_SHOW_RIG_PROPERTIES_WINDOW);
+		enum_cmd_proxy.AddField("USER_COMMAND_SAVE_CONTENT_OF_RIG_PROPERTIES_WINDOW"   , (int)IMain::USER_COMMAND_SAVE_CONTENT_OF_RIG_PROPERTIES_WINDOW);
+		enum_cmd_proxy.AddField("USER_COMMAND_SHOW_LAND_VEHICLE_PROPERTIES_WINDOW"	   , (int)IMain::USER_COMMAND_SHOW_LAND_VEHICLE_PROPERTIES_WINDOW);
+		enum_cmd_proxy.AddField("USER_COMMAND_SAVE_LAND_VEHICLE_PROPERTIES_WINDOW_DATA", (int)IMain::USER_COMMAND_SAVE_LAND_VEHICLE_PROPERTIES_WINDOW_DATA);
+		enum_cmd_proxy.AddField("USER_COMMAND_SHOW_HELP_WINDOW"						   , (int)IMain::USER_COMMAND_SHOW_HELP_WINDOW);
+		enum_cmd_proxy.AddField("USER_COMMAND_INVALID"								   , (int)IMain::USER_COMMAND_INVALID);
+
+		A.RegisterInterface      ("IRigEditorUserCommandCallbackListener_UGLY");
+		A.RegisterInterfaceMethod("IRigEditorUserCommandCallbackListener_UGLY", "RigEditorCore_UGLY@ GetCore_UGLY()");
+		A.RegisterFuncdef        ("void FRigEditorUserCommandCallback_UGLY(IRigEditorUserCommandCallbackListener_UGLY@ obj, int cmd)");
+		A.RegisterObjectMethod   ("RigEditorCore_UGLY", 
+			"void RegisterUserCommandCallback_UGLY(IRigEditorUserCommandCallbackListener_UGLY@ obj, FRigEditorUserCommandCallback_UGLY@ func)",
+			asMETHOD(RigEditor::Main, AS_RegisterUserCommandCallback_UGLY), asCALL_THISCALL);
 
 		// RoR system interface
 		A.RegisterGlobalFunction("RigEditorCore_UGLY@ SYS_GetRigEditorInstance_UGLY()",    asFUNCTION(AS_GetRigEditorInstance),         asCALL_CDECL);
@@ -420,32 +458,53 @@ void ScriptEngine::MessageCallback(const AngelScript::asSMessageInfo *msg)
 	m_log->logMessage(tmp);
 }
 
-bool ScriptEngine::EnterRigEditor()
+// Static helper
+const char* ScriptEngine::ContextSetArg_ErrorCodeToString(int err_code)
+{
+	switch (err_code)
+	{
+		case asCONTEXT_NOT_PREPARED: return 	"asCONTEXT_NOT_PREPARED: The context is not in prepared state.";
+		case asINVALID_ARG: return	"asINVALID_ARG: The arg is larger than the number of arguments in the prepared function.";
+		case asINVALID_TYPE: 	return "asINVALID_TYPE: The argument has wrong data type";
+	}
+	return "Unknown error code";
+}
+
+// Static helper
+const char* ScriptEngine::ContextPrepare_ErrorCodeToString(int err_code)
+{
+	switch (err_code)
+	{
+		case		asCONTEXT_ACTIVE:	return "asCONTEXT_ACTIVE: The context is still active or suspended.";
+	}
+	return "Unknown error code";
+}
+
+// Static helper
+void ScriptEngine::PrepareAndExecuteFunction(asIScriptFunction* func, asIScriptContext* ctx, asIScriptEngine* engine)
 {
     // Prepare the script context with the function we wish to execute. Prepare()
 	// must be called on the context before each new script function that will be
 	// executed.
-	int result = m_context->Prepare(m_main_function);
+	int result = ctx->Prepare(func);
 	if( result < 0 ) 
 	{
 		std::stringstream msg;
-        msg << __FUNCTION__ << "Failed to prepare AngelScript context, result: " << result;
-        m_log->logMessage(msg.str());
-		return false;
+        msg << __FUNCTION__ << "(): Failed to prepare AngelScript context, result: " << ContextPrepare_ErrorCodeToString(result);
+        throw std::runtime_error(msg.str());
 	}
 
-    // Execute the Main() function
-	m_log->logMessage("Executing the script's Main() function");
-    m_log->logMessage("==================================================");
-	result = m_context->Execute();
-    m_log->logMessage("==================================================");
-	m_log->logMessage("The script's Main() function has finished");
+	ScriptEngine::ExecuteContext(ctx, engine);	
+}
 
-    std::stringstream msg;
-    bool success = true;
+ void        ScriptEngine::ExecuteContext(AngelScript::asIScriptContext* ctx, AngelScript::asIScriptEngine* engine)
+{
+	int result = ctx->Execute();
+
+    
 	if( result != asEXECUTION_FINISHED )
 	{
-        success = false;
+		std::stringstream msg;
 		// The execution didn't finish as we had planned. Determine why.
 		if( result == asEXECUTION_ABORTED )
         {
@@ -457,26 +516,43 @@ bool ScriptEngine::EnterRigEditor()
 
 			// Write some information about the script exception
             
-			int funcId = m_context->GetExceptionFunction();
-            const asIScriptFunction *func = m_engine->GetFunctionById(funcId);
-			msg << "\tfunc: " << func->GetDeclaration() << endl;
-			msg << "\tmodl: " << func->GetModuleName() << endl;
-			msg << "\tsect: " << func->GetScriptSectionName() << endl;
-			msg << "\tline: " << m_context->GetExceptionLineNumber() << endl;
-			msg << "\tdesc: " << m_context->GetExceptionString() << endl;
+			int funcId = ctx->GetExceptionFunction();
+            const asIScriptFunction *func = engine->GetFunctionById(funcId);
+			msg << "\tFunction: " << func->GetDeclaration()        << endl;
+			msg << "\t  Module: " << func->GetModuleName()         << endl;
+			msg << "\t Section: " << func->GetScriptSectionName()  << endl;
+			msg << "\t LineNum: " << ctx->GetExceptionLineNumber() << endl;
+			msg << "\t Message: " << ctx->GetExceptionString()     << endl;
 		}
 		else
         {
 			msg << "The script ended for some unforeseen reason (result=" << result << ")." << endl;
         }
+		throw std::runtime_error(msg.str());
 	}
-	else
-	{
-		msg << "The script finished successfully, return code: " << result;
-	}
-    m_log->logMessage(msg.str());
+}
 
-	return success;
+bool ScriptEngine::EnterRigEditor()
+{
+    try
+	{
+		// Execute the Main() function
+		m_log->logMessage("Executing the rig editor script");
+		m_log->logMessage("==================================================");
+		PrepareAndExecuteFunction(m_main_function, m_context, m_engine);
+		m_log->logMessage("==================================================");
+		m_log->logMessage("The rig editor script has finished");
+		return true;
+	}
+	catch (std::runtime_error e)
+	{
+		m_log->logMessage("==================================================");
+		m_log->logMessage("An exception occured, message:");
+		m_log->logMessage(e.what());
+		return false;
+	}
+
+	
 }
 
 void ScriptEngine::ShutDown()

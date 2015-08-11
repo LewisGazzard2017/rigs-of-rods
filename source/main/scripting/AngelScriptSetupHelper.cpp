@@ -27,6 +27,8 @@
 
 #include "AngelScriptSetupHelper.h"
 
+#include <memory>
+
 using namespace RoR;
 using namespace AngelScript;
 
@@ -37,6 +39,35 @@ AngelScriptSetupHelper::AngelScriptSetupHelper(Ogre::Log* log, AngelScript::asIS
 
 }
 
+const char* AngelScriptSetupHelper::RegisterObjectMethod_ReturnCodeToString(int ret_code)
+{
+	switch(ret_code)
+	{
+		case asWRONG_CONFIG_GROUP:  return "asWRONG_CONFIG_GROUP: The object type was registered in a different configuration group.";
+		case asNOT_SUPPORTED:       return "asNOT_SUPPORTED: The calling convention is not supported.";
+		case asINVALID_TYPE:        return "asINVALID_TYPE: The obj parameter is not a valid object name.";
+		case asINVALID_DECLARATION: return "asINVALID_DECLARATION: The declaration is invalid.";
+		case asNAME_TAKEN:          return "asNAME_TAKEN: The name conflicts with other members.";
+		case asWRONG_CALLING_CONV:  return "asWRONG_CALLING_CONV: The function's calling convention isn't compatible with callConv.";
+		default:;
+	}
+	return "Unknown error code";
+}
+
+const char* AngelScriptSetupHelper::RegisterObjectProperty_ReturnCodeToString(int ret_code)
+{
+	switch (ret_code)
+	{
+		case asWRONG_CONFIG_GROUP:  return "asWRONG_CONFIG_GROUP: The object type was registered in a different configuration group.";
+		case asINVALID_OBJECT:      return "asINVALID_OBJECT: The obj does not specify an object type.";
+		case asINVALID_TYPE:        return "asINVALID_TYPE: The obj parameter has invalid syntax.";
+		case asINVALID_DECLARATION: return "asINVALID_DECLARATION: The declaration is invalid.";
+		case asNAME_TAKEN:          return "asNAME_TAKEN: The name conflicts with other members.";
+		default:;
+	}
+	return "Unknown error code";
+}
+
 void AngelScriptSetupHelper::RegisterObjectType(const char *obj, int byteSize, asDWORD flags)
 {
 	int result = m_engine->RegisterObjectType(obj, byteSize, flags);
@@ -45,6 +76,7 @@ void AngelScriptSetupHelper::RegisterObjectType(const char *obj, int byteSize, a
 		std::stringstream msg;
 		msg << "RegisterObjectType("<<obj<<") failed, return code: " << result;
 		m_log->logMessage(msg.str());
+		throw RegistrationException(msg.str());
 	}
 }
 
@@ -54,7 +86,8 @@ void AngelScriptSetupHelper::RegisterObjectProperty(const char *obj, const char 
 	if (result < 0)
 	{
 		std::stringstream msg;
-		msg << "RegisterObjectProperty("<<obj<<", "<<declaration<<") failed, return code: " << result;
+		msg << "RegisterObjectProperty("<<obj<<", "<<declaration<<") failed, return code: " 
+			<< this->RegisterObjectProperty_ReturnCodeToString(result);
 		m_log->logMessage(msg.str());
 		throw RegistrationException(msg.str());
 	}
@@ -66,7 +99,8 @@ void AngelScriptSetupHelper::RegisterObjectMethod(const char *obj, const char *d
 	if (result < 0)
 	{
 		std::stringstream msg;
-		msg << "RegisterObjectMethod("<<obj<<", "<<declaration<<") failed, return code: " << result;
+		msg << "RegisterObjectMethod("<<obj<<", "<<declaration<<") failed, return code: " 
+			<< this->RegisterObjectMethod_ReturnCodeToString(result);
 		m_log->logMessage(msg.str());
 		throw RegistrationException(msg.str());
 	}
@@ -94,4 +128,92 @@ void AngelScriptSetupHelper::RegisterGlobalFunction(const char *declaration, con
 		m_log->logMessage(msg.str());
 		throw RegistrationException(msg.str());
 	}
+}
+
+void AngelScriptSetupHelper::RegisterInterface(const char* interface_name)
+{
+	int result = m_engine->RegisterInterface(interface_name);
+	if (result < 0)
+	{
+		std::stringstream msg;
+		msg << "RegisterInterface("<<interface_name<<") failed, return code: " << result;
+		m_log->logMessage(msg.str());
+		throw RegistrationException(msg.str());
+	}
+}
+
+void AngelScriptSetupHelper::RegisterInterfaceMethod(const char* interface_name, const char* method_decl)
+{
+	int result = m_engine->RegisterInterfaceMethod(interface_name, method_decl);
+	if (result < 0)
+	{
+		std::stringstream msg;
+		msg << "RegisterInterfaceMethod("<<interface_name<<", "<<method_decl<<") failed, return code: " << result;
+		m_log->logMessage(msg.str());
+		throw RegistrationException(msg.str());
+	}
+}
+
+void AngelScriptSetupHelper::RegisterFuncdef(const char* funcdef)
+{
+	int result = m_engine->RegisterFuncdef(funcdef);
+	if (result < 0)
+	{
+		std::stringstream msg;
+		msg << "RegisterFuncdef("<<funcdef<<") failed, return code: " << result;
+		m_log->logMessage(msg.str());
+		throw RegistrationException(msg.str());
+	}
+}
+
+void AngelScriptSetupHelper::RegisterEnum           (const char* enum_name)
+{
+	int result = m_engine->RegisterEnum(enum_name);
+	if (result < 0)
+	{
+		std::stringstream msg;
+		msg << "RegisterEnum("<<enum_name<<") failed, return code: " << result;
+		m_log->logMessage(msg.str());
+		throw RegistrationException(msg.str());
+	}
+}
+
+void AngelScriptSetupHelper::RegisterEnumValue      (const char* enum_name, const char* field_name, int field_value)
+{
+	int result = m_engine->RegisterEnumValue(enum_name, field_name, field_value);
+	if (result < 0)
+	{
+		std::stringstream msg;
+		msg << "RegisterEnumValue("<<enum_name<<", "<<field_name<<", "<<field_value<<") failed, return code: " << result;
+		m_log->logMessage(msg.str());
+		throw RegistrationException(msg.str());
+	}
+}
+
+// Ctor
+AngelScriptSetupHelper::EnumRegistrationProxy::EnumRegistrationProxy(AngelScriptSetupHelper* A, const char* enum_name)
+{
+	m_setup_helper = A;
+	A->RegisterEnum(enum_name);
+	m_enum_name = enum_name;
+}
+
+void AngelScriptSetupHelper::EnumRegistrationProxy::AddField(const char* name, int value)
+{
+	m_setup_helper->RegisterEnumValue(m_enum_name.c_str(), name, value);
+}
+
+AngelScriptSetupHelper::EnumRegistrationProxy AngelScriptSetupHelper::RegisterEnumWithProxy(const char* enum_name)
+{
+	return AngelScriptSetupHelper::EnumRegistrationProxy(this, enum_name);
+}
+
+void AngelScriptSetupHelper::ObjectRegistrationProxy::AddMethod(const char* decl, const asSFuncPtr &funcPointer, asDWORD call_conv /* = asCALL_THISCALL*/)
+{
+	m_setup_helper->RegisterObjectMethod(m_object_name.c_str(), decl, funcPointer, call_conv);
+}
+
+AngelScriptSetupHelper::ObjectRegistrationProxy AngelScriptSetupHelper::CreateObjectRegistrationProxy(const char* obj_name)
+{
+	return AngelScriptSetupHelper::ObjectRegistrationProxy(this, obj_name);
 }

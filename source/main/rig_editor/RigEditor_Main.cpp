@@ -62,8 +62,10 @@
 #include "RigEditor_RigProperties.h"
 #include "RigEditor_RigElementsAggregateData.h"
 #include "RigEditor_RigWheelsAggregateData.h"
+#include "RigEditor_ScriptEngine.h"
 #include "Settings.h"
 
+#include <angelscript.h>
 #include <OISKeyboard.h>
 #include <OgreEntity.h>
 #include <OgreMaterialManager.h>
@@ -88,7 +90,9 @@ Main::Main(Config* config):
 	m_exit_loop_requested(false),
 	m_input_handler(nullptr),
 	m_rig(nullptr),
-    m_state_flags(0)
+    m_state_flags(0),
+	m_as_usercommandcallback_object(nullptr),
+	m_as_usercommandcallback_method(nullptr)
 {
 	/* Setup 3D engine */
 	OgreSubsystem* ror_ogre_subsystem = RoR::Application::GetOgreSubsystem();
@@ -126,6 +130,42 @@ Main::~Main()
 	}
 }
 
+void Main::InvokeAngelScriptUserCommandCallback(IMain::UserCommand command)
+{
+	using namespace AngelScript;
+
+	if (m_as_usercommandcallback_method == nullptr || m_as_usercommandcallback_object == nullptr)
+	{
+		return;
+	}
+
+	asIScriptContext* ctx = m_as_usercommandcallback_method->GetEngine()->CreateContext(); // Sub optimal, to be improved
+	int result = ctx->Prepare(m_as_usercommandcallback_method);
+	if (result != 0)
+	{
+		std::stringstream msg;
+		msg <<__FUNCTION__<< "(): Failed to Prepare() context, error code: " << ScriptEngine::ContextPrepare_ErrorCodeToString(result);
+		throw std::runtime_error(msg.str());
+	}
+	result = ctx->SetArgObject(0, static_cast<void*>(m_as_usercommandcallback_object));
+	if (result != 0)
+	{
+		std::stringstream msg;
+		msg <<__FUNCTION__<< "(): Failed to SetArgAddress(0, commandCallbackObject) to context, error code: " 
+			<< ScriptEngine::ContextSetArg_ErrorCodeToString(result);
+		throw std::runtime_error(msg.str());
+	}
+	result = ctx->SetArgDWord(1, static_cast<asDWORD>(command));
+	if (result != 0)
+	{
+		std::stringstream msg;
+		msg <<__FUNCTION__<< "(): Failed to SetArgDWord(1, command) to context, error code: " 
+			<< ScriptEngine::ContextSetArg_ErrorCodeToString(result);
+		throw std::runtime_error(msg.str());
+	}
+	ScriptEngine::ExecuteContext(ctx, m_as_usercommandcallback_method->GetEngine());
+}
+
 void Main::AS_OnEnter_SetupCameraAndViewport_UGLY()
 {
     /* Setup 3D engine */
@@ -136,6 +176,12 @@ void Main::AS_OnEnter_SetupCameraAndViewport_UGLY()
 	m_viewport->setBackgroundColour(m_config->viewport_background_color);
 	m_camera->setAspectRatio(m_viewport->getActualHeight() / viewport_width);
 	m_viewport->setCamera(m_camera);
+}
+
+void Main::AS_RegisterUserCommandCallback_UGLY(AngelScript::asIScriptObject* object, AngelScript::asIScriptFunction* method)
+{
+	m_as_usercommandcallback_object = object;
+	m_as_usercommandcallback_method = method;
 }
 
 void Main::AS_OnEnter_SetupInput_UGLY()
@@ -593,6 +639,11 @@ void Main::AS_UpdateMainLoop_UGLY()
 
 void Main::CommandShowDialogOpenRigFile()
 {
+	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_SHOW_DIALOG_OPEN_RIG_FILE);
+}
+
+void Main::AS_HandleCommandShowDialogOpenRigFile_UGLY()
+{
 	m_gui_open_save_file_dialog->setDialogInfo(MyGUI::UString("Open rig file"), MyGUI::UString("Open"), false);
 	m_gui_open_save_file_dialog->eventEndDialog = MyGUI::newDelegate(this, &Main::NotifyFileSelectorEnded);
 	m_gui_open_save_file_dialog->setMode(OpenSaveFileDialogMode::MODE_OPEN_TRUCK);
@@ -600,6 +651,11 @@ void Main::CommandShowDialogOpenRigFile()
 }
 
 void Main::CommandShowDialogSaveRigFileAs()
+{
+	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_SHOW_DIALOG_SAVE_RIG_FILE_AS);
+}
+
+void Main::AS_HandleCommandShowDialogSaveRigFileAs_UGLY()
 {
 	if (m_rig != nullptr)
 	{
@@ -621,10 +677,15 @@ LineListDynamicMesh*     Main::CreateInstanceOfLineListDynamicMesh(size_t estima
 
 void Main::CommandSaveRigFile()
 {
-	// TODO
+	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_SAVE_RIG_FILE);
 }
 
 void Main::CommandCloseCurrentRig()
+{
+	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_CLOSE_CURRENT_RIG);
+}
+
+void Main::AS_HandleCommandCloseCurrentRig_UGLY()
 {
 	if (m_rig != nullptr)
 	{
@@ -851,6 +912,11 @@ RigEditor::Node* Main::GetCurrentRigLastSelectedNode()
 
 void Main::CommandCurrentRigDeleteSelectedNodes()
 {
+	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_CURRENT_RIG_DELETE_SELECTED_NODES);
+}
+
+void Main::AS_HandleCommandCurrentRigDeleteSelectedNodes_UGLY()
+{
 	m_gui_delete_menu->Hide();
 	HideAllNodeBeamGuiPanels();
 	assert(m_rig != nullptr);
@@ -871,6 +937,11 @@ void Main::HideAllNodeBeamGuiPanels()
 
 void Main::CommandCurrentRigDeleteSelectedBeams()
 {
+	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_CURRENT_RIG_DELETE_SELECTED_BEAMS);
+}
+
+void Main::AS_HandleCommandCurrentRigDeleteSelectedBeams_UGLY()
+{
 	m_gui_delete_menu->Hide();
 	HideAllNodeBeamGuiPanels();
 	assert(m_rig != nullptr);
@@ -881,10 +952,20 @@ void Main::CommandCurrentRigDeleteSelectedBeams()
 
 void Main::CommandQuitRigEditor()
 {
+	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_QUIT_RIG_EDITOR);
+}
+
+void Main::AS_HandleCommandQuitRigEditor_UGLY()
+{
 	m_exit_loop_requested = true;
 }
 
 void Main::CommandShowRigPropertiesWindow()
+{
+	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_SHOW_RIG_PROPERTIES_WINDOW);
+}
+
+void Main::AS_HandleCommandShowRigPropertiesWindow_UGLY()
 {
 	if (m_rig != nullptr)
 	{
@@ -896,6 +977,11 @@ void Main::CommandShowRigPropertiesWindow()
 
 void Main::CommandSaveContentOfRigPropertiesWindow()
 {
+	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_SAVE_CONTENT_OF_RIG_PROPERTIES_WINDOW);
+}
+
+void Main::AS_HandleCommandSaveContentOfRigPropertiesWindow_UGLY()
+{
 	if (m_rig != nullptr && m_gui_rig_properties_window->IsVisible())
 	{
 		m_gui_rig_properties_window->Export(m_rig->GetProperties());
@@ -903,6 +989,11 @@ void Main::CommandSaveContentOfRigPropertiesWindow()
 }
 
 void Main::CommandShowLandVehiclePropertiesWindow()
+{
+	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_SHOW_LAND_VEHICLE_PROPERTIES_WINDOW);
+}
+
+void Main::AS_HandleCommandShowLandVehiclePropertiesWindow_UGLY()
 {
 	if (m_rig != nullptr)
 	{
@@ -917,6 +1008,11 @@ void Main::CommandShowLandVehiclePropertiesWindow()
 
 void Main::CommandSaveLandVehiclePropertiesWindowData()
 {
+	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_SAVE_LAND_VEHICLE_PROPERTIES_WINDOW_DATA);
+}
+
+void Main::AS_HandleCommandSaveLandVehiclePropertiesWindowData_UGLY()
+{
 	if (m_rig != nullptr && m_gui_land_vehicle_properties_window->IsVisible())
 	{
         m_rig->GetProperties()->SetEngine(m_gui_land_vehicle_properties_window->ExportEngine());
@@ -925,6 +1021,11 @@ void Main::CommandSaveLandVehiclePropertiesWindowData()
 }
 
 void Main::CommandShowHelpWindow()
+{
+	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_SHOW_HELP_WINDOW);
+}
+
+void Main::AS_HandleCommandShowHelpWindow_UGLY()
 {
 	m_gui_help_window->Show();
 	m_gui_help_window->CenterToScreen();
@@ -1180,6 +1281,11 @@ void Main::CommandSetAllWheelsHovered(bool state_hovered)
 }
 
 void Main::CommandCreateNewEmptyRig()
+{
+	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_CREATE_NEW_EMPTY_RIG);
+}
+
+void Main::AS_HandleCommandCreateNewEmptyRig_UGLY()
 {
     if (m_rig != nullptr)
     {
