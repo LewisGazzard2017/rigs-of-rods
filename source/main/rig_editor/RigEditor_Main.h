@@ -35,6 +35,8 @@
 #include "RigEditor_ForwardDeclarations.h"
 #include "RoRPrerequisites.h"
 
+#include <string>
+
 // Forward decl.
 namespace AngelScript
 {
@@ -180,7 +182,7 @@ public:
 	void AS_OnExit_HideGui_UGLY();
 	void AS_OnExit_ClearExitRequest_UGLY();
 
-	void AS_RegisterUserCommandCallback_UGLY(AngelScript::asIScriptObject* object, AngelScript::asIScriptFunction* method);
+	void AS_RegisterUserCommandCallback_UGLY(AngelScript::asIScriptObject* object, std::string method_name);
 
 	// ===== Command interface handlers ===== //
 

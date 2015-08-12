@@ -137,7 +137,7 @@ void Main::InvokeAngelScriptUserCommandCallback(IMain::UserCommand command)
 
 	using namespace AngelScript;
 	asIScriptContext* ctx = m_as_user_command_callback.PrepareContext();
-	m_as_user_command_callback.SetArgInt(ctx, 1, static_cast<int>(command));
+	m_as_user_command_callback.SetArgInt(ctx, 0, static_cast<int>(command));
 	m_as_user_command_callback.ExecuteContext(ctx);
 }
 
@@ -153,9 +153,9 @@ void Main::AS_OnEnter_SetupCameraAndViewport_UGLY()
 	m_viewport->setCamera(m_camera);
 }
 
-void Main::AS_RegisterUserCommandCallback_UGLY(AngelScript::asIScriptObject* object, AngelScript::asIScriptFunction* method)
+void Main::AS_RegisterUserCommandCallback_UGLY(AngelScript::asIScriptObject* object, std::string method_name)
 {
-	m_as_user_command_callback.RegisterCallback(object, method);
+	m_as_user_command_callback.RegisterCallback(object, method_name);
 }
 
 void Main::AS_OnEnter_SetupInput_UGLY()
@@ -620,7 +620,7 @@ void Main::AS_HandleCommandShowDialogOpenRigFile_UGLY()
 {
 	m_gui_open_save_file_dialog->setDialogInfo(MyGUI::UString("Open rig file"), MyGUI::UString("Open"), false);
 	m_gui_open_save_file_dialog->eventEndDialog = MyGUI::newDelegate(this, &Main::NotifyFileSelectorEnded);
-	m_gui_open_save_file_dialog->setMode(OpenSaveFileDialogMode::MODE_OPEN_TRUCK);
+	//m_gui_open_save_file_dialog->setMode(OpenSaveFileDialogMode::MODE_OPEN_TRUCK);
 	m_gui_open_save_file_dialog->doModal(); // Shows the dialog
 }
 
@@ -635,7 +635,7 @@ void Main::AS_HandleCommandShowDialogSaveRigFileAs_UGLY()
 	{
 		m_gui_open_save_file_dialog->setDialogInfo(MyGUI::UString("Save rig file"), MyGUI::UString("Save"), false);
 		m_gui_open_save_file_dialog->eventEndDialog = MyGUI::newDelegate(this, &Main::NotifyFileSelectorEnded);
-		m_gui_open_save_file_dialog->setMode(OpenSaveFileDialogMode::MODE_SAVE_TRUCK_AS);
+		//m_gui_open_save_file_dialog->setMode(OpenSaveFileDialogMode::MODE_SAVE_TRUCK_AS);
 		m_gui_open_save_file_dialog->doModal(); // Shows the dialog
 	}
 }
@@ -678,17 +678,17 @@ void Main::NotifyFileSelectorEnded(GUI::Dialog* dialog, bool result)
 {
 	if (result)
 	{
-		const MyGUI::UString & mode = m_gui_open_save_file_dialog->getMode();
+		//const MyGUI::UString & mode = m_gui_open_save_file_dialog->getMode();
 		auto const & folder = m_gui_open_save_file_dialog->getCurrentFolder();
 		auto const & filename = m_gui_open_save_file_dialog->getFileName();
 
-		if (mode == OpenSaveFileDialogMode::MODE_OPEN_TRUCK)
+		//if (mode == OpenSaveFileDialogMode::MODE_OPEN_TRUCK) // TMP!!!
 		{
 			LoadRigDefFile(folder, filename);
 		}
-		else if (mode == OpenSaveFileDialogMode::MODE_SAVE_TRUCK_AS)
+		//else if (mode == OpenSaveFileDialogMode::MODE_SAVE_TRUCK_AS) // TMP!!!
 		{
-			SaveRigDefFile(folder, filename);
+			//SaveRigDefFile(folder, filename); // TMP!!!
 		}
 	}
 	dialog->endModal(); // Hides the dialog

@@ -70,6 +70,8 @@ public:
 			m_object_name(obj_name)
 		{}
 	public:
+		void SetupObject(int byte_size, asDWORD flags);
+		void AddBehavior(asEBehaviours behaviour, const char *declaration, const asSFuncPtr &funcPointer, asDWORD callConv = asCALL_THISCALL);
 		void AddMethod(const char* decl, const asSFuncPtr &func_ptr, asDWORD call_conv = asCALL_THISCALL);
 	protected:	
 		AngelScriptSetupHelper* m_setup_helper;
@@ -125,6 +127,7 @@ public:
 	// AS engine registration utilities
 	EnumRegistrationProxy   RegisterEnumWithProxy(const char* enum_name);
 	ObjectRegistrationProxy CreateObjectRegistrationProxy(const char* obj_name);
+	ObjectRegistrationProxy RegisterObjectWithProxy      (const char *obj, int byteSize, asDWORD flags);
 
 	inline AngelScript::asIScriptEngine* GetEngine() { return m_engine; }
 

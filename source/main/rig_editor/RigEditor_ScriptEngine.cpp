@@ -409,10 +409,12 @@ int ScriptEngine::RegisterSystemInterface()
 		enum_cmd_proxy.AddField("USER_COMMAND_INVALID"								   , (int)IMain::USER_COMMAND_INVALID);
 
 		A.RegisterInterface      ("IRigEditorUserCommandCallbackListener_UGLY");
-		A.RegisterInterfaceMethod("IRigEditorUserCommandCallbackListener_UGLY", "RigEditorCore_UGLY@ GetCore_UGLY()");
-		A.RegisterFuncdef        ("void FRigEditorUserCommandCallback_UGLY(IRigEditorUserCommandCallbackListener_UGLY@ obj, int cmd)");
+		A.RegisterInterfaceMethod      ("IRigEditorUserCommandCallbackListener_UGLY", "void HandleUglyUserCommand(int command)");
+		//A.RegisterInterfaceMethod("IRigEditorUserCommandCallbackListener_UGLY", "RigEditorCore_UGLY@ GetCore_UGLY()");
+		//A.RegisterFuncdef        ("void FRigEditorUserCommandCallback_UGLY(IRigEditorUserCommandCallbackListener_UGLY@ obj, int cmd)");
+		A.RegisterFuncdef        ("void FRigEditorUserCommandCallback_UGLY(int cmd)");
 		A.RegisterObjectMethod   ("RigEditorCore_UGLY", 
-			"void RegisterUserCommandCallback_UGLY(IRigEditorUserCommandCallbackListener_UGLY@ obj, FRigEditorUserCommandCallback_UGLY@ func)",
+			"void RegisterUserCommandCallback_UGLY(IRigEditorUserCommandCallbackListener_UGLY@ obj, string method_name)",
 			asMETHOD(RigEditor::Main, AS_RegisterUserCommandCallback_UGLY), asCALL_THISCALL);
 
 		// RoR system interface

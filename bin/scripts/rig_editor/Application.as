@@ -1,9 +1,71 @@
 // Rig editor application class
 
-#include "UserCommandHandler.as"
-
-class Application
+class Application:
+    IRigEditorUserCommandCallbackListener_UGLY
 {
+    // Interface: IRigEditorUserCommandCallbackListener_UGLY
+    // Funcdef: void FRigEditorUserCommandCallback_UGLY(int cmd)    
+    void HandleUglyUserCommand(int command)
+    {
+        LogMessage("HandleUglyUserCommand() invoked");
+        switch (command)
+        {   
+            case RigEditorUserCommand_UGLY::USER_COMMAND_SHOW_DIALOG_OPEN_RIG_FILE:
+                m_rig_editor_core.HandleCommandShowDialogOpenRigFile_UGLY();
+                break;
+                
+            case RigEditorUserCommand_UGLY::USER_COMMAND_SHOW_DIALOG_SAVE_RIG_FILE_AS:
+                m_rig_editor_core.HandleCommandShowDialogSaveRigFileAs_UGLY();
+                break;
+                
+            case RigEditorUserCommand_UGLY::USER_COMMAND_SAVE_RIG_FILE:
+                // To be implemented...
+                break;
+                
+            case RigEditorUserCommand_UGLY::USER_COMMAND_CLOSE_CURRENT_RIG:
+                m_rig_editor_core.HandleCommandCloseCurrentRig_UGLY();
+                break;
+                
+            case RigEditorUserCommand_UGLY::USER_COMMAND_CREATE_NEW_EMPTY_RIG:
+                m_rig_editor_core.HandleCommandCreateNewEmptyRig_UGLY();
+                break;
+                
+            case RigEditorUserCommand_UGLY::USER_COMMAND_CURRENT_RIG_DELETE_SELECTED_NODES:
+                m_rig_editor_core.HandleCommandCurrentRigDeleteSelectedNodes_UGLY();
+                break;
+                
+            case RigEditorUserCommand_UGLY::USER_COMMAND_CURRENT_RIG_DELETE_SELECTED_BEAMS:
+                m_rig_editor_core.HandleCommandCurrentRigDeleteSelectedBeams_UGLY();
+                break;
+                
+            case RigEditorUserCommand_UGLY::USER_COMMAND_QUIT_RIG_EDITOR:
+                m_rig_editor_core.HandleCommandQuitRigEditor_UGLY();
+                break;
+                
+            case RigEditorUserCommand_UGLY::USER_COMMAND_SHOW_RIG_PROPERTIES_WINDOW:
+                m_rig_editor_core.HandleCommandShowRigPropertiesWindow_UGLY();
+                break;
+                
+            case RigEditorUserCommand_UGLY::USER_COMMAND_SAVE_CONTENT_OF_RIG_PROPERTIES_WINDOW:
+                m_rig_editor_core.HandleCommandSaveContentOfRigPropertiesWindow_UGLY();
+                break;
+                
+            case RigEditorUserCommand_UGLY::USER_COMMAND_SHOW_LAND_VEHICLE_PROPERTIES_WINDOW:
+                m_rig_editor_core.HandleCommandShowLandVehiclePropertiesWindow_UGLY();
+                break;
+                
+            case RigEditorUserCommand_UGLY::USER_COMMAND_SAVE_LAND_VEHICLE_PROPERTIES_WINDOW_DATA:
+                m_rig_editor_core.HandleCommandSaveLandVehiclePropertiesWindowData_UGLY();
+                break;
+                
+            case RigEditorUserCommand_UGLY::USER_COMMAND_SHOW_HELP_WINDOW:
+                m_rig_editor_core.HandleCommandShowHelpWindow_UGLY();
+                break;
+        }
+        LogMessage("HandleUglyUserCommand() finishes");    
+    }
+
+    // Constructor
     Application()
     {
         @m_rig_editor_core = SYS_GetRigEditorInstance_UGLY();
@@ -15,6 +77,9 @@ class Application
         {
             LogMessage("Application(): ERROR, GetRigEditorInstance_UGLY() returned NULL handle!!!");
         }
+        
+        m_rig_editor_core.RegisterUserCommandCallback_UGLY(@this, "HandleUglyUserCommand");
+        LogMessage("Application() - User command callback registered.");
     }
     
     void Go()
@@ -28,11 +93,6 @@ class Application
         LogMessage("Application::Go() - OnEnter_InitializeOrRestoreGui_UGLY() finished");
         m_rig_editor_core.OnEnter_SetupInput_UGLY();
         LogMessage("Application::Go() - OnEnter_SetupInput_UGLY() finished");
-        
-        @m_user_command_handler = UserCommandHandler(@m_rig_editor_core);
-        m_rig_editor_core.RegisterUserCommandCallback_UGLY(
-            @m_user_command_handler, HandleUglyUserCommand);
-        LogMessage("Application::Go() - User command callback registered.");
         
         // Run the main loop
         m_exit_requested = false;
@@ -54,10 +114,12 @@ class Application
         m_rig_editor_core.OnExit_ClearExitRequest_UGLY();
     }
     
+    
+
+    
     // ===== Variables =====
     
     private RigEditorCore_UGLY@ m_rig_editor_core;
     private bool                m_exit_requested;
-    private UserCommandHandler@ m_user_command_handler;
     // More to come...
 }

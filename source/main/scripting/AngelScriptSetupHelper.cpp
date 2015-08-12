@@ -217,3 +217,20 @@ AngelScriptSetupHelper::ObjectRegistrationProxy AngelScriptSetupHelper::CreateOb
 {
 	return AngelScriptSetupHelper::ObjectRegistrationProxy(this, obj_name);
 }
+
+void AngelScriptSetupHelper::ObjectRegistrationProxy::SetupObject(int byte_size, asDWORD flags)
+{
+	m_setup_helper->RegisterObjectType(m_object_name.c_str(), byte_size, flags);
+}
+void AngelScriptSetupHelper::ObjectRegistrationProxy::AddBehavior(
+	asEBehaviours behaviour, const char *declaration, const asSFuncPtr &funcPointer, asDWORD callConv /* = asCALL_THISCALL */)
+{
+	m_setup_helper->RegisterObjectBehaviour(m_object_name.c_str(), behaviour, declaration, funcPointer, callConv);
+}
+
+AngelScriptSetupHelper::ObjectRegistrationProxy AngelScriptSetupHelper::RegisterObjectWithProxy      (const char *obj, int byteSize, asDWORD flags)
+{
+	auto proxy = this->CreateObjectRegistrationProxy(obj);
+	proxy.SetupObject(byteSize, flags);
+	return proxy;
+}

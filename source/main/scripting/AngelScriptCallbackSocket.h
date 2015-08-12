@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <string>
+
 // Forward decl.
 namespace AngelScript
 {
@@ -22,7 +24,7 @@ public:
 		return ! (m_as_callback_method == nullptr || m_as_callback_object == nullptr);
 	}
 
-	void RegisterCallback(AngelScript::asIScriptObject* object, AngelScript::asIScriptFunction* method);
+	void RegisterCallback(AngelScript::asIScriptObject* object, std::string method_name);
 
 	AngelScript::asIScriptContext* PrepareContext();
 
