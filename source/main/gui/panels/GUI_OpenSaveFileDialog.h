@@ -36,8 +36,15 @@
 #include <MyGUI.h>
 #include "Dialog.h"
 
+#include "AngelScriptCallbackSocket.h"
+
+#include <string>
+
 namespace RoR
 {
+
+// Forward decl...
+class AngelScriptSetupHelper;
 
 namespace GUI
 {
@@ -48,7 +55,7 @@ class OpenSaveFileDialog :
 public:
 	OpenSaveFileDialog();
 
-	void setDialogInfo(const MyGUI::UString& _caption, const MyGUI::UString& _button, bool _folderMode = false);
+	void setDialogInfo(MyGUI::UString _caption, MyGUI::UString _button, bool _folderMode);
 
 	void setCurrentFolder(const MyGUI::UString& _value);
 	const MyGUI::UString& getCurrentFolder() const;
@@ -56,18 +63,36 @@ public:
 	void setFileName(const MyGUI::UString& _value);
 	const MyGUI::UString& getFileName() const;
 
-	const MyGUI::UString& getMode() const;
-	void setMode(const MyGUI::UString& _value);
-
 	typedef std::vector<MyGUI::UString> VectorUString;
 	void setRecentFolders(const VectorUString& _listFolders);
 
 	void setFileMask(const MyGUI::UString& _value);
 	const MyGUI::UString& getFileMask() const;
 
+	// AngelScript interface
+
+	static OpenSaveFileDialog* AS_CreateInstance()
+	{
+		return new OpenSaveFileDialog();
+	}
+
+	void AS_RefCountIncrease() { mAngelScriptRefCount++; }
+	void AS_RefCountDecrease() { mAngelScriptRefCount--; }
+
+	void AS_RegisterDialogFinishedCallback(AngelScript::asIScriptObject* object, std::string method_name);
+
+	void AS_ConfigureDialog(std::string title, std::string select_btn_text, bool use_folder_mode);
+
+	// END AngelScript interface
+
+	static void BindToAngelScript(RoR::AngelScriptSetupHelper* A);
+
 protected:
 	virtual void onDoModal();
 	virtual void onEndModal();
+
+	// GUI callbacks
+	void NotifyFileSelectorEnded(RoR::GUI::Dialog* dialog, bool result);
 
 private:
 	void notifyWindowButtonPressed(MyGUI::Window* _sender, const std::string& _name);
@@ -96,8 +121,10 @@ private:
 	MyGUI::UString mFileName;
 	MyGUI::UString mFileMask;
 
-	MyGUI::UString mMode;
 	bool mFolderMode;
+	int  mAngelScriptRefCount;
+
+	RoR::AngelScriptCallbackSocket mAsDialogFinishedCallback;
 };
 
 } // namespace GUI

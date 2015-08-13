@@ -39,6 +39,22 @@ AngelScriptSetupHelper::AngelScriptSetupHelper(Ogre::Log* log, AngelScript::asIS
 
 }
 
+const char* AngelScriptSetupHelper::ErrorCodeToString_Engine_RegisterObjectBehaviour(int err_code)
+{
+	switch (err_code)
+	{
+		case asWRONG_CONFIG_GROUP			: return "asWRONG_CONFIG_GROUP		The object type was registered in a different configuration group.		";
+		case asINVALID_ARG					: return "asINVALID_ARG				obj is not set, or a global behaviour is given in behaviour.			";
+		case asWRONG_CALLING_CONV			: return "asWRONG_CALLING_CONV		The function's calling convention isn't compatible with callConv.		";
+		case asNOT_SUPPORTED					: return "asNOT_SUPPORTED				The calling convention or the behaviour signature is not supported.	";
+		case asINVALID_TYPE					: return "asINVALID_TYPE				The obj parameter is not a valid object name.						";
+		case asINVALID_DECLARATION			: return "asINVALID_DECLARATION		The declaration is invalid.												";
+		case asILLEGAL_BEHAVIOUR_FOR_TYPE	: return "asILLEGAL_BEHAVIOUR_FOR_TYPEThe behaviour is not allowed for this type.							";
+		case asALREADY_REGISTERED			: return "asALREADY_REGISTERED		The behaviour is already registered with the same signature.            ";
+	}
+	return "Unknown error code";
+}
+
 const char* AngelScriptSetupHelper::RegisterObjectMethod_ReturnCodeToString(int ret_code)
 {
 	switch(ret_code)
@@ -112,7 +128,8 @@ void AngelScriptSetupHelper::RegisterObjectBehaviour(const char *obj, asEBehavio
 	if (result < 0)
 	{
 		std::stringstream msg;
-		msg << "RegisterObjectBehaviour("<<obj<<", "<<declaration<<") failed, return code: " << result;
+		msg << "RegisterObjectBehaviour("<<obj<<", "<<declaration<<") failed, return code: " 
+			<< this->ErrorCodeToString_Engine_RegisterObjectBehaviour(result);
 		m_log->logMessage(msg.str());
 		throw RegistrationException(msg.str());
 	}

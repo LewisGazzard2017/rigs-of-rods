@@ -30,6 +30,7 @@ public:
 
 	void   SetArgObject(  AngelScript::asIScriptContext* ctx, int idx, void*    object);
 	void   SetArgInt(     AngelScript::asIScriptContext* ctx, int idx, int      n);
+	void   SetArgBool(    AngelScript::asIScriptContext* ctx, int idx, bool     b);
 	void   ExecuteContext(AngelScript::asIScriptContext* ctx);
 protected:
 

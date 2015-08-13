@@ -1,5 +1,7 @@
 // Rig editor application class
 
+#include "GuiManager.as"
+
 class Application:
     IRigEditorUserCommandCallbackListener_UGLY
 {
@@ -11,11 +13,11 @@ class Application:
         switch (command)
         {   
             case RigEditorUserCommand_UGLY::USER_COMMAND_SHOW_DIALOG_OPEN_RIG_FILE:
-                m_rig_editor_core.HandleCommandShowDialogOpenRigFile_UGLY();
+                m_gui_manager.ShowOpenRigFileDialog();
                 break;
                 
             case RigEditorUserCommand_UGLY::USER_COMMAND_SHOW_DIALOG_SAVE_RIG_FILE_AS:
-                m_rig_editor_core.HandleCommandShowDialogSaveRigFileAs_UGLY();
+                m_gui_manager.ShowSaveRigFileDialog();
                 break;
                 
             case RigEditorUserCommand_UGLY::USER_COMMAND_SAVE_RIG_FILE:
@@ -65,6 +67,7 @@ class Application:
         LogMessage("HandleUglyUserCommand() finishes");    
     }
 
+    // -------------------------------------------------------------------------
     // Constructor
     Application()
     {
@@ -82,6 +85,25 @@ class Application:
         LogMessage("Application() - User command callback registered.");
     }
     
+    // -------------------------------------------------------------------------
+    void InitOrRestoreGui()
+    {
+        if(m_gui_manager is null)
+        {
+            @m_gui_manager = GuiManager(@this);
+        }
+    }
+    // -------------------------------------------------------------------------
+    void LoadRigDefFile(string folder, string filename)
+    {
+        m_rig_editor_core.LoadRigDefFile_UGLY(folder, filename);
+    }
+    // -------------------------------------------------------------------------
+    void SaveRigDefFile(string folder, string filename)
+    {
+        m_rig_editor_core.SaveRigDefFile_UGLY(folder, filename);
+    }
+    // -------------------------------------------------------------------------
     void Go()
     {
         LogMessage("Application::Go() - Enter");
@@ -90,7 +112,8 @@ class Application:
         m_rig_editor_core.OnEnter_SetupCameraAndViewport_UGLY();
         LogMessage("Application::Go() - OnEnter_SetupCameraAndViewport_UGLY() finished");
         m_rig_editor_core.OnEnter_InitializeOrRestoreGui_UGLY();
-        LogMessage("Application::Go() - OnEnter_InitializeOrRestoreGui_UGLY() finished");
+        this.InitOrRestoreGui();
+        LogMessage("Application::Go() - 'InitializeOrRestoreGui' phase finished");
         m_rig_editor_core.OnEnter_SetupInput_UGLY();
         LogMessage("Application::Go() - OnEnter_SetupInput_UGLY() finished");
         
@@ -113,13 +136,11 @@ class Application:
         m_rig_editor_core.OnExit_HideGui_UGLY();
         m_rig_editor_core.OnExit_ClearExitRequest_UGLY();
     }
+                                                                                    
+    // ============================== Variables ================================
     
-    
-
-    
-    // ===== Variables =====
-    
-    private RigEditorCore_UGLY@ m_rig_editor_core;
-    private bool                m_exit_requested;
+    private RigEditorCore_UGLY@       m_rig_editor_core;
+    private bool                      m_exit_requested;
+    GuiManager@                       m_gui_manager;
     // More to come...
 }

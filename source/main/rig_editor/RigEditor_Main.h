@@ -133,9 +133,6 @@ public:
     // Interface factories
     virtual PointListDynamicMesh*    CreateInstanceOfPointListDynamicMesh(float point_size, size_t estimate_point_count);
     virtual LineListDynamicMesh*     CreateInstanceOfLineListDynamicMesh(size_t estimate_line_count);
-
-	// GUI callbacks
-	void NotifyFileSelectorEnded(RoR::GUI::Dialog* dialog, bool result);
     
     // --------------------------------------------
     //                 State flags
@@ -187,8 +184,6 @@ public:
 	// ===== Command interface handlers ===== //
 
     // File management
-	void AS_HandleCommandShowDialogOpenRigFile_UGLY();
-	void AS_HandleCommandShowDialogSaveRigFileAs_UGLY();
 	void AS_HandleCommandSaveRigFile_UGLY();
 	void AS_HandleCommandCloseCurrentRig_UGLY();
     void AS_HandleCommandCreateNewEmptyRig_UGLY();
@@ -205,16 +200,16 @@ public:
     // Help window
 	void AS_HandleCommandShowHelpWindow_UGLY();
 
+	// Rig management
+	bool AS_LoadRigDefFile(std::string directory, std::string filename);
+	void AS_SaveRigDefFile(std::string directory, std::string filename);
+
     // ========== END Angelscript interface ==========
     
 private:
 	
 	void HideAllNodeBeamGuiPanels();
     void HideAllWheelGuiPanels();
-
-	bool LoadRigDefFile(MyGUI::UString const & directory, MyGUI::UString const & filename);
-
-	void SaveRigDefFile(MyGUI::UString const & directory, MyGUI::UString const & filename);
 
     void OnNewRigCreatedOrLoaded(Ogre::SceneNode* parent_scene_node);
 

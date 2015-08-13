@@ -47,14 +47,16 @@ AngelScript::asIScriptContext* AngelScriptCallbackSocket::PrepareContext()
 	if (result != 0)
 	{
 		std::stringstream msg;
-		msg <<__FUNCTION__<< "(): Failed to Prepare() context, error code: " << ScriptEngine::ContextPrepare_ErrorCodeToString(result);
+		msg <<__FUNCTION__<< "(): Failed to Prepare() context, error code: " 
+			<< ScriptEngine::ContextPrepare_ErrorCodeToString(result);
 		throw std::runtime_error(msg.str());
 	}
 	result = ctx->SetObject(m_as_callback_object);
 	if (result != 0)
 	{
 		std::stringstream msg;
-		msg <<__FUNCTION__<< "(): Failed to SetObject() context, error code: " << result;
+		msg <<__FUNCTION__<< "(): Failed to SetObject() context, error code: " 
+			<< ScriptEngine::ContextSetArg_ErrorCodeToString(result);
 		throw std::runtime_error(msg.str());
 	}
 	return ctx;
@@ -81,8 +83,21 @@ void AngelScriptCallbackSocket::SetArgInt(AngelScript::asIScriptContext* ctx, in
 		msg <<__FUNCTION__<< "(): Failed to SetArgDWord("<<idx<<", asDWORD) to context, error code: " 
 			<< ScriptEngine::ContextSetArg_ErrorCodeToString(result);
 		throw std::runtime_error(msg.str());
-	}	
+	}
 }
+
+void AngelScriptCallbackSocket::SetArgBool(AngelScript::asIScriptContext* ctx, int idx, bool b)
+{
+	int result = ctx->SetArgByte(idx,  static_cast<asBYTE>(b));
+	if (result != 0)
+	{
+		std::stringstream msg;
+		msg <<__FUNCTION__<< "(): Failed to SetArgBool("<<idx<<", asDWORD) to context, error code: " 
+			<< ScriptEngine::ContextSetArg_ErrorCodeToString(result);
+		throw std::runtime_error(msg.str());
+	}
+}
+
 
 void AngelScriptCallbackSocket::ExecuteContext(AngelScript::asIScriptContext* ctx)
 {

@@ -377,9 +377,10 @@ int ScriptEngine::RegisterSystemInterface()
 								    											         
 		class_main_proxy.AddMethod( "void OnExit_HideGui_UGLY()",                        asMETHOD(Main, AS_OnExit_HideGui_UGLY)                );
 		class_main_proxy.AddMethod( "void OnExit_ClearExitRequest_UGLY()",               asMETHOD(Main, AS_OnExit_ClearExitRequest_UGLY)       );
+																					  
+		class_main_proxy.AddMethod( "void LoadRigDefFile_UGLY(string folder, string file)", asMETHOD(Main, AS_LoadRigDefFile));
+		class_main_proxy.AddMethod( "void SaveRigDefFile_UGLY(string folder, string file)", asMETHOD(Main, AS_SaveRigDefFile));
 
-		class_main_proxy.AddMethod( "void HandleCommandShowDialogOpenRigFile_UGLY()",              asMETHOD(Main, AS_HandleCommandShowDialogOpenRigFile_UGLY));
-		class_main_proxy.AddMethod( "void HandleCommandShowDialogSaveRigFileAs_UGLY()",            asMETHOD(Main, AS_HandleCommandShowDialogSaveRigFileAs_UGLY));
 		class_main_proxy.AddMethod( "void HandleCommandCloseCurrentRig_UGLY()",                    asMETHOD(Main, AS_HandleCommandCloseCurrentRig_UGLY));
 		class_main_proxy.AddMethod( "void HandleCommandCreateNewEmptyRig_UGLY()",                  asMETHOD(Main, AS_HandleCommandCreateNewEmptyRig_UGLY));
 		class_main_proxy.AddMethod( "void HandleCommandCurrentRigDeleteSelectedNodes_UGLY()",      asMETHOD(Main, AS_HandleCommandCurrentRigDeleteSelectedNodes_UGLY));
@@ -408,14 +409,15 @@ int ScriptEngine::RegisterSystemInterface()
 		enum_cmd_proxy.AddField("USER_COMMAND_SHOW_HELP_WINDOW"						   , (int)IMain::USER_COMMAND_SHOW_HELP_WINDOW);
 		enum_cmd_proxy.AddField("USER_COMMAND_INVALID"								   , (int)IMain::USER_COMMAND_INVALID);
 
-		A.RegisterInterface      ("IRigEditorUserCommandCallbackListener_UGLY");
-		A.RegisterInterfaceMethod      ("IRigEditorUserCommandCallbackListener_UGLY", "void HandleUglyUserCommand(int command)");
-		//A.RegisterInterfaceMethod("IRigEditorUserCommandCallbackListener_UGLY", "RigEditorCore_UGLY@ GetCore_UGLY()");
-		//A.RegisterFuncdef        ("void FRigEditorUserCommandCallback_UGLY(IRigEditorUserCommandCallbackListener_UGLY@ obj, int cmd)");
+		A.RegisterInterface       ("IRigEditorUserCommandCallbackListener_UGLY");
+		A.RegisterInterfaceMethod ("IRigEditorUserCommandCallbackListener_UGLY", "void HandleUglyUserCommand(int command)");
+
 		A.RegisterFuncdef        ("void FRigEditorUserCommandCallback_UGLY(int cmd)");
-		A.RegisterObjectMethod   ("RigEditorCore_UGLY", 
-			"void RegisterUserCommandCallback_UGLY(IRigEditorUserCommandCallbackListener_UGLY@ obj, string method_name)",
-			asMETHOD(RigEditor::Main, AS_RegisterUserCommandCallback_UGLY), asCALL_THISCALL);
+		class_main_proxy.AddMethod("void RegisterUserCommandCallback_UGLY(IRigEditorUserCommandCallbackListener_UGLY@ obj, string method_name)",
+			asMETHOD(RigEditor::Main, AS_RegisterUserCommandCallback_UGLY));
+
+		// GUI
+		GUI::OpenSaveFileDialog::BindToAngelScript(&A);
 
 		// RoR system interface
 		A.RegisterGlobalFunction("RigEditorCore_UGLY@ SYS_GetRigEditorInstance_UGLY()",    asFUNCTION(AS_GetRigEditorInstance),         asCALL_CDECL);

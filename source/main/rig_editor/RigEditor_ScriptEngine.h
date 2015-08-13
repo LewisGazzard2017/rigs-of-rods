@@ -58,6 +58,8 @@ public:
 	static void        ExecuteContext(AngelScript::asIScriptContext* ctx, AngelScript::asIScriptEngine* engine);
 	static const char* ContextPrepare_ErrorCodeToString(int err_code);
 	static const char* ContextSetArg_ErrorCodeToString(int err_code);
+	static const char* ContextSetObject_ErrorCodeToString(int err_code);
+	static const char* ErrorCodeToString_Engine_RegisterObjectBehaviour(int err_code);
 
     // ===== Script interface =====
 

@@ -33,6 +33,7 @@
 
 #include "GUI_OpenSaveFileDialog.h"
 
+#include "AngelScriptSetupHelper.h"
 #include "FileSystemInfo.h"
 
 using namespace RoR;
@@ -47,6 +48,7 @@ OpenSaveFileDialog::OpenSaveFileDialog() :
 	mCurrentFolderField(nullptr),
 	mButtonOpenSave(nullptr),
 	mFileMask("*.*"),
+	mAngelScriptRefCount(0),
 	mFolderMode(false)
 {
 	assignWidget(mListFiles, "ListFiles");
@@ -71,8 +73,30 @@ OpenSaveFileDialog::OpenSaveFileDialog() :
 
 	mMainWidget->setVisible(false);
 
+	// Selection finished callback: Bind to itself, will be forwarded to AngelScript
+	this->eventEndDialog = MyGUI::newDelegate(this, &OpenSaveFileDialog::NotifyFileSelectorEnded);
+
 	update();
 }
+
+void OpenSaveFileDialog::NotifyFileSelectorEnded(GUI::Dialog* dialog, bool result)
+{
+	if (!mAsDialogFinishedCallback.IsBound())
+	{
+		return;
+	}
+	// TODO: Full unicode solution
+	std::string folder   = this->getCurrentFolder();
+	std::string filename = this->getFileName();
+
+	auto* ctx = mAsDialogFinishedCallback.PrepareContext();
+	mAsDialogFinishedCallback.SetArgBool    (ctx, 0, result);
+	mAsDialogFinishedCallback.SetArgObject  (ctx, 1, static_cast<void*>(&folder));
+	mAsDialogFinishedCallback.SetArgObject  (ctx, 2, static_cast<void*>(&filename));
+
+	mAsDialogFinishedCallback.ExecuteContext(ctx);
+}
+
 
 void OpenSaveFileDialog::notifyWindowButtonPressed(MyGUI::Window* _sender, const std::string& _name)
 {
@@ -95,7 +119,12 @@ void OpenSaveFileDialog::notifyUpButtonClick(MyGUI::Widget* _sender)
 	upFolder();
 }
 
-void OpenSaveFileDialog::setDialogInfo(const MyGUI::UString& _caption, const MyGUI::UString& _button, bool _folderMode)
+void OpenSaveFileDialog::AS_ConfigureDialog(std::string title, std::string select_btn_text, bool use_folder_mode)
+{
+	this->setDialogInfo(title, select_btn_text, use_folder_mode);
+}
+
+void OpenSaveFileDialog::setDialogInfo(MyGUI::UString _caption, MyGUI::UString _button, bool _folderMode)
 {
 	mFolderMode = _folderMode;
 	mWindow->setCaption(_caption);
@@ -255,16 +284,6 @@ const MyGUI::UString& OpenSaveFileDialog::getFileName() const
 	return mFileName;
 }
 
-const MyGUI::UString& OpenSaveFileDialog::getMode() const
-{
-	return mMode;
-}
-
-void OpenSaveFileDialog::setMode(const MyGUI::UString& _value)
-{
-	mMode = _value;
-}
-
 void OpenSaveFileDialog::setRecentFolders(const VectorUString& _listFolders)
 {
 	mCurrentFolderField->removeAllItems();
@@ -279,4 +298,27 @@ void OpenSaveFileDialog::notifyDirectoryComboChangePosition(MyGUI::ComboBox* _se
 		setCurrentFolder(_sender->getItemNameAt(_index));
 }
 
+void OpenSaveFileDialog::BindToAngelScript(RoR::AngelScriptSetupHelper* A)
+{
+	auto proxy = A->RegisterObjectWithProxy("GUI_OpenSaveFileDialog", 0, asOBJ_REF);
+	proxy.AddBehavior(asBEHAVE_ADDREF,  "void f()", asMETHOD(OpenSaveFileDialog, AS_RefCountIncrease));
+	proxy.AddBehavior(asBEHAVE_RELEASE, "void f()", asMETHOD(OpenSaveFileDialog, AS_RefCountDecrease));
+	proxy.AddBehavior(asBEHAVE_FACTORY, "GUI_OpenSaveFileDialog@ f()", asFUNCTION(OpenSaveFileDialog::AS_CreateInstance), asCALL_CDECL);
 
+	proxy.AddMethod("void StartModal()", asMETHOD(OpenSaveFileDialog, doModal));
+	proxy.AddMethod("void EndModal()",   asMETHOD(OpenSaveFileDialog, endModal));
+
+	proxy.AddMethod("void ConfigureDialog(string title, string select_button_text, bool use_folder_mode)",
+		asMETHOD(OpenSaveFileDialog, AS_ConfigureDialog));
+
+	A->RegisterInterface("GUI_IOpenSaveFileDialogListener");
+	A->RegisterFuncdef("void FOpenSaveFileDialogFinishedCallback(bool success, string folder, string filename)");
+
+	proxy.AddMethod("void RegisterDialogFinishedCallback(GUI_IOpenSaveFileDialogListener@ dialog, string method_name)",
+		asMETHOD(OpenSaveFileDialog, AS_RegisterDialogFinishedCallback));
+}
+
+void OpenSaveFileDialog::AS_RegisterDialogFinishedCallback(AngelScript::asIScriptObject* object, std::string method_name)
+{
+	mAsDialogFinishedCallback.RegisterCallback(object, method_name);
+}

@@ -134,6 +134,7 @@ public:
 protected:
 	const char* RegisterObjectMethod_ReturnCodeToString(int ret_code);
 	const char* RegisterObjectProperty_ReturnCodeToString(int ret_code);
+	const char* ErrorCodeToString_Engine_RegisterObjectBehaviour(int err_code);
 
 	Ogre::Log*                       m_log;
 	AngelScript::asIScriptEngine*    m_engine;

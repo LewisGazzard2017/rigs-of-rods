@@ -616,34 +616,16 @@ void Main::CommandShowDialogOpenRigFile()
 	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_SHOW_DIALOG_OPEN_RIG_FILE);
 }
 
-void Main::AS_HandleCommandShowDialogOpenRigFile_UGLY()
-{
-	m_gui_open_save_file_dialog->setDialogInfo(MyGUI::UString("Open rig file"), MyGUI::UString("Open"), false);
-	m_gui_open_save_file_dialog->eventEndDialog = MyGUI::newDelegate(this, &Main::NotifyFileSelectorEnded);
-	//m_gui_open_save_file_dialog->setMode(OpenSaveFileDialogMode::MODE_OPEN_TRUCK);
-	m_gui_open_save_file_dialog->doModal(); // Shows the dialog
-}
-
 void Main::CommandShowDialogSaveRigFileAs()
 {
 	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_SHOW_DIALOG_SAVE_RIG_FILE_AS);
-}
-
-void Main::AS_HandleCommandShowDialogSaveRigFileAs_UGLY()
-{
-	if (m_rig != nullptr)
-	{
-		m_gui_open_save_file_dialog->setDialogInfo(MyGUI::UString("Save rig file"), MyGUI::UString("Save"), false);
-		m_gui_open_save_file_dialog->eventEndDialog = MyGUI::newDelegate(this, &Main::NotifyFileSelectorEnded);
-		//m_gui_open_save_file_dialog->setMode(OpenSaveFileDialogMode::MODE_SAVE_TRUCK_AS);
-		m_gui_open_save_file_dialog->doModal(); // Shows the dialog
-	}
 }
 
 PointListDynamicMesh*    Main::CreateInstanceOfPointListDynamicMesh(float point_size, size_t estimate_point_count)
 {
     return new PointListDynamicMesh(this, point_size, estimate_point_count);
 }
+
 LineListDynamicMesh*     Main::CreateInstanceOfLineListDynamicMesh(size_t estimate_line_count)
 {
     return new LineListDynamicMesh(this, estimate_line_count);
@@ -674,27 +656,7 @@ void Main::AS_HandleCommandCloseCurrentRig_UGLY()
 	}
 }
 
-void Main::NotifyFileSelectorEnded(GUI::Dialog* dialog, bool result)
-{
-	if (result)
-	{
-		//const MyGUI::UString & mode = m_gui_open_save_file_dialog->getMode();
-		auto const & folder = m_gui_open_save_file_dialog->getCurrentFolder();
-		auto const & filename = m_gui_open_save_file_dialog->getFileName();
-
-		//if (mode == OpenSaveFileDialogMode::MODE_OPEN_TRUCK) // TMP!!!
-		{
-			LoadRigDefFile(folder, filename);
-		}
-		//else if (mode == OpenSaveFileDialogMode::MODE_SAVE_TRUCK_AS) // TMP!!!
-		{
-			//SaveRigDefFile(folder, filename); // TMP!!!
-		}
-	}
-	dialog->endModal(); // Hides the dialog
-}
-
-void Main::SaveRigDefFile(MyGUI::UString const & directory, MyGUI::UString const & filename)
+void Main::AS_SaveRigDefFile(std::string directory, std::string filename)
 {
 	using namespace RigDef;
 
@@ -784,7 +746,7 @@ void RigEditor_LogValidatorMessages(RigDef::Validator & validator)
 	Ogre::LogManager::getSingleton().logMessage(report.str());
 }
 
-bool Main::LoadRigDefFile(MyGUI::UString const & directory, MyGUI::UString const & filename)
+bool Main::AS_LoadRigDefFile(std::string directory, std::string filename)
 {
 	/* CLOSE PREVIOUS RIG */
 
