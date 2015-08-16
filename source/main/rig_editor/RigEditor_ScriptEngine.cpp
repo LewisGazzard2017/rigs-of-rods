@@ -27,6 +27,7 @@
 #include "ContentManager.h"
 #include "Settings.h"
 #include "MainThread.h"
+#include "MyGUI_AngelScriptExport.h"
 #include "OgreSubsystem.h"
 #include "PlatformUtils.h"
 #include "RigEditor_Config.h"
@@ -92,6 +93,24 @@ void AS_RenderFrameAndUpdateWindow()
 	if (!rw->isActive() && rw->isVisible())
 	{
 		rw->update(); // update even when in background !
+	}
+}
+
+std::string AS_SYS_GetStringSetting(std::string key, std::string default_val)
+{
+	return std::string(SSETTING(key, default_val));
+}
+
+std::string AS_SYS_LoadRigEditorResourceAsString(std::string filename)
+{
+	Ogre::DataStreamPtr helpfile_stream = Ogre::ResourceGroupManager::getSingleton().openResource(
+		filename, // TODO: Localization
+		RoR::ContentManager::ResourcePack::RIG_EDITOR.resource_group_name,
+		false);
+
+	if (!helpfile_stream.isNull())
+	{
+		return helpfile_stream->getAsString();
 	}
 }
 
@@ -417,6 +436,7 @@ int ScriptEngine::RegisterSystemInterface()
 			asMETHOD(RigEditor::Main, AS_RegisterUserCommandCallback_UGLY));
 
 		// GUI
+		MyGUI_AngelScriptExport::Export(&A);
 		GUI::OpenSaveFileDialog::BindToAngelScript(&A);
 
 		// RoR system interface
@@ -424,11 +444,17 @@ int ScriptEngine::RegisterSystemInterface()
 		A.RegisterGlobalFunction("bool                SYS_IsRoRApplicationWindowClosed()", asFUNCTION(AS_IsRoRApplicationWindowClosed), asCALL_CDECL);
 		A.RegisterGlobalFunction("bool                SYS_RequestRoRShutdown()",           asFUNCTION(AS_RequestRoRShutdown),           asCALL_CDECL);
 		A.RegisterGlobalFunction("bool                SYS_RenderFrameAndUpdateWindow()",   asFUNCTION(AS_RenderFrameAndUpdateWindow),   asCALL_CDECL);
+		A.RegisterGlobalFunction("string              SYS_GetStringSetting(string key, string default_val)",
+			asFUNCTION(AS_SYS_GetStringSetting), asCALL_CDECL);
+		A.RegisterGlobalFunction("string              SYS_LoadRigEditorResourceAsString(string filename)",
+			asFUNCTION(AS_SYS_LoadRigEditorResourceAsString), asCALL_CDECL);
+			
 
 		return 0;
 	}
-	catch(...)
+	catch(std::runtime_error ex)
 	{
+		m_log->logMessage(std::string("An exception occured during registering AngelScript interface, message: ") + ex.what());
 		return -1;
 	}
 }

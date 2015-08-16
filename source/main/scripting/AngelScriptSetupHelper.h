@@ -34,6 +34,52 @@
 namespace RoR
 {
 
+// Quick hack to register std::vector<T> / std::shared_ptr<T>
+#define INHERIT_STD_VECTOR(CLASSNAME, ITEM_T) \
+	class CLASSNAME: public std::vector<ITEM_T>       \
+	{                                                   \
+	public: \
+		CLASSNAME() { m_ref_count = 0; }                \
+		~CLASSNAME()                                    \
+		{                                               \
+			/* non-virtual, call explicitly */          \
+			std::vector<ITEM_T>::~vector();             \
+		}                                               \
+		ITEM_T AS_At(size_t i)             { return this->at(i); }    \
+		void   AS_Clear()                  { this->clear(); }         \
+		void   AS_PushBack(ITEM_T item)    { this->push_back(item); } \
+		size_t AS_Size()                   { return this->size(); }   \
+		void   AS_RefCountIncrease()       { m_ref_count++; } \
+		void   AS_RefCountDecrease()       { m_ref_count--; } \
+	private: \
+		int m_ref_count; \
+	};
+
+#define INHERIT_STD_SHARED_PTR(CLASSNAME, ITEM_T) \
+	class CLASSNAME: public std::shared_ptr<ITEM_T>       \
+	{                                                   \
+	public: \
+		~CLASSNAME()                                    \
+		{                                               \
+			/* non-virtual, call explicitly */          \
+			std::shared_ptr<ITEM_T>::~shared_ptr();         \
+		}                                               \
+		ITEM_T* AS_Get() { return this->get(); } \
+	};
+
+template<typename T> void AS_ValueType_Construct(void *memory)
+{
+	// Initialize the pre-allocated memory by calling the
+	// object constructor with the placement-new operator
+	new(memory) T();
+}
+
+template<typename T> void AS_ValueType_Destruct(void *memory)
+{
+	// Uninitialize the memory by calling the object destructor
+	((T*)memory)->~T();
+}
+
 using namespace AngelScript;
 
 class AngelScriptSetupHelper
@@ -73,6 +119,7 @@ public:
 		void SetupObject(int byte_size, asDWORD flags);
 		void AddBehavior(asEBehaviours behaviour, const char *declaration, const asSFuncPtr &funcPointer, asDWORD callConv = asCALL_THISCALL);
 		void AddMethod(const char* decl, const asSFuncPtr &func_ptr, asDWORD call_conv = asCALL_THISCALL);
+		void AddProperty(const char* declaration, int byte_offset);
 	protected:	
 		AngelScriptSetupHelper* m_setup_helper;
 		std::string             m_object_name;
@@ -83,7 +130,13 @@ public:
 
 	template<typename T> void RegisterInheritedSharedPtr(const char* object_name, const char* T_name)
 	{
-		this->RegisterObjectType(object_name, sizeof(T), asOBJ_VALUE);
+		asDWORD flags = asOBJ_VALUE 
+			| asOBJ_APP_CLASS 
+			| asOBJ_APP_CLASS_CONSTRUCTOR 
+			| asOBJ_APP_CLASS_DESTRUCTOR 
+			| asOBJ_APP_CLASS_ASSIGNMENT
+			| asOBJ_APP_CLASS_COPY_CONSTRUCTOR;
+		this->RegisterObjectType(object_name, sizeof(T), flags);
 
 		char declaration[1000];
 		sprintf(declaration, "%s@ Get()", T_name);
@@ -92,19 +145,28 @@ public:
 
 	template<typename T> void RegisterInheritedStdVector(const char* object_name, const char* T_name)
 	{
-		this->RegisterObjectType(object_name, sizeof(T), asOBJ_VALUE);
+		//asDWORD flags = asOBJ_VALUE
+		//	| asOBJ_APP_CLASS 
+		//	| asOBJ_APP_CLASS_CONSTRUCTOR 
+		//	| asOBJ_APP_CLASS_DESTRUCTOR 
+		//	| asOBJ_APP_CLASS_ASSIGNMENT
+		//	| asOBJ_APP_CLASS_COPY_CONSTRUCTOR;
+		auto proxy = RegisterObjectWithProxy(object_name, sizeof(T), asOBJ_REF);
+		//proxy.AddBehavior(asBEHAVE_CONSTRUCT, "void f()", asFUNCTION((AS_ValueType_Construct<T>)), asCALL_CDECL_OBJLAST);
+		//proxy.AddBehavior(asBEHAVE_DESTRUCT,  "void f()", asFUNCTION((AS_ValueType_Destruct<T>)),  asCALL_CDECL_OBJLAST);
+		proxy.AddBehavior( asBEHAVE_ADDREF , "void f()", asMETHOD(T, AS_RefCountIncrease));
+		proxy.AddBehavior( asBEHAVE_RELEASE, "void f()", asMETHOD(T, AS_RefCountDecrease));
 
 		char declaration[1000];
 	
 		sprintf(declaration, "%s At(uint32 i)", T_name);
-		this->RegisterObjectMethod(object_name, declaration, asMETHOD(T, AS_At), asCALL_THISCALL);
+		proxy.AddMethod(declaration, asMETHOD(T, AS_At));
 	
 		sprintf(declaration, "void PushBack(%s)", T_name);
-		this->RegisterObjectMethod(object_name, declaration, asMETHOD(T, AS_PushBack), asCALL_THISCALL);
+		proxy.AddMethod(declaration, asMETHOD(T, AS_PushBack));
 
-		this->RegisterObjectMethod(object_name, "void Clear()", asMETHOD(T, AS_Clear), asCALL_THISCALL);
-
-		this->RegisterObjectMethod(object_name, "uint32 Size()", asMETHOD(T, AS_Size), asCALL_THISCALL);
+		proxy.AddMethod("void Clear()", asMETHOD(T, AS_Clear));
+		proxy.AddMethod("uint32 Size()", asMETHOD(T, AS_Size));
 	}
 
 	// AS engine registration function wrappers, 1:1 match
@@ -135,6 +197,8 @@ protected:
 	const char* RegisterObjectMethod_ReturnCodeToString(int ret_code);
 	const char* RegisterObjectProperty_ReturnCodeToString(int ret_code);
 	const char* ErrorCodeToString_Engine_RegisterObjectBehaviour(int err_code);
+	const char* ErrorCodeToString_Engine_RegisterObjectProperty(int err_code);
+	const char* ErrorCodeToString_Engine_RegisterGlobalFunction(int err_code);
 
 	Ogre::Log*                       m_log;
 	AngelScript::asIScriptEngine*    m_engine;

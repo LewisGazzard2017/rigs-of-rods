@@ -70,6 +70,19 @@ const char* AngelScriptSetupHelper::RegisterObjectMethod_ReturnCodeToString(int 
 	return "Unknown error code";
 }
 
+const char* AngelScriptSetupHelper::ErrorCodeToString_Engine_RegisterGlobalFunction(int ret_code)
+{
+	switch (ret_code)
+	{
+		case asNOT_SUPPORTED:       return "asNOT_SUPPORTED: The calling convention is not supported.";
+		case asWRONG_CALLING_CONV:  return "asWRONG_CALLING_CONV: The function's calling convention doesn't match callConv.";
+		case asINVALID_DECLARATION: return "asINVALID_DECLARATION: The declaration is invalid.";
+		case asNAME_TAKEN:          return "asNAME_TAKEN: The name conflicts with other members.";
+		default:;
+	}
+	return "Unknown error code";
+}
+
 const char* AngelScriptSetupHelper::RegisterObjectProperty_ReturnCodeToString(int ret_code)
 {
 	switch (ret_code)
@@ -141,7 +154,8 @@ void AngelScriptSetupHelper::RegisterGlobalFunction(const char *declaration, con
 	if (result < 0)
 	{
 		std::stringstream msg;
-		msg << "RegisterGlobalFunction("<<declaration<<") failed, return code: " << result;
+		msg << "RegisterGlobalFunction("<<declaration<<") failed, return code: " 
+			<< ErrorCodeToString_Engine_RegisterGlobalFunction(result);
 		m_log->logMessage(msg.str());
 		throw RegistrationException(msg.str());
 	}
@@ -239,10 +253,16 @@ void AngelScriptSetupHelper::ObjectRegistrationProxy::SetupObject(int byte_size,
 {
 	m_setup_helper->RegisterObjectType(m_object_name.c_str(), byte_size, flags);
 }
+
 void AngelScriptSetupHelper::ObjectRegistrationProxy::AddBehavior(
 	asEBehaviours behaviour, const char *declaration, const asSFuncPtr &funcPointer, asDWORD callConv /* = asCALL_THISCALL */)
 {
 	m_setup_helper->RegisterObjectBehaviour(m_object_name.c_str(), behaviour, declaration, funcPointer, callConv);
+}
+
+void AngelScriptSetupHelper::ObjectRegistrationProxy::AddProperty(const char *declaration, int byte_offset)
+{
+	m_setup_helper->RegisterObjectProperty(m_object_name.c_str(), declaration, byte_offset);
 }
 
 AngelScriptSetupHelper::ObjectRegistrationProxy AngelScriptSetupHelper::RegisterObjectWithProxy      (const char *obj, int byteSize, asDWORD flags)

@@ -83,16 +83,10 @@ class Application:
         
         m_rig_editor_core.RegisterUserCommandCallback_UGLY(@this, "HandleUglyUserCommand");
         LogMessage("Application() - User command callback registered.");
+        @m_gui_manager = GuiManager(@this);
+        LogMessage("Application() - GUI Manager created");
     }
     
-    // -------------------------------------------------------------------------
-    void InitOrRestoreGui()
-    {
-        if(m_gui_manager is null)
-        {
-            @m_gui_manager = GuiManager(@this);
-        }
-    }
     // -------------------------------------------------------------------------
     void LoadRigDefFile(string folder, string filename)
     {
@@ -112,7 +106,7 @@ class Application:
         m_rig_editor_core.OnEnter_SetupCameraAndViewport_UGLY();
         LogMessage("Application::Go() - OnEnter_SetupCameraAndViewport_UGLY() finished");
         m_rig_editor_core.OnEnter_InitializeOrRestoreGui_UGLY();
-        this.InitOrRestoreGui();
+        m_gui_manager.InitOrRestoreGui();
         LogMessage("Application::Go() - 'InitializeOrRestoreGui' phase finished");
         m_rig_editor_core.OnEnter_SetupInput_UGLY();
         LogMessage("Application::Go() - OnEnter_SetupInput_UGLY() finished");
