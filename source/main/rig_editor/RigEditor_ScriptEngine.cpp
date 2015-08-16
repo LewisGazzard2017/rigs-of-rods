@@ -112,6 +112,7 @@ std::string AS_SYS_LoadRigEditorResourceAsString(std::string filename)
 	{
 		return helpfile_stream->getAsString();
 	}
+	return std::string();
 }
 
 // WORKAROUND
