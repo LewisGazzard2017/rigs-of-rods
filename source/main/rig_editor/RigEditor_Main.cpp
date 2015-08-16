@@ -36,7 +36,6 @@
 #include "GUI_RigEditorFlaresListPanel.h"
 #include "GUI_RigEditorFlaresPanel.h"
 #include "GUI_RigEditorFlexBodyWheelsPanel.h"
-#include "GUI_RigEditorHelpWindow.h"
 #include "GUI_RigEditorHydrosPanel.h"
 #include "GUI_RigEditorLandVehiclePropertiesWindow.h"
 #include "GUI_RigEditorMenubar.h"
@@ -961,12 +960,6 @@ void Main::CommandShowHelpWindow()
 	this->InvokeAngelScriptUserCommandCallback(IMain::USER_COMMAND_SHOW_HELP_WINDOW);
 }
 
-void Main::AS_HandleCommandShowHelpWindow_UGLY()
-{
-	m_gui_help_window->Show();
-	m_gui_help_window->CenterToScreen();
-}
-
 bool Main::AS_WasExitLoopRequested_UGLY()
 {
 	return m_exit_loop_requested;
@@ -1017,10 +1010,6 @@ void Main::AS_OnEnter_InitializeOrRestoreGui_UGLY()
 	{
 		m_gui_land_vehicle_properties_window 
 			= std::unique_ptr<GUI::RigEditorLandVehiclePropertiesWindow>(new GUI::RigEditorLandVehiclePropertiesWindow(this));
-	}
-	if (m_gui_help_window.get() == nullptr)
-	{
-		m_gui_help_window = std::unique_ptr<GUI::RigEditorHelpWindow>(new GUI::RigEditorHelpWindow(this));
 	}
     if (m_flares_list_panel.get() == nullptr)
 	{

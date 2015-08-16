@@ -197,9 +197,6 @@ public:
 	void AS_HandleCommandShowLandVehiclePropertiesWindow_UGLY();
 	void AS_HandleCommandSaveLandVehiclePropertiesWindowData_UGLY();
 
-    // Help window
-	void AS_HandleCommandShowHelpWindow_UGLY();
-
 	// Rig management
 	bool AS_LoadRigDefFile(std::string directory, std::string filename);
 	void AS_SaveRigDefFile(std::string directory, std::string filename);
@@ -231,7 +228,6 @@ private:
 	std::unique_ptr<GUI::RigEditorMenubar>                      m_gui_menubar;
 	std::unique_ptr<GUI::OpenSaveFileDialog>                    m_gui_open_save_file_dialog;
 	std::unique_ptr<GUI::RigEditorDeleteMenu>                   m_gui_delete_menu;
-	std::unique_ptr<GUI::RigEditorHelpWindow>                   m_gui_help_window;
 	std::unique_ptr<GUI::RigEditorNodePanel>                    m_nodes_panel;
 	std::unique_ptr<GUI::RigEditorBeamsPanel>                   m_beams_panel;
 	std::unique_ptr<GUI::RigEditorHydrosPanel>                  m_hydros_panel;

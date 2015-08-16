@@ -4,7 +4,8 @@ class GUI_WindowBase
     void InitBaseWindow(MyGUI_Window@ root_widget)
     {
         @m_window = @root_widget;
-        m_is_hidden_temporarily = false; 
+        m_is_hidden_temporarily = false;
+        this.Hide(); 
     }
     
     void CenterToScreen()
@@ -20,6 +21,12 @@ class GUI_WindowBase
     {
         m_is_hidden_temporarily = false;
         m_window.SetVisible(true);
+    }
+    
+    void Hide()
+    {
+        m_is_hidden_temporarily = false;
+        m_window.SetVisible(false);
     }
     
     void HideTemporarily()
@@ -40,7 +47,7 @@ class GUI_WindowBase
     private bool          m_is_hidden_temporarily;
 }
 
-class GUI_HelpWindow: GUI_WindowBase
+class GUI_HelpWindow: GUI_WindowBase, MyGUI_IEventListener
 {
     GUI_HelpWindow()
     {
@@ -52,6 +59,7 @@ class GUI_HelpWindow: GUI_WindowBase
             return;
         }
         this.InitBaseWindow(root_widgets.At(0).CastType_Window());
+        m_window.eventWindowButtonClick_BindCallback(@this, "CallbackWindowButtonClicked");
         @m_help_editbox = m_window.FindWidget("help_view").CastType_EditBox();
         this.CenterToScreen();
     }
@@ -60,6 +68,13 @@ class GUI_HelpWindow: GUI_WindowBase
     {
         m_help_editbox.SetCaption(text);        
         m_help_editbox.SetVScrollPosition(0); // Must be reset after filling-in text
+    }
+    
+    private void CallbackWindowButtonClicked(MyGUI_Window@ window, string widget_name)
+    {
+        // There's only close [X] button...
+        this.Hide();
+        LogMessage("GUI_HelpWindow::CallbackWindowButtonClicked() widget_name=" + widget_name);
     }
     
     private MyGUI_EditBox@ m_help_editbox;

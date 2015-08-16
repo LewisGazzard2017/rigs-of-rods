@@ -13,7 +13,7 @@ class GuiManager: GUI_IOpenSaveFileDialogListener
     // -------------------------------------------------------------------------
     // Overrides GUI_IOpenSaveFileDialogListener
     // Funcdef: void FOpenSaveFileDialogFinishedCallback(bool success, string folder, string filename)
-    private void OpenRigFileDialogFinished(bool success, string folder, string filename)
+    private void CallbackOpenRigFileDialogFinished(bool success, string folder, string filename)
     {
         if (success)
         {
@@ -25,7 +25,7 @@ class GuiManager: GUI_IOpenSaveFileDialogListener
     // -------------------------------------------------------------------------
     // Overrides GUI_IOpenSaveFileDialogListener
     // Funcdef: void FOpenSaveFileDialogFinishedCallback(bool success, string folder, string filename)
-    private void SaveRigFileDialogFinished(bool success, string folder, string filename)
+    private void CallbackSaveRigFileDialogFinished(bool success, string folder, string filename)
     {
         if (success)
         {
@@ -39,7 +39,7 @@ class GuiManager: GUI_IOpenSaveFileDialogListener
     {
         bool directory_mode = false;
         m_open_save_file_dialog.ConfigureDialog("Open rig file", "Open", directory_mode);
-        m_open_save_file_dialog.RegisterDialogFinishedCallback(@this, "OpenRigFileDialogFinished");
+        m_open_save_file_dialog.RegisterDialogFinishedCallback(@this, "CallbackOpenRigFileDialogFinished");
         m_open_save_file_dialog.StartModal(); // Shows the dialog
     }
     
@@ -48,7 +48,7 @@ class GuiManager: GUI_IOpenSaveFileDialogListener
     {
         bool directory_mode = false;
         m_open_save_file_dialog.ConfigureDialog("Save rig file", "Save", directory_mode);
-        m_open_save_file_dialog.RegisterDialogFinishedCallback(@this, "SaveRigFileDialogFinished");
+        m_open_save_file_dialog.RegisterDialogFinishedCallback(@this, "CallbackSaveRigFileDialogFinished");
         m_open_save_file_dialog.StartModal(); // Shows the dialog
     }
     
@@ -77,6 +77,12 @@ class GuiManager: GUI_IOpenSaveFileDialogListener
     void HideGui()
     {
         m_help_window.HideTemporarily();
+    }
+    
+    // -------------------------------------------------------------------------
+    void ShowHelpWindow()
+    {
+        m_help_window.Show();
     }
     
     // -------------------------------------------------------------------------

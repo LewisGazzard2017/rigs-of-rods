@@ -42,14 +42,11 @@ class AS_MyGUI_Button: public MyGUI::Button, public AS_MyGuiCommon_EditBox
 class AS_MyGUI_Window: public MyGUI::Window, public AS_MyGuiCommon_Widget
 {
 public:
-	AS_MyGUI_Window()
-	{
-		this->eventWindowButtonPressed += MyGUI::newDelegate(this, &AS_MyGUI_Window::CallbackWindowButtonClicked);
-	}
 
 	void AS_BindCallback_EventWindowButtonClick(asIScriptObject* obj, std::string func_name)
 	{
 		m_event_window_button_click.RegisterCallback(obj, func_name);
+		this->eventWindowButtonPressed += MyGUI::newDelegate(this, &AS_MyGUI_Window::CallbackWindowButtonClicked);
 	}
 
 private:

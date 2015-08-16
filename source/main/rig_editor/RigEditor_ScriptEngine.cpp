@@ -407,9 +407,8 @@ int ScriptEngine::RegisterSystemInterface()
 		class_main_proxy.AddMethod( "void HandleCommandQuitRigEditor_UGLY()",                      asMETHOD(Main, AS_HandleCommandQuitRigEditor_UGLY));
 		class_main_proxy.AddMethod( "void HandleCommandShowRigPropertiesWindow_UGLY()",            asMETHOD(Main, AS_HandleCommandShowRigPropertiesWindow_UGLY));
 		class_main_proxy.AddMethod( "void HandleCommandSaveContentOfRigPropertiesWindow_UGLY()",   asMETHOD(Main, AS_HandleCommandSaveContentOfRigPropertiesWindow_UGLY));
-		class_main_proxy.AddMethod( "void HandleCommandShowLandVehiclePropertiesWindow_UGLY()",    asMETHOD(Main, AS_HandleCommandShowLandVehiclePropertiesWindow_UGLY    ));
+		class_main_proxy.AddMethod( "void HandleCommandShowLandVehiclePropertiesWindow_UGLY()",    asMETHOD(Main, AS_HandleCommandShowLandVehiclePropertiesWindow_UGLY));
 		class_main_proxy.AddMethod( "void HandleCommandSaveLandVehiclePropertiesWindowData_UGLY()",asMETHOD(Main, AS_HandleCommandSaveLandVehiclePropertiesWindowData_UGLY));
-		class_main_proxy.AddMethod( "void HandleCommandShowHelpWindow_UGLY()",                     asMETHOD(Main, AS_HandleCommandShowHelpWindow_UGLY					  ));
 
 		// Command callback interface
 		auto enum_cmd_proxy = A.RegisterEnumWithProxy  ("RigEditorUserCommand_UGLY");

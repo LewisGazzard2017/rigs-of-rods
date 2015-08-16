@@ -61,7 +61,8 @@ class Application:
                 break;
                 
             case RigEditorUserCommand_UGLY::USER_COMMAND_SHOW_HELP_WINDOW:
-                m_rig_editor_core.HandleCommandShowHelpWindow_UGLY();
+                m_gui_manager.ShowHelpWindow();
+                
                 break;
         }
         LogMessage("HandleUglyUserCommand() finishes");    
@@ -127,7 +128,10 @@ class Application:
             SYS_RenderFrameAndUpdateWindow();
         }
         
-        m_rig_editor_core.OnExit_HideGui_UGLY();
+        // Hide away GUI (can be restored later)
+        m_rig_editor_core.OnExit_HideGui_UGLY(); // Ugly
+        m_gui_manager.HideGui(); // Pretty
+        
         m_rig_editor_core.OnExit_ClearExitRequest_UGLY();
     }
                                                                                     
