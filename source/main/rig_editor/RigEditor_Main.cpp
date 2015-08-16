@@ -77,9 +77,6 @@
 using namespace RoR;
 using namespace RoR::RigEditor;
 
-const MyGUI::UString Main::OpenSaveFileDialogMode::MODE_OPEN_TRUCK     ("RigEditor_OpenTruckFile");
-const MyGUI::UString Main::OpenSaveFileDialogMode::MODE_SAVE_TRUCK_AS  ("RigEditor_SaveTruckFileAs");
-
 Main::Main(Config* config):
 	m_config(config),
 	m_scene_manager(nullptr),
@@ -173,10 +170,6 @@ void Main::AS_OnExit_HideGui_UGLY()
 {
 	// Hide GUI
 	m_gui_menubar->Hide();
-	if (m_gui_open_save_file_dialog->isModal())
-	{
-		m_gui_open_save_file_dialog->endModal(); // Hides the dialog
-	}
 	m_gui_delete_menu->Hide();
 
 	// Supress panels (if visible)
@@ -993,10 +986,6 @@ void Main::AS_OnEnter_InitializeOrRestoreGui_UGLY()
 		m_gui_menubar->Show();
 	}
 	m_gui_menubar->StretchWidthToScreen();
-	if (m_gui_open_save_file_dialog.get() == nullptr)
-	{
-		m_gui_open_save_file_dialog = std::unique_ptr<GUI::OpenSaveFileDialog>(new GUI::OpenSaveFileDialog());
-	}
 	if (m_gui_delete_menu.get() == nullptr)
 	{
 		m_gui_delete_menu = std::unique_ptr<GUI::RigEditorDeleteMenu>(new GUI::RigEditorDeleteMenu(this));

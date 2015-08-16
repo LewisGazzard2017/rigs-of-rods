@@ -54,12 +54,6 @@ class Main: public IMain
 {
 public:
 
-	struct OpenSaveFileDialogMode
-	{
-		static const MyGUI::UString MODE_OPEN_TRUCK;
-		static const MyGUI::UString MODE_SAVE_TRUCK_AS;
-	};
-
 	Main(Config* config);
 	~Main();
 
@@ -226,7 +220,6 @@ private:
 
 	// GUI
 	std::unique_ptr<GUI::RigEditorMenubar>                      m_gui_menubar;
-	std::unique_ptr<GUI::OpenSaveFileDialog>                    m_gui_open_save_file_dialog;
 	std::unique_ptr<GUI::RigEditorDeleteMenu>                   m_gui_delete_menu;
 	std::unique_ptr<GUI::RigEditorNodePanel>                    m_nodes_panel;
 	std::unique_ptr<GUI::RigEditorBeamsPanel>                   m_beams_panel;
