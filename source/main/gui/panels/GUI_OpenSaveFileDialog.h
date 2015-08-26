@@ -36,7 +36,7 @@
 #include <MyGUI.h>
 #include "Dialog.h"
 
-#include "AngelScriptCallbackSocket.h"
+//#include "AngelScriptCallbackSocket.h"
 
 #include <string>
 
@@ -44,7 +44,7 @@ namespace RoR
 {
 
 // Forward decl...
-class AngelScriptSetupHelper;
+//class AngelScriptSetupHelper;
 
 namespace GUI
 {
@@ -79,13 +79,13 @@ public:
 	void AS_RefCountIncrease() { mAngelScriptRefCount++; }
 	void AS_RefCountDecrease() { mAngelScriptRefCount--; }
 
-	void AS_RegisterDialogFinishedCallback(AngelScript::asIScriptObject* object, std::string method_name);
+	//void AS_RegisterDialogFinishedCallback(AngelScript::asIScriptObject* object, std::string method_name);
 
 	void AS_ConfigureDialog(std::string title, std::string select_btn_text, bool use_folder_mode);
 
 	// END AngelScript interface
 
-	static void BindToAngelScript(RoR::AngelScriptSetupHelper* A);
+	//static void BindToAngelScript(RoR::AngelScriptSetupHelper* A);
 
 protected:
 	virtual void onDoModal();
@@ -124,7 +124,7 @@ private:
 	bool mFolderMode;
 	int  mAngelScriptRefCount;
 
-	RoR::AngelScriptCallbackSocket mAsDialogFinishedCallback;
+	//RoR::AngelScriptCallbackSocket mAsDialogFinishedCallback;
 };
 
 } // namespace GUI

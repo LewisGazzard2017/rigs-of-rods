@@ -22,12 +22,13 @@
 #include "RigEditor_ScriptEngine.h"
 
 //#include "MainThread.h"
-#include "AngelScriptSetupHelper.h"
+//#include "AngelScriptSetupHelper.h"
+///////////////////////////////////////
 #include "Application.h"
 #include "ContentManager.h"
 #include "Settings.h"
 #include "MainThread.h"
-#include "MyGUI_AngelScriptExport.h"
+//#include "MyGUI_AngelScriptExport.h"
 #include "OgreSubsystem.h"
 #include "PlatformUtils.h"
 #include "RigEditor_Config.h"
@@ -37,30 +38,11 @@
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
 
-// AS addons start
-#include "scriptstdstring/scriptstdstring.h"
-#include "scriptmath/scriptmath.h"
-#include "contextmgr/contextmgr.h"
-#include "scriptany/scriptany.h"
-#include "scriptarray/scriptarray.h"
-#include "scripthelper/scripthelper.h"
-#include "scriptstring/scriptstring.h"
-// AS addons end
-
-// WORKAROUND for RoR dependency pack 26
-// Cloned from as_scriptbuilder.cpp
-#include <stdio.h>
-#if defined(_MSC_VER) && !defined(_WIN32_WCE)
-#include <direct.h>
-#endif
-#ifdef _WIN32_WCE
-#include <windows.h> // For GetModuleFileName
-#endif
-
+#include <boost/python/detail/wrap_python.hpp> // Replaces #include <Python.h>, recommended in Boost docs
+#include <boost/python.hpp>
 
 using namespace RoR;
 using namespace RigEditor;
-using namespace AngelScript;
 using namespace std;
 
 // Temporary hack for exporting to AngelScript
@@ -115,118 +97,11 @@ std::string AS_SYS_LoadRigEditorResourceAsString(std::string filename)
 	return std::string();
 }
 
-// WORKAROUND
-// =====================================================================
-// Cloned from as_scriptbuilder.cpp
-// RoR has LoadScriptSection() modified to "virtual int f() = 0;"
-// This subclass defines the function using a clone of itself :D
-class ScriptBuilderWorkaround: public CScriptBuilder
-{
-protected:
-    int LoadScriptSection(const char *filename);    
-    const char *GetCurrentDirectory(char *buf, size_t size);
-};
-
-int ScriptBuilderWorkaround::LoadScriptSection(const char *filename)
-{
-	// Open the script file
-	string scriptFile = filename;
-#if _MSC_VER >= 1500
-	FILE *f = 0;
-	fopen_s(&f, scriptFile.c_str(), "rb");
-#else
-	FILE *f = fopen(scriptFile.c_str(), "rb");
-#endif
-	if( f == 0 )
-	{
-		// Write a message to the engine's message callback
-		char buf[256];
-		string msg = "Failed to open script file '" + string(GetCurrentDirectory(buf, 256)) + "\\" + scriptFile + "'";
-		engine->WriteMessage(filename, 0, 0, asMSGTYPE_ERROR, msg.c_str());
-
-		// TODO: Write the file where this one was included from
-
-		return -1;
-	}
-	
-	// Determine size of the file
-	fseek(f, 0, SEEK_END);
-	int len = ftell(f);
-	fseek(f, 0, SEEK_SET);
-
-	// On Win32 it is possible to do the following instead
-	// int len = _filelength(_fileno(f));
-
-	// Read the entire file
-	string code;
-	code.resize(len);
-	size_t c = fread(&code[0], len, 1, f);
-
-	fclose(f);
-
-	if( c == 0 ) 
-	{
-		// Write a message to the engine's message callback
-		char buf[256];
-		string msg = "Failed to load script file '" + string(GetCurrentDirectory(buf, 256)) + scriptFile + "'";
-		engine->WriteMessage(filename, 0, 0, asMSGTYPE_ERROR, msg.c_str());
-		return -1;
-	}
-
-	return ProcessScriptSection(code.c_str(), filename);
-}
-
-const char *ScriptBuilderWorkaround::GetCurrentDirectory(char *buf, size_t size)
-{
-#ifdef _MSC_VER
-#ifdef _WIN32_WCE
-    static TCHAR apppath[MAX_PATH] = TEXT("");
-    if (!apppath[0])
-    {
-        GetModuleFileName(NULL, apppath, MAX_PATH);
-
-        
-        int appLen = _tcslen(apppath);
-
-        // Look for the last backslash in the path, which would be the end
-        // of the path itself and the start of the filename.  We only want
-        // the path part of the exe's full-path filename
-        // Safety is that we make sure not to walk off the front of the 
-        // array (in case the path is nothing more than a filename)
-        while (appLen > 1)
-        {
-            if (apppath[appLen-1] == TEXT('\\'))
-                break;
-            appLen--;
-        }
-
-        // Terminate the string after the trailing backslash
-        apppath[appLen] = TEXT('\0');
-    }
-#ifdef _UNICODE
-    wcstombs(buf, apppath, min(size, wcslen(apppath)*sizeof(wchar_t)));
-#else
-    memcpy(buf, apppath, min(size, strlen(apppath)));
-#endif
-
-    return buf;
-#else
-	return _getcwd(buf, (int)size);
-#endif
-#elif defined(__APPLE__)
-	return getcwd(buf, size);
-#else
-	return "";
-#endif
-}
-
-// END OF WORKAROUND =========================================================
 
 ScriptEngine::ScriptEngine():
-    m_engine(nullptr),
-    m_context(nullptr),
+    
     m_rig_editor_instance(nullptr),
-    m_main_function(nullptr),
+    
     m_log(nullptr)
 {
     global_rig_editor_script_engine_instance = this; // Hack for interfacing with AngelScript through global functions
@@ -236,7 +111,7 @@ ScriptEngine::~ScriptEngine()
 {
 	this->ShutDown();
 }
-
+#if 0
 int ScriptEngine::LoadScripts()
 {
 
@@ -287,21 +162,29 @@ int ScriptEngine::LoadScripts()
 
     return 0;
 }
+#endif
 
-int ScriptEngine::Init()
+void ScriptEngine::Init()
 {
-    m_log = Ogre::LogManager::getSingleton().createLog(SSETTING("Log Path", "")+"/RigEditor.log", false);
+    m_log = Ogre::LogManager::getSingleton().createLog(SSETTING("Log Path", "")+"/RigEditorScriptEngine.log", false);
 
-    // Create the script engine
-    m_engine = AngelScript::asCreateScriptEngine(ANGELSCRIPT_VERSION);
-    if (m_engine == nullptr)
-    {
-        m_log->logMessage("ScriptEngine::Init(): failed to create script engine.");
-        return 1;
-    }
-    
-    int result = 0;
+	Py_Initialize();  // start the interpreter and create the __main__ module.
+	m_log->logMessage("Py_Initialize() DONE");
+}
 
+const char* PythonUnicodeKindToString(int py_kind)
+{
+	switch (py_kind)
+	{
+		case PyUnicode_WCHAR_KIND: return "PyUnicode_WCHAR_KIND";
+		case PyUnicode_1BYTE_KIND: return "PyUnicode_1BYTE_KIND";
+		case PyUnicode_2BYTE_KIND: return "PyUnicode_2BYTE_KIND";
+		case PyUnicode_4BYTE_KIND: return "PyUnicode_4BYTE_KIND";
+	}
+}
+
+
+#if 0
     // Set the message callback to receive information on errors in human readable form.
     result = m_engine->SetMessageCallback(AngelScript::asMETHOD(RigEditor::ScriptEngine,MessageCallback), this, AngelScript::asCALL_THISCALL);
     if(result < 0)
@@ -311,17 +194,6 @@ int ScriptEngine::Init()
         m_log->logMessage(msg.str());
         return result;
     }
-
-    // AngelScript doesn't have a built-in string type, as there is no definite standard
-	// string type for C++ applications. Every developer is free to register it's own string type.
-	// The SDK do however provide a standard add-on for registering a string type, so it's not
-	// necessary to register your own string type if you don't want to.
-	AngelScript::RegisterScriptArray     (m_engine, true);
-	AngelScript::RegisterStdString       (m_engine);
-	AngelScript::RegisterStdStringUtils  (m_engine);
-	AngelScript::RegisterScriptMath      (m_engine);
-	AngelScript::RegisterScriptAny       (m_engine);
-	AngelScript::RegisterScriptDictionary(m_engine);
 
     result = this->RegisterSystemInterface();
     if (result != 0)
@@ -371,9 +243,10 @@ int ScriptEngine::Init()
 		return 1;
 	}
 
-    return 0;
-}
+#endif
 
+
+#if 0
 int ScriptEngine::RegisterSystemInterface()
 {
     using namespace AngelScript;
@@ -459,6 +332,8 @@ int ScriptEngine::RegisterSystemInterface()
 	}
 }
 
+#endif
+
 RigEditor::Main* ScriptEngine::GetRigEditorInstance()
 {
     if (m_rig_editor_instance != nullptr)
@@ -475,6 +350,7 @@ RigEditor::Main* ScriptEngine::GetRigEditorInstance()
     return m_rig_editor_instance;
 }
 
+#if 0
 void ScriptEngine::MessageCallback(const AngelScript::asSMessageInfo *msg)
 {
 	const char *type = "Error";
@@ -487,29 +363,11 @@ void ScriptEngine::MessageCallback(const AngelScript::asSMessageInfo *msg)
 	sprintf(tmp, "%s (%d, %d): %s = %s", msg->section, msg->row, msg->col, type, msg->message);
 	m_log->logMessage(tmp);
 }
+#endif
 
-// Static helper
-const char* ScriptEngine::ContextSetArg_ErrorCodeToString(int err_code)
-{
-	switch (err_code)
-	{
-		case asCONTEXT_NOT_PREPARED: return 	"asCONTEXT_NOT_PREPARED: The context is not in prepared state.";
-		case asINVALID_ARG: return	"asINVALID_ARG: The arg is larger than the number of arguments in the prepared function.";
-		case asINVALID_TYPE: 	return "asINVALID_TYPE: The argument has wrong data type";
-	}
-	return "Unknown error code";
-}
 
-// Static helper
-const char* ScriptEngine::ContextPrepare_ErrorCodeToString(int err_code)
-{
-	switch (err_code)
-	{
-		case		asCONTEXT_ACTIVE:	return "asCONTEXT_ACTIVE: The context is still active or suspended.";
-	}
-	return "Unknown error code";
-}
 
+#if 0
 // Static helper
 void ScriptEngine::PrepareAndExecuteFunction(asIScriptFunction* func, asIScriptContext* ctx, asIScriptEngine* engine)
 {
@@ -562,6 +420,189 @@ void ScriptEngine::PrepareAndExecuteFunction(asIScriptFunction* func, asIScriptC
 	}
 }
 
+
+#endif
+
+void LogPythonUnicodeObject(Ogre::Log* m_log, boost::python::object& py_unicode_obj)
+{
+	m_log->logMessage("LogPythonUnicodeObject(): START");
+
+	if (py_unicode_obj.is_none())
+	{
+		m_log->logMessage("LogPythonUnicodeObject FAIL, py_unicode_obj is None");
+		return;
+	}
+	m_log->logMessage("LogPythonUnicodeObject(): LINE DONE is_none()?");
+
+	if (! PyUnicode_Check(py_unicode_obj.ptr()))
+	{
+		m_log->logMessage("LogPythonUnicodeObject():failed to get info :-( [ failed PyUnicode_Check test]");
+		return;
+	}
+	m_log->logMessage("LogPythonUnicodeObject(): LINE DONE PyUnicode_Check ");
+
+	if (! PyUnicode_READY(py_unicode_obj.ptr()))
+	{
+		m_log->logMessage("LogPythonUnicodeObject(): We are not PyUnicode_READY...");
+		Py_UNICODE* w_str = PyUnicode_AS_UNICODE(py_unicode_obj.ptr());
+		if (w_str == nullptr)
+		{
+			m_log->logMessage("LogPythonUnicodeObject(): PyUnicode_AS_UNICODE() gave NULL :-(");
+			return;
+		}
+		MyGUI::UString u_str(w_str);
+
+		m_log->logMessage("LogPythonUnicodeObject(): OUTPUT:");
+		m_log->logMessage(u_str);
+		return;
+	}
+	int kind = PyUnicode_KIND(py_unicode_obj.ptr());
+	m_log->logMessage(std::string("LogPythonUnicodeObject(): PyUnicode_READY OK! Kind: ") 
+		+ PythonUnicodeKindToString(kind));
+	
+	Py_UCS1* ucs1 = nullptr;
+	Py_UCS2* ucs2 = nullptr;
+	Py_UCS4* ucs4 = nullptr;
+
+	m_log->logMessage("LogPythonUnicodeObject(): OUTPUT:");
+	switch (kind)
+	{
+		case PyUnicode_WCHAR_KIND: break;
+
+		case PyUnicode_1BYTE_KIND:
+		{
+			ucs1 = PyUnicode_1BYTE_DATA(py_unicode_obj.ptr()); m_log->logMessage((char*)ucs1); break;
+		}
+
+		case PyUnicode_2BYTE_KIND: 
+		{
+			ucs2 = PyUnicode_2BYTE_DATA(py_unicode_obj.ptr()); 
+			MyGUI::UString u_str((wchar_t*)ucs2);
+			m_log->logMessage(u_str); 
+			break;
+		}
+
+		case PyUnicode_4BYTE_KIND:
+		{ 
+			ucs4 = PyUnicode_4BYTE_DATA(py_unicode_obj.ptr()); break;
+		}
+	}
+
+
+}
+
+void LogPythonStdOutput(Ogre::Log* m_log, boost::python::object& main_namespace)
+{
+	// https://docs.python.org/3/library/io.html#io.StringIO
+	using namespace boost::python;
+
+	m_log->logMessage("LogPythonStdOutput(): START");
+
+	m_log->logMessage("LogPythonStdOutput(): getting stdout");
+	object stdout_str = eval("sys.stdout.getvalue()", main_namespace);
+	m_log->logMessage("LogPythonStdOutput(): logging stdout");
+	LogPythonUnicodeObject(m_log, stdout_str);
+	
+	m_log->logMessage("LogPythonStdOutput(): getting stderr");
+	object stderr_str = eval("sys.stderr.getvalue()", main_namespace);
+	m_log->logMessage("LogPythonStdOutput(): logging stderr");
+	LogPythonUnicodeObject(m_log, stderr_str);
+
+	m_log->logMessage("LogPythonStdOutput(): END");
+}
+
+void PythonExample(Ogre::Log* m_log)
+{
+	using namespace boost::python;
+
+	// Example from docs
+	object main_module = import("__main__");
+	m_log->logMessage("PythonExample: import(__main__) DONE");
+	object main_namespace = main_module.attr("__dict__");
+	m_log->logMessage("PythonExample: main_module.attr(__dict__) DONE");
+
+	object res;
+	res = exec("import io, sys"                           , main_namespace);    m_log->logMessage("LINE import");
+	res = exec("sys.stdout = io.StringIO()"               , main_namespace);    m_log->logMessage("LINE set stdout");
+	res = exec("sys.stderr = io.StringIO()"               , main_namespace);    m_log->logMessage("LINE set stderr");
+	res = exec("print(\"python stdio test!\")"            , main_namespace);    m_log->logMessage("LINE test stdio");
+	res = exec("sys.stderr.write(\"python sterr test!\")" , main_namespace);    m_log->logMessage("LINE test stderr");
+
+	LogPythonStdOutput(m_log, main_namespace);
+
+	/*object ignored = exec("hello = file('hello_rig_editor.txt', 'w')\n"
+						"hello.write('Hello rig editor!')\n"
+						"hello.close()",
+						main_namespace);*/
+
+	m_log->logMessage("PythonExample: exec() DONE");
+}
+
+
+// From: http://www.gamedev.net/topic/491813
+void ScriptEngine::LogPythonException()
+{
+	using namespace boost::python;
+	PyErr_Print();
+	object sys(handle<>(PyImport_ImportModule("sys")));
+	object err = sys.attr("stderr");
+	if (err.is_none())
+	{
+		m_log->logMessage("failed to get info :-( [sys.stderr == None]");
+		return;
+	}
+
+	m_log->logMessage("Python exception info:");
+	object stderr_val = err.attr("getvalue")();
+	if (stderr_val.is_none())
+	{
+		m_log->logMessage("failed to get info :-( [stderr_val == None]");
+		return;
+	}
+	if (! PyUnicode_Check(stderr_val.ptr()))
+	{
+		m_log->logMessage("failed to get info :-( [stderr_val failed PyUnicode_Check test]");
+		return;
+	}
+	if (! PyUnicode_READY(stderr_val.ptr()))
+	{
+		m_log->logMessage("failed to get info :-( [stderr_val failed PyUnicode_READY test]");
+		return;
+	}
+	m_log->logMessage("sys.stderr object KIND: ");
+	m_log->logMessage(PythonUnicodeKindToString(PyUnicode_KIND(stderr_val.ptr())));
+	auto err_text = extract<std::wstring>(stderr_val);
+	m_log->logMessage(MyGUI::UString(err_text));
+}
+
+/*{
+// From: http://stackoverflow.com/a/30155747 - fails at line attr(format_exception)
+	using namespace boost::python;
+  // acquire the Global Interpreter Lock
+
+  PyObject * extype, * value, * traceback;
+  PyErr_Fetch(&extype, &value, &traceback);
+  if (!extype)
+  {
+	m_log->logMessage("Could not obtain exception info.");
+  }
+
+  object o_extype(handle<>(borrowed(extype)));
+  object o_value(handle<>(borrowed(value)));
+  object o_traceback(handle<>(borrowed(traceback)));
+
+  object mod_traceback = import("traceback");
+  object lines = mod_traceback.attr("format_exception")(
+    o_extype, o_value, o_traceback);
+
+	std::stringstream os;
+	os << "Python exception info:\n";
+  for (int i = 0; i < len(lines); ++i)
+    os << extract<std::string>(lines[i])();
+
+  m_log->logMessage(os.str());
+}*/
+
 bool ScriptEngine::EnterRigEditor()
 {
     try
@@ -569,25 +610,34 @@ bool ScriptEngine::EnterRigEditor()
 		// Execute the Main() function
 		m_log->logMessage("Executing the rig editor script");
 		m_log->logMessage("==================================================");
-		PrepareAndExecuteFunction(m_main_function, m_context, m_engine);
+		PythonExample(m_log);
 		m_log->logMessage("==================================================");
 		m_log->logMessage("The rig editor script has finished");
 		return true;
 	}
+	catch (boost::python::error_already_set e)
+	{
+		
+
+		m_log->logMessage("==================================================");
+		m_log->logMessage("An <boost::python::error_already_set> exception occured, getting details...");
+
+		this->LogPythonException();
+		return false;
+	}
 	catch (std::runtime_error e)
 	{
 		m_log->logMessage("==================================================");
-		m_log->logMessage("An exception occured, message:");
+		m_log->logMessage("An <std::runtime_error> exception occured, message:");
 		m_log->logMessage(e.what());
 		return false;
 	}
-
-	
 }
 
 void ScriptEngine::ShutDown()
 {
-    if (m_context != nullptr && m_engine != nullptr)
+
+/*    if (m_context != nullptr && m_engine != nullptr)
     {
         m_main_function = nullptr;
 
@@ -598,6 +648,7 @@ void ScriptEngine::ShutDown()
 	    m_engine->Release();
         m_engine = nullptr;
     }
+	*/
 
 	if (m_log != nullptr)
 	{
@@ -605,6 +656,7 @@ void ScriptEngine::ShutDown()
 		delete m_log;
 		m_log = nullptr;
 	}
+	
 }
 
 void ScriptEngine::LogMessage(std::string & msg)

@@ -30,9 +30,6 @@
 #include "RoRPrerequisites.h"
 #include "Singleton.h"
 
-#include "scriptdictionary/scriptdictionary.h"
-#include "scriptbuilder/scriptbuilder.h"
-
 namespace RoR
 {
 
@@ -47,19 +44,14 @@ class ScriptEngine
 public:
     ScriptEngine();
     ~ScriptEngine();
-    /// @return 0 on success
-    int Init();
+    
+    void Init();
     /// @return True on successful execution
     bool EnterRigEditor();
 
     void ShutDown();
 
-	static void        PrepareAndExecuteFunction(AngelScript::asIScriptFunction* func, AngelScript::asIScriptContext* ctx, AngelScript::asIScriptEngine* engine);
-	static void        ExecuteContext(AngelScript::asIScriptContext* ctx, AngelScript::asIScriptEngine* engine);
-	static const char* ContextPrepare_ErrorCodeToString(int err_code);
-	static const char* ContextSetArg_ErrorCodeToString(int err_code);
-	static const char* ContextSetObject_ErrorCodeToString(int err_code);
-	static const char* ErrorCodeToString_Engine_RegisterObjectBehaviour(int err_code);
+
 
     // ===== Script interface =====
 
@@ -70,18 +62,18 @@ public:
 
 protected:
 
-    void MessageCallback(const AngelScript::asSMessageInfo *msg);
+    //void MessageCallback(const AngelScript::asSMessageInfo *msg);
     
-    /// @return 0 on success or AngelScript error code
+    /// @return 0 on success or  error code
     int RegisterSystemInterface();
+
+	void LogPythonException();
 
     /// Loads "Main.as" script and resolves "#include" dependencies.
     /// @return 0 on success or AngelScript error code
     int LoadScripts();
 
-    AngelScript::asIScriptEngine*    m_engine;
-	AngelScript::asIScriptContext*   m_context;
-    AngelScript::asIScriptFunction*  m_main_function;
+    
     Ogre::Log*                       m_log;
     RigEditor::Main*                 m_rig_editor_instance;   
     std::string                      m_scripts_base_path;           

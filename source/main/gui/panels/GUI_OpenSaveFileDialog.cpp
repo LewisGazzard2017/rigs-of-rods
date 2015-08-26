@@ -33,7 +33,7 @@
 
 #include "GUI_OpenSaveFileDialog.h"
 
-#include "AngelScriptSetupHelper.h"
+//#include "AngelScriptSetupHelper.h"
 #include "FileSystemInfo.h"
 
 using namespace RoR;
@@ -81,6 +81,7 @@ OpenSaveFileDialog::OpenSaveFileDialog() :
 
 void OpenSaveFileDialog::NotifyFileSelectorEnded(GUI::Dialog* dialog, bool result)
 {
+#if 0
 	if (!mAsDialogFinishedCallback.IsBound())
 	{
 		return;
@@ -95,6 +96,7 @@ void OpenSaveFileDialog::NotifyFileSelectorEnded(GUI::Dialog* dialog, bool resul
 	mAsDialogFinishedCallback.SetArgObject  (ctx, 2, static_cast<void*>(&filename));
 
 	mAsDialogFinishedCallback.ExecuteContext(ctx);
+	#endif
 }
 
 
@@ -298,6 +300,7 @@ void OpenSaveFileDialog::notifyDirectoryComboChangePosition(MyGUI::ComboBox* _se
 		setCurrentFolder(_sender->getItemNameAt(_index));
 }
 
+#if 0
 void OpenSaveFileDialog::BindToAngelScript(RoR::AngelScriptSetupHelper* A)
 {
 	auto proxy = A->RegisterObjectWithProxy("GUI_OpenSaveFileDialog", 0, asOBJ_REF);
@@ -318,7 +321,10 @@ void OpenSaveFileDialog::BindToAngelScript(RoR::AngelScriptSetupHelper* A)
 		asMETHOD(OpenSaveFileDialog, AS_RegisterDialogFinishedCallback));
 }
 
+
 void OpenSaveFileDialog::AS_RegisterDialogFinishedCallback(AngelScript::asIScriptObject* object, std::string method_name)
 {
 	mAsDialogFinishedCallback.RegisterCallback(object, method_name);
 }
+
+#endif

@@ -544,12 +544,9 @@ void MainThread::Go()
 			{
 				m_rig_editor_script_engine = new RigEditor::ScriptEngine();
                 assert (m_rig_editor_script_engine != nullptr);
-                int result = m_rig_editor_script_engine->Init();
-                if (result != 0)
-                {
-                    delete m_rig_editor_script_engine;
-                    m_rig_editor_script_engine = nullptr;
-                }
+                
+				m_rig_editor_script_engine->Init();
+                
 			}
 			if (previous_application_state == Application::STATE_SIMULATION)
 			{

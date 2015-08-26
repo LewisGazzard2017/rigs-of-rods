@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "AngelScriptCallbackSocket.h"
+//#include "AngelScriptCallbackSocket.h"
 #include "ConfigFile.h"
 #include "GUI_OpenSaveFileDialog.h"
 #include "RigDef_Prerequisites.h"
@@ -235,7 +235,7 @@ private:
 	std::unique_ptr<GUI::RigEditorLandVehiclePropertiesWindow>  m_gui_land_vehicle_properties_window;
 
 	// AngelScript
-	AngelScriptCallbackSocket m_as_user_command_callback;
+	//AngelScriptCallbackSocket m_as_user_command_callback;
 };
 
 } // namespace RigEditor

@@ -126,7 +126,7 @@ Main::~Main()
 
 void Main::InvokeAngelScriptUserCommandCallback(IMain::UserCommand command)
 {
-	if (! m_as_user_command_callback.IsBound())
+/*	if (! m_as_user_command_callback.IsBound())
 	{
 		return;
 	}
@@ -135,6 +135,7 @@ void Main::InvokeAngelScriptUserCommandCallback(IMain::UserCommand command)
 	asIScriptContext* ctx = m_as_user_command_callback.PrepareContext();
 	m_as_user_command_callback.SetArgInt(ctx, 0, static_cast<int>(command));
 	m_as_user_command_callback.ExecuteContext(ctx);
+	*/
 }
 
 void Main::AS_OnEnter_SetupCameraAndViewport_UGLY()
@@ -151,7 +152,7 @@ void Main::AS_OnEnter_SetupCameraAndViewport_UGLY()
 
 void Main::AS_RegisterUserCommandCallback_UGLY(AngelScript::asIScriptObject* object, std::string method_name)
 {
-	m_as_user_command_callback.RegisterCallback(object, method_name);
+	//m_as_user_command_callback.RegisterCallback(object, method_name);
 }
 
 void Main::AS_OnEnter_SetupInput_UGLY()
