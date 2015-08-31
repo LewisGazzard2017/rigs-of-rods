@@ -19,18 +19,20 @@
 	along with Rigs of Rods. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/**
+	@date   08/2015
+	@author Petr Ohlidal
+*/
+
 #include "RigEditor_ScriptEngine.h"
 
-//#include "MainThread.h"
-//#include "AngelScriptSetupHelper.h"
-///////////////////////////////////////
 #include "Application.h"
 #include "ContentManager.h"
 #include "Settings.h"
 #include "MainThread.h"
-//#include "MyGUI_AngelScriptExport.h"
 #include "OgreSubsystem.h"
 #include "PlatformUtils.h"
+#include "PythonHelper.h"
 #include "RigEditor_Config.h"
 #include "RigEditor_Main.h"
 #include "RoRPrerequisites.h"
@@ -41,9 +43,142 @@
 #include <boost/python/detail/wrap_python.hpp> // Replaces #include <Python.h>, recommended in Boost docs
 #include <boost/python.hpp>
 
+namespace RoR { namespace RigEditor {
+	struct ScriptEngineImpl
+	{
+		boost::python::object            py_main_module;
+		boost::python::object            py_main_namespace;
+	};
+} } // namespace RoR { namespace RigEditor {
+
 using namespace RoR;
 using namespace RigEditor;
 using namespace std;
+
+
+
+ScriptEngine::ScriptEngine() :
+	m_rig_editor_instance(nullptr),
+	m_log(nullptr),
+	m_impl(nullptr)
+{
+}
+
+void ScriptEngine::Bootstrap()
+{
+	m_log = Ogre::LogManager::getSingleton().createLog(SSETTING("Log Path", "") + "/RigEditorScriptEngine.log", false);
+
+	Py_Initialize();  // start the interpreter and create the __main__ module.
+	m_log->logMessage("Py_Initialize() DONE");
+
+	using namespace boost::python;
+
+	// Example from docs
+	object main_module = import("__main__");
+	m_log->logMessage("PythonExample: import(__main__) DONE");
+	object main_namespace = main_module.attr("__dict__");
+	m_log->logMessage("PythonExample: main_module.attr(__dict__) DONE");
+
+	
+	try
+	{
+		// Error reporting = redirect stdout/stderr to log files.
+		// Buffering must be set to 1 (flush after every line) because we can't use Py_Finalize() 
+		//     to close files - it's broken in boost 1_48,
+		//     see http://www.boost.org/doc/libs/1_48_0/libs/python/doc/tutorial/doc/html/python/embedding.html
+		// Path must use forward slashes '/' because '\' are Python escapes.
+		std::string stdout_log_path = SSETTING("Log Path", "");
+		std::string stderr_log_path = SSETTING("Log Path", "");
+		PythonHelper::PathConvertSlashesToForward(stderr_log_path);
+		PythonHelper::PathConvertSlashesToForward(stdout_log_path);
+		stderr_log_path += "/RigEditorPythonStderr.log";
+		stdout_log_path += "/RigEditorPythonStdout.log";
+		std::string stdout_statement = std::string("sys.stdout = open('") + stdout_log_path + "', 'w', buffering=1)";
+		std::string stderr_statement = std::string("sys.stderr = open('") + stderr_log_path + "', 'w', buffering=1)";
+
+		m_log->logMessage("DEBUG: log file paths:");
+		m_log->logMessage(stdout_log_path);
+		m_log->logMessage(stderr_log_path);
+
+		object res;
+		res = exec("import io, sys", main_namespace);                              m_log->logMessage("DEBUG: Executed statement: import");
+		res = exec(stdout_statement.c_str(), main_namespace);                            m_log->logMessage("DEBUG: Executed statement: stdout >> file");
+		res = exec(stderr_statement.c_str(), main_namespace);                            m_log->logMessage("DEBUG: Executed statement: stderr >> file");
+		res = exec("print('Rig Editor: Python standard output (stdout)\\n')", main_namespace);               m_log->logMessage("DEBUG: Executed statement: test stdio");
+		res = exec("sys.stderr.write('Rig Editor: Python standard error output (stderr)\\n')", main_namespace);    m_log->logMessage("DEBUG: Executed statement: test stderr");
+
+		//res = exec("5/0", main_namespace);// Test = force exception
+	}
+	catch (error_already_set)
+	{
+		m_log->logMessage("Bootstrap(): FATAL ERROR: Failed to redirect standard output to files.");
+		return;
+	}
+
+	m_log->logMessage("DEBUG Bootstrap() is done, ready to launch RigEditor");
+	m_impl = new ScriptEngineImpl();
+	m_impl->py_main_module    = main_module;
+	m_impl->py_main_namespace = main_namespace;
+}
+
+bool ScriptEngine::EnterRigEditor()
+{
+	if (m_impl == nullptr)
+	{
+		return false;
+	}
+	try
+	{
+		std::string main_script_path = SSETTING("RigEditor Scripts Path", "");
+		PythonHelper::PathConvertSlashesToForward(main_script_path);
+		main_script_path += "/Main.py";
+
+		// Execute the Main() function
+		m_log->logMessage("Executing the rig editor script");
+		m_log->logMessage(main_script_path);
+		m_log->logMessage("==================================================");
+		boost::python::exec_file(main_script_path.c_str(), m_impl->py_main_namespace);
+		m_log->logMessage("==================================================");
+		m_log->logMessage("The rig editor script has finished");
+		return true;
+	}
+	catch (boost::python::error_already_set e)
+	{
+		m_log->logMessage("==================================================");
+		m_log->logMessage("An <boost::python::error_already_set> exception occured.");
+		m_log->logMessage("Inspect 'logs/RigEditorPythonStderr.log' for details");
+		return false;
+	}
+	catch (std::runtime_error e)
+	{
+		m_log->logMessage("==================================================");
+		m_log->logMessage("An <std::runtime_error> exception occured, message:");
+		m_log->logMessage(e.what());
+		return false;
+	}
+}
+
+void ScriptEngine::ShutDown()
+{
+	if (m_log != nullptr)
+	{
+		m_log->logMessage("ScriptEngine: Shutting down.");
+		delete m_log;
+		m_log = nullptr;
+	}
+	if (m_impl != nullptr)
+	{
+		delete m_impl;
+	}
+}
+
+// ###################################################################################################
+// ###################################################################################################
+// Dirty AngelScript-related code, to be cleaned
+// ###################################################################################################
+// ###################################################################################################
+
+#if 0
 
 // Temporary hack for exporting to AngelScript
 // Will be changed when AngelScript is updated.
@@ -98,20 +233,13 @@ std::string AS_SYS_LoadRigEditorResourceAsString(std::string filename)
 }
 
 
-ScriptEngine::ScriptEngine():
-    
-    m_rig_editor_instance(nullptr),
-    
-    m_log(nullptr)
-{
-    global_rig_editor_script_engine_instance = this; // Hack for interfacing with AngelScript through global functions
-}
+
 
 ScriptEngine::~ScriptEngine()
 {
 	this->ShutDown();
 }
-#if 0
+
 int ScriptEngine::LoadScripts()
 {
 
@@ -164,24 +292,9 @@ int ScriptEngine::LoadScripts()
 }
 #endif
 
-void ScriptEngine::Init()
-{
-    m_log = Ogre::LogManager::getSingleton().createLog(SSETTING("Log Path", "")+"/RigEditorScriptEngine.log", false);
 
-	Py_Initialize();  // start the interpreter and create the __main__ module.
-	m_log->logMessage("Py_Initialize() DONE");
-}
 
-const char* PythonUnicodeKindToString(int py_kind)
-{
-	switch (py_kind)
-	{
-		case PyUnicode_WCHAR_KIND: return "PyUnicode_WCHAR_KIND";
-		case PyUnicode_1BYTE_KIND: return "PyUnicode_1BYTE_KIND";
-		case PyUnicode_2BYTE_KIND: return "PyUnicode_2BYTE_KIND";
-		case PyUnicode_4BYTE_KIND: return "PyUnicode_4BYTE_KIND";
-	}
-}
+
 
 
 #if 0
@@ -332,7 +445,7 @@ int ScriptEngine::RegisterSystemInterface()
 	}
 }
 
-#endif
+
 
 RigEditor::Main* ScriptEngine::GetRigEditorInstance()
 {
@@ -350,7 +463,7 @@ RigEditor::Main* ScriptEngine::GetRigEditorInstance()
     return m_rig_editor_instance;
 }
 
-#if 0
+
 void ScriptEngine::MessageCallback(const AngelScript::asSMessageInfo *msg)
 {
 	const char *type = "Error";
@@ -423,243 +536,6 @@ void ScriptEngine::PrepareAndExecuteFunction(asIScriptFunction* func, asIScriptC
 
 #endif
 
-void LogPythonUnicodeObject(Ogre::Log* m_log, boost::python::object& py_unicode_obj)
-{
-	m_log->logMessage("LogPythonUnicodeObject(): START");
-
-	if (py_unicode_obj.is_none())
-	{
-		m_log->logMessage("LogPythonUnicodeObject FAIL, py_unicode_obj is None");
-		return;
-	}
-	m_log->logMessage("LogPythonUnicodeObject(): LINE DONE is_none()?");
-
-	if (! PyUnicode_Check(py_unicode_obj.ptr()))
-	{
-		m_log->logMessage("LogPythonUnicodeObject():failed to get info :-( [ failed PyUnicode_Check test]");
-		return;
-	}
-	m_log->logMessage("LogPythonUnicodeObject(): LINE DONE PyUnicode_Check ");
-
-	if (! PyUnicode_READY(py_unicode_obj.ptr()))
-	{
-		m_log->logMessage("LogPythonUnicodeObject(): We are not PyUnicode_READY...");
-		Py_UNICODE* w_str = PyUnicode_AS_UNICODE(py_unicode_obj.ptr());
-		if (w_str == nullptr)
-		{
-			m_log->logMessage("LogPythonUnicodeObject(): PyUnicode_AS_UNICODE() gave NULL :-(");
-			return;
-		}
-		MyGUI::UString u_str(w_str);
-
-		m_log->logMessage("LogPythonUnicodeObject(): OUTPUT:");
-		m_log->logMessage(u_str);
-		return;
-	}
-	int kind = PyUnicode_KIND(py_unicode_obj.ptr());
-	m_log->logMessage(std::string("LogPythonUnicodeObject(): PyUnicode_READY OK! Kind: ") 
-		+ PythonUnicodeKindToString(kind));
-	
-	Py_UCS1* ucs1 = nullptr;
-	Py_UCS2* ucs2 = nullptr;
-	Py_UCS4* ucs4 = nullptr;
-
-	m_log->logMessage("LogPythonUnicodeObject(): OUTPUT:");
-	switch (kind)
-	{
-		case PyUnicode_WCHAR_KIND: break;
-
-		case PyUnicode_1BYTE_KIND:
-		{
-			ucs1 = PyUnicode_1BYTE_DATA(py_unicode_obj.ptr()); m_log->logMessage((char*)ucs1); break;
-		}
-
-		case PyUnicode_2BYTE_KIND: 
-		{
-			ucs2 = PyUnicode_2BYTE_DATA(py_unicode_obj.ptr()); 
-			MyGUI::UString u_str((wchar_t*)ucs2);
-			m_log->logMessage(u_str); 
-			break;
-		}
-
-		case PyUnicode_4BYTE_KIND:
-		{ 
-			ucs4 = PyUnicode_4BYTE_DATA(py_unicode_obj.ptr()); break;
-		}
-	}
 
 
-}
 
-void LogPythonStdOutput(Ogre::Log* m_log, boost::python::object& main_namespace)
-{
-	// https://docs.python.org/3/library/io.html#io.StringIO
-	using namespace boost::python;
-
-	m_log->logMessage("LogPythonStdOutput(): START");
-
-	m_log->logMessage("LogPythonStdOutput(): getting stdout");
-	object stdout_str = eval("sys.stdout.getvalue()", main_namespace);
-	m_log->logMessage("LogPythonStdOutput(): logging stdout");
-	LogPythonUnicodeObject(m_log, stdout_str);
-	
-	m_log->logMessage("LogPythonStdOutput(): getting stderr");
-	object stderr_str = eval("sys.stderr.getvalue()", main_namespace);
-	m_log->logMessage("LogPythonStdOutput(): logging stderr");
-	LogPythonUnicodeObject(m_log, stderr_str);
-
-	m_log->logMessage("LogPythonStdOutput(): END");
-}
-
-void PythonExample(Ogre::Log* m_log)
-{
-	using namespace boost::python;
-
-	// Example from docs
-	object main_module = import("__main__");
-	m_log->logMessage("PythonExample: import(__main__) DONE");
-	object main_namespace = main_module.attr("__dict__");
-	m_log->logMessage("PythonExample: main_module.attr(__dict__) DONE");
-
-	object res;
-	res = exec("import io, sys"                           , main_namespace);    m_log->logMessage("LINE import");
-	res = exec("sys.stdout = io.StringIO()"               , main_namespace);    m_log->logMessage("LINE set stdout");
-	res = exec("sys.stderr = io.StringIO()"               , main_namespace);    m_log->logMessage("LINE set stderr");
-	res = exec("print(\"python stdio test!\")"            , main_namespace);    m_log->logMessage("LINE test stdio");
-	res = exec("sys.stderr.write(\"python sterr test!\")" , main_namespace);    m_log->logMessage("LINE test stderr");
-
-	LogPythonStdOutput(m_log, main_namespace);
-
-	/*object ignored = exec("hello = file('hello_rig_editor.txt', 'w')\n"
-						"hello.write('Hello rig editor!')\n"
-						"hello.close()",
-						main_namespace);*/
-
-	m_log->logMessage("PythonExample: exec() DONE");
-}
-
-
-// From: http://www.gamedev.net/topic/491813
-void ScriptEngine::LogPythonException()
-{
-	using namespace boost::python;
-	PyErr_Print();
-	object sys(handle<>(PyImport_ImportModule("sys")));
-	object err = sys.attr("stderr");
-	if (err.is_none())
-	{
-		m_log->logMessage("failed to get info :-( [sys.stderr == None]");
-		return;
-	}
-
-	m_log->logMessage("Python exception info:");
-	object stderr_val = err.attr("getvalue")();
-	if (stderr_val.is_none())
-	{
-		m_log->logMessage("failed to get info :-( [stderr_val == None]");
-		return;
-	}
-	if (! PyUnicode_Check(stderr_val.ptr()))
-	{
-		m_log->logMessage("failed to get info :-( [stderr_val failed PyUnicode_Check test]");
-		return;
-	}
-	if (! PyUnicode_READY(stderr_val.ptr()))
-	{
-		m_log->logMessage("failed to get info :-( [stderr_val failed PyUnicode_READY test]");
-		return;
-	}
-	m_log->logMessage("sys.stderr object KIND: ");
-	m_log->logMessage(PythonUnicodeKindToString(PyUnicode_KIND(stderr_val.ptr())));
-	auto err_text = extract<std::wstring>(stderr_val);
-	m_log->logMessage(MyGUI::UString(err_text));
-}
-
-/*{
-// From: http://stackoverflow.com/a/30155747 - fails at line attr(format_exception)
-	using namespace boost::python;
-  // acquire the Global Interpreter Lock
-
-  PyObject * extype, * value, * traceback;
-  PyErr_Fetch(&extype, &value, &traceback);
-  if (!extype)
-  {
-	m_log->logMessage("Could not obtain exception info.");
-  }
-
-  object o_extype(handle<>(borrowed(extype)));
-  object o_value(handle<>(borrowed(value)));
-  object o_traceback(handle<>(borrowed(traceback)));
-
-  object mod_traceback = import("traceback");
-  object lines = mod_traceback.attr("format_exception")(
-    o_extype, o_value, o_traceback);
-
-	std::stringstream os;
-	os << "Python exception info:\n";
-  for (int i = 0; i < len(lines); ++i)
-    os << extract<std::string>(lines[i])();
-
-  m_log->logMessage(os.str());
-}*/
-
-bool ScriptEngine::EnterRigEditor()
-{
-    try
-	{
-		// Execute the Main() function
-		m_log->logMessage("Executing the rig editor script");
-		m_log->logMessage("==================================================");
-		PythonExample(m_log);
-		m_log->logMessage("==================================================");
-		m_log->logMessage("The rig editor script has finished");
-		return true;
-	}
-	catch (boost::python::error_already_set e)
-	{
-		
-
-		m_log->logMessage("==================================================");
-		m_log->logMessage("An <boost::python::error_already_set> exception occured, getting details...");
-
-		this->LogPythonException();
-		return false;
-	}
-	catch (std::runtime_error e)
-	{
-		m_log->logMessage("==================================================");
-		m_log->logMessage("An <std::runtime_error> exception occured, message:");
-		m_log->logMessage(e.what());
-		return false;
-	}
-}
-
-void ScriptEngine::ShutDown()
-{
-
-/*    if (m_context != nullptr && m_engine != nullptr)
-    {
-        m_main_function = nullptr;
-
-	    m_context->Release();
-        m_context = nullptr;
-
-        // TODO: UPDATE DEPS AND USE: ShutDownAndRelease()
-	    m_engine->Release();
-        m_engine = nullptr;
-    }
-	*/
-
-	if (m_log != nullptr)
-	{
-		m_log->logMessage("ScriptEngine: Shutting down.");
-		delete m_log;
-		m_log = nullptr;
-	}
-	
-}
-
-void ScriptEngine::LogMessage(std::string & msg)
-{
-    m_log->logMessage(msg);
-}

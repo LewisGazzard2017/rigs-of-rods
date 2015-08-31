@@ -21,14 +21,13 @@
 
 /** 
 	@file
-	@date   07/2014
+	@date   08/2015
 	@author Petr Ohlidal
 */
 
 #pragma once
 
 #include "RoRPrerequisites.h"
-#include "Singleton.h"
 
 namespace RoR
 {
@@ -36,47 +35,28 @@ namespace RoR
 namespace RigEditor
 {
 
-// Forward decl.
-class Main;
+// Forward decl
+class  Main;
+struct ScriptEngineImpl; // Pimpl, because boost::python included to header won't compile for some reason.
 
 class ScriptEngine
 {
 public:
-    ScriptEngine();
-    ~ScriptEngine();
-    
-    void Init();
-    /// @return True on successful execution
-    bool EnterRigEditor();
+	ScriptEngine();
+	~ScriptEngine();
 
-    void ShutDown();
+	void Bootstrap();
 
+	/// @return True on successful execution
+	bool EnterRigEditor();
 
-
-    // ===== Script interface =====
-
-    RigEditor::Main* GetRigEditorInstance();
-    void             LogMessage(std::string & msg);
-
-    // === END Script interface ===
+	void ShutDown();
 
 protected:
-
-    //void MessageCallback(const AngelScript::asSMessageInfo *msg);
-    
-    /// @return 0 on success or  error code
-    int RegisterSystemInterface();
-
-	void LogPythonException();
-
-    /// Loads "Main.as" script and resolves "#include" dependencies.
-    /// @return 0 on success or AngelScript error code
-    int LoadScripts();
-
-    
-    Ogre::Log*                       m_log;
-    RigEditor::Main*                 m_rig_editor_instance;   
-    std::string                      m_scripts_base_path;           
+	Ogre::Log*                       m_log;
+	RigEditor::Main*                 m_rig_editor_instance;
+	std::string                      m_scripts_base_path;
+	ScriptEngineImpl*                m_impl;
 };
 
 } // namespace RigEditor
