@@ -52,7 +52,7 @@ using namespace Ogre;
 void Beam::calcForcesEulerCompute(int doUpdate_int, Real dt, int step, int maxsteps)
 {
     bool doUpdate = (doUpdate_int != 0);
-	calcTruckEngine(doUpdate, dt);
+	this->calcTruckEngine(doUpdate, dt);
 
 	// calc
 	calcBeams(doUpdate, dt, step, maxsteps);
@@ -92,7 +92,7 @@ void Beam::calcTruckEngine(bool doUpdate, Real dt)
 	//engine callback
 	if (engine)
 	{
-		engine->update(dt, doUpdate);
+		engine->UpdateBeamEngine(dt, doUpdate);
 	}
 	BES_STOP(BES_CORE_TruckEngine);
 }
@@ -1477,7 +1477,7 @@ void Beam::calcCommands(bool doUpdate, Ogre::Real dt)
 						if (bbeam_dir*beams[bbeam].autoMovingMode > 0)
 							v = 1;
 
-						if (beams[bbeam].commandNeedsEngine && ((engine && !engine->running) || !canwork)) continue;
+						if (beams[bbeam].commandNeedsEngine && ((engine && !engine->isRunning()) || !canwork)) continue;
 
 						if (v > 0.0f && beams[bbeam].commandEngineCoupling > 0.0f)
 							requestpower = true;
@@ -1530,7 +1530,7 @@ void Beam::calcCommands(bool doUpdate, Ogre::Real dt)
 				float v = 0.0f;
 				int rota = std::abs(commandkey[i].rotators[j]) - 1;
 
-				if (rotators[rota].rotatorNeedsEngine && ((engine && !engine->running) || !canwork)) continue;
+				if (rotators[rota].rotatorNeedsEngine && ((engine && !engine->isRunning()) || !canwork)) continue;
 
 				if (rotaInertia)
 				{
@@ -1556,8 +1556,8 @@ void Beam::calcCommands(bool doUpdate, Ogre::Real dt)
 
 		if (engine)
 		{
-			engine->hydropump = work;
-			engine->prime     = requested;
+			engine->SetHydroPump(work);
+			engine->SetPrime(requested);
 		}
 		if (doUpdate && state==ACTIVATED)
 		{

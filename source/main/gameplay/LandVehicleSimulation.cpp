@@ -327,7 +327,7 @@ void LandVehicleSimulation::UpdateVehicle(Beam* curr_truck, float seconds_since_
 				{
 					if (shiftmode != BeamEngine::AUTOMATIC || curr_truck->engine->getAutoShift() == BeamEngine::DRIVE)
 					{
-						curr_truck->engine->shift(1);
+						curr_truck->engine->BeamEngineShift(1);
 						gear_changed_rel = true;
 					}
 				} 
@@ -338,13 +338,13 @@ void LandVehicleSimulation::UpdateVehicle(Beam* curr_truck, float seconds_since_
 						shiftmode == BeamEngine::SEMIAUTO  && curr_truck->engine->getGear() > 0 ||
 						shiftmode == BeamEngine::AUTOMATIC && curr_truck->engine->getGear() > 1)
 					{
-						curr_truck->engine->shift(-1);
+						curr_truck->engine->BeamEngineShift(-1);
 						gear_changed_rel = true;
 					}
 				} 
 				else if (shiftmode != BeamEngine::AUTOMATIC && RoR::Application::GetInputEngine()->getEventBoolValueBounce(EV_TRUCK_SHIFT_NEUTRAL))
 				{
-					curr_truck->engine->shiftTo(0);
+					curr_truck->engine->BeamEngineShiftTo(0);
 				}
 			} 
 			else //if (shiftmode > BeamEngine::MANUAL) // h-shift or h-shift with ranges shifting
@@ -404,12 +404,12 @@ void LandVehicleSimulation::UpdateVehicle(Beam* curr_truck, float seconds_since_
 				{
 					if (RoR::Application::GetInputEngine()->getEventBoolValue(EV_TRUCK_SHIFT_GEAR_REVERSE))
 					{
-						curr_truck->engine->shiftTo(-1);
+						curr_truck->engine->BeamEngineShiftTo(-1);
 						found = true;
 					} 
 					else if (RoR::Application::GetInputEngine()->getEventBoolValue(EV_TRUCK_SHIFT_NEUTRAL))
 					{
-						curr_truck->engine->shiftTo(0);
+						curr_truck->engine->BeamEngineShiftTo(0);
 						found = true;
 					} 
 					else
@@ -420,7 +420,7 @@ void LandVehicleSimulation::UpdateVehicle(Beam* curr_truck, float seconds_since_
 							{
 								if (RoR::Application::GetInputEngine()->getEventBoolValue(EV_TRUCK_SHIFT_GEAR01 + i - 1))
 								{
-									curr_truck->engine->shiftTo(i);
+									curr_truck->engine->BeamEngineShiftTo(i);
 									found = true;
 								}
 							}
@@ -431,7 +431,7 @@ void LandVehicleSimulation::UpdateVehicle(Beam* curr_truck, float seconds_since_
 							{
 								if (RoR::Application::GetInputEngine()->getEventBoolValue(EV_TRUCK_SHIFT_GEAR01 + i - 1))
 								{
-									curr_truck->engine->shiftTo(i + curgearrange * 6);
+									curr_truck->engine->BeamEngineShiftTo(i + curgearrange * 6);
 									found = true;
 								}
 							}
@@ -439,7 +439,7 @@ void LandVehicleSimulation::UpdateVehicle(Beam* curr_truck, float seconds_since_
 					}
 					if (!found)
 					{
-						curr_truck->engine->shiftTo(0);
+						curr_truck->engine->BeamEngineShiftTo(0);
 					}
 				} // end of if (gear_changed)
 			} // end of shitmode > BeamEngine::MANUAL
