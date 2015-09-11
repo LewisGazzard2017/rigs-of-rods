@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include <boost/python/detail/wrap_python.hpp> // Replaces #include <Python.h>, recommended in Boost docs
+#include <boost/python/detail/wrap_python.hpp> 
+	// Replaces #include <Python.h>, recommended in Boost docs. Must be included before system headers (Python restriction)
 #include <boost/python.hpp>
 
 // Forward decl.

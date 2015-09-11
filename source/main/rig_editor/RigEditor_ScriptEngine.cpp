@@ -69,6 +69,9 @@ void ScriptEngine::Bootstrap()
 	m_log = Ogre::LogManager::getSingleton().createLog(SSETTING("Log Path", "") + "/RigEditorScriptEngine.log", false);
 
 	Py_Initialize();  // start the interpreter and create the __main__ module.
+	int argc = 0;
+	wchar_t** argw = nullptr;
+	//PySys_SetArgv(argc, argw);
 	m_log->logMessage("Py_Initialize() DONE");
 
 	using namespace boost::python;
@@ -79,12 +82,17 @@ void ScriptEngine::Bootstrap()
 	object main_namespace = main_module.attr("__dict__");
 	m_log->logMessage("PythonExample: main_module.attr(__dict__) DONE");
 
+	/*m_impl = new ScriptEngineImpl();
+	m_impl->py_main_module = main_module;
+	m_impl->py_main_namespace = main_namespace;
+
+	main_namespace = m_impl->py_main_namespace;*/
 	
 	try
 	{
 		// Error reporting = redirect stdout/stderr to log files.
 		// Buffering must be set to 1 (flush after every line) because we can't use Py_Finalize() 
-		//     to close files - it's broken in boost 1_48,
+		//     to close files - it's broken in boost 1_59,
 		//     see http://www.boost.org/doc/libs/1_48_0/libs/python/doc/tutorial/doc/html/python/embedding.html
 		// Path must use forward slashes '/' because '\' are Python escapes.
 		std::string stdout_log_path = SSETTING("Log Path", "");
@@ -108,6 +116,12 @@ void ScriptEngine::Bootstrap()
 		res = exec("sys.stderr.write('Rig Editor: Python standard error output (stderr)\\n')", main_namespace);    m_log->logMessage("DEBUG: Executed statement: test stderr");
 
 		//res = exec("5/0", main_namespace);// Test = force exception
+
+		// TMP - test
+		std::string main_script_path = SSETTING("RigEditor Scripts Path", "");
+		PythonHelper::PathConvertSlashesToForward(main_script_path);
+		main_script_path += "/Main.py";
+		object result = boost::python::exec_file(main_script_path.c_str(), main_namespace); // TMP - TEST
 	}
 	catch (error_already_set)
 	{
@@ -116,9 +130,8 @@ void ScriptEngine::Bootstrap()
 	}
 
 	m_log->logMessage("DEBUG Bootstrap() is done, ready to launch RigEditor");
-	m_impl = new ScriptEngineImpl();
-	m_impl->py_main_module    = main_module;
-	m_impl->py_main_namespace = main_namespace;
+
+
 }
 
 bool ScriptEngine::EnterRigEditor()
@@ -129,15 +142,13 @@ bool ScriptEngine::EnterRigEditor()
 	}
 	try
 	{
-		std::string main_script_path = SSETTING("RigEditor Scripts Path", "");
-		PythonHelper::PathConvertSlashesToForward(main_script_path);
-		main_script_path += "/Main.py";
+		
 
 		// Execute the Main() function
 		m_log->logMessage("Executing the rig editor script");
-		m_log->logMessage(main_script_path);
+		//m_log->logMessage(main_script_path);
 		m_log->logMessage("==================================================");
-		boost::python::exec_file(main_script_path.c_str(), m_impl->py_main_namespace);
+		
 		m_log->logMessage("==================================================");
 		m_log->logMessage("The rig editor script has finished");
 		return true;

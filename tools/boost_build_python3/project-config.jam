@@ -1,0 +1,26 @@
+
+# Boost build config file
+# Builds boost + Python 3.4 on windows using MSVC 2010/2013
+# Usage:
+# 1. Download boost sources
+# 2. Open command line in boost directory and issue "bootstrap"
+# 3. Put this file in the directory
+# 4. Commandline: issue "b2 --with-python link=$LINK threading=multi" where $LINK can be "static" (tested to work + vc10) or "shared"
+
+# NOTE: To link boost::python statically, you must define these macros in the project:
+#     BOOST_ALL_NO_LIB
+#     BOOST_PYTHON_STATIC_LIB
+
+import option ; 
+ 
+using msvc
+    : 10.0 ; # Version: 10.0 = 2010, (11.0 = 2012), 12.0 = 2013
+ 
+option.set keep-going : false ; 
+ 
+using python
+     : 3.4 # version
+     : c:\\Python34\\python.exe # cmd-or-prefix
+     : c:\\Python34\\include # includes
+     : c:\\Python34\\libs # libraries
+     ;
