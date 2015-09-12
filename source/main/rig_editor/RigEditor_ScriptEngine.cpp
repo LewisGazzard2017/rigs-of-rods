@@ -145,17 +145,14 @@ void ScriptEngine::Bootstrap()
 	// Import the module. Source: https://wiki.python.org/moin/boost.python/EmbeddingPython
 	PyImport_AppendInittab("ror_system",  PyInit_ror_system);  // Function "PyInit_ror_system" defined by BOOST_PYTHON_MODULE
 	PyImport_AppendInittab("ror_drawing", PyInit_ror_drawing); // Function "PyInit_ror_drawing" defined by BOOST_PYTHON_MODULE
+
 	// start the interpreter and create the __main__ module. Source: http://www.boost.org/doc/libs/1_59_0/libs/python/doc/tutorial
 	Py_Initialize();
+
 	// Create main module. Source: http://www.boost.org/doc/libs/1_59_0/libs/python/doc/tutorial
-	object main_module = import("__main__");
-	object main_namespace = main_module.attr("__dict__");
-
-	/*m_impl = new ScriptEngineImpl();
-	m_impl->py_main_module = main_module;
-	m_impl->py_main_namespace = main_namespace;
-
-	main_namespace = m_impl->py_main_namespace;*/
+	m_impl = new ScriptEngineImpl();
+	m_impl->py_main_module = import("__main__");
+	m_impl->py_main_namespace = m_impl->py_main_module.attr("__dict__");
 	
 	try
 	{
@@ -164,47 +161,27 @@ void ScriptEngine::Bootstrap()
 		//     to close files - it's broken in boost 1_59,
 		//     see http://www.boost.org/doc/libs/1_48_0/libs/python/doc/tutorial/doc/html/python/embedding.html
 		// Path must use forward slashes '/' because '\' are Python escapes.
-		std::string stdout_log_path = SSETTING("Log Path", "");
-		std::string stderr_log_path = SSETTING("Log Path", "");
-		PythonHelper::PathConvertSlashesToForward(stderr_log_path);
-		PythonHelper::PathConvertSlashesToForward(stdout_log_path);
-		stderr_log_path += "/RigEditorPythonStderr.log";
-		stdout_log_path += "/RigEditorPythonStdout.log";
-		std::string stdout_statement = std::string("sys.stdout = open('") + stdout_log_path + "', 'w', buffering=1)";
-		std::string stderr_statement = std::string("sys.stderr = open('") + stderr_log_path + "', 'w', buffering=1)";
-
-		m_log->logMessage("DEBUG: log file paths:");
-		m_log->logMessage(stdout_log_path);
-		m_log->logMessage(stderr_log_path);
-
-		object res;
-		res = exec("import io, sys", main_namespace);
-		res = exec(stdout_statement.c_str(), main_namespace);
-		res = exec(stderr_statement.c_str(), main_namespace);
-		res = exec("print('Rig Editor: Python standard output (stdout)\\n')", main_namespace);
-		res = exec("sys.stderr.write('Rig Editor: Python standard error output (stderr)\\n')", main_namespace);
-
-		//res = exec("5/0", main_namespace);// Test = force exception
-
-
-		// TMP - test
-		CreateRigEditorGlobalInstance(); // Global function
-
-		std::string main_script_path = SSETTING("RigEditor Scripts Path", "");
-		PythonHelper::PathConvertSlashesToForward(main_script_path);
-		main_script_path += "/Main.py";
-		object result = boost::python::exec_file(main_script_path.c_str(), main_namespace); // TMP - TEST
+		auto log_dir = this->GetConfigPath("Log Path");
+		char py_code[2000];
+		sprintf(py_code,
+			"import io, sys                                                            \n"
+			"sys.stdout = open('%s/RigEditorPythonStdout.log', 'w', buffering=1)       \n"
+			"sys.stderr = open('%s/RigEditorPythonStderr.log', 'w', buffering=1)       \n"
+			"print('Rig Editor: Python standard output (stdout)\\n')                   \n"
+			"sys.stderr.write('Rig Editor: Python standard error output (stderr)\\n')  \n",
+			log_dir.c_str(), log_dir.c_str()
+			);
+		object res_ignored = exec(py_code, m_impl->py_main_namespace);
 	}
 	catch (error_already_set)
 	{
 		m_log->logMessage("Bootstrap(): FATAL ERROR: Failed to redirect standard output to files.");
+		delete m_impl;
 		return;
 	}
 
-	m_log->logMessage("DEBUG Bootstrap() is done, ready to launch RigEditor");
-
-	
-
+	CreateRigEditorGlobalInstance(); // Global function
+	m_log->logMessage("Startup is finished.");
 }
 
 bool ScriptEngine::EnterRigEditor()
@@ -215,13 +192,10 @@ bool ScriptEngine::EnterRigEditor()
 	}
 	try
 	{
-		
-
-		// Execute the Main() function
+		std::string path = this->GetConfigPath("RigEditor Scripts Path") + "/Main.py";
 		m_log->logMessage("Executing the rig editor script");
-		//m_log->logMessage(main_script_path);
 		m_log->logMessage("==================================================");
-		
+		object res_ignored = boost::python::exec_file(path.c_str(), m_impl->py_main_namespace);
 		m_log->logMessage("==================================================");
 		m_log->logMessage("The rig editor script has finished");
 		return true;
@@ -253,7 +227,15 @@ void ScriptEngine::ShutDown()
 	if (m_impl != nullptr)
 	{
 		delete m_impl;
+		m_impl = nullptr;
 	}
+}
+
+std::string ScriptEngine::GetConfigPath(const char* config_key)
+{
+	std::string path = SSETTING(config_key, "");
+	PythonHelper::PathConvertSlashesToForward(path);
+	return path;
 }
 
 // ###################################################################################################
@@ -264,19 +246,6 @@ void ScriptEngine::ShutDown()
 
 #if 0
 
-// Temporary hack for exporting to AngelScript
-// Will be changed when AngelScript is updated.
-RigEditor::ScriptEngine* global_rig_editor_script_engine_instance;
-RigEditor::Main* AS_GetRigEditorInstance()
-{
-    return global_rig_editor_script_engine_instance->GetRigEditorInstance();
-}
-
-void AS_GlobalLogMessage(std::string msg)
-{
-    global_rig_editor_script_engine_instance->LogMessage(msg);
-}
-
 bool AS_IsRoRApplicationWindowClosed()
 {
 	return RoR::Application::GetOgreSubsystem()->GetRenderWindow()->isClosed();
@@ -286,8 +255,6 @@ void AS_RequestRoRShutdown()
 {
 	RoR::Application::GetMainThreadLogic()->RequestShutdown();
 }
-
-
 
 std::string AS_SYS_GetStringSetting(std::string key, std::string default_val)
 {
@@ -308,134 +275,6 @@ std::string AS_SYS_LoadRigEditorResourceAsString(std::string filename)
 	return std::string();
 }
 
-
-
-
-ScriptEngine::~ScriptEngine()
-{
-	this->ShutDown();
-}
-
-int ScriptEngine::LoadScripts()
-{
-
-	// The builder is a helper class that will load the script file, 
-	// search for #include directives, and load any included files as 
-	// well.
-	ScriptBuilderWorkaround builder;
-
-	// Build the script. If there are any compiler messages they will
-	// be written to the message stream that we set right after creating the 
-	// script engine. If there are no errors, and no warnings, nothing will
-	// be written to the stream.
-	int result = builder.StartNewModule(m_engine, 0);
-	if( result < 0 )
-	{
-        std::stringstream msg;
-        msg << __FUNCTION__ << "Failed to start new AngelScript module, result:" << result;
-        m_log->logMessage(msg.str());
-        return result;
-	}
-    std::string main_script_path = SSETTING("RigEditor Scripts Path", "") + PlatformUtils::DIRECTORY_SEPARATOR + "Main.as";
-	result = builder.AddSectionFromFile(main_script_path.c_str());
-	if( result < 0 )
-	{
-		std::stringstream msg;
-        msg << __FUNCTION__ << "Failed to load main script Main.as, result:" << result << ", path: " << main_script_path;
-        m_log->logMessage(msg.str());
-        return result;
-	}
-	result = builder.BuildModule();
-	if( result < 0 )
-	{
-		std::stringstream msg;
-        msg << __FUNCTION__ << "Failed to build the AngelScript module, result:" << result;
-        m_log->logMessage(msg.str());
-		return result;
-	}
-	
-	// The engine doesn't keep a copy of the script sections after Build() has
-	// returned. So if the script needs to be recompiled, then all the script
-	// sections must be added again.
-
-	// If we want to have several scripts executing at different times but 
-	// that have no direct relation with each other, then we can compile them
-	// into separate script modules. Each module use their own namespace and 
-	// scope, so function names, and global variables will not conflict with
-	// each other.
-
-    return 0;
-}
-#endif
-
-
-
-
-
-
-#if 0
-    // Set the message callback to receive information on errors in human readable form.
-    result = m_engine->SetMessageCallback(AngelScript::asMETHOD(RigEditor::ScriptEngine,MessageCallback), this, AngelScript::asCALL_THISCALL);
-    if(result < 0)
-    {
-        std::stringstream msg;
-        msg << __FUNCTION__ << "(): Failed to set MessageCallback function, result:" << result;
-        m_log->logMessage(msg.str());
-        return result;
-    }
-
-    result = this->RegisterSystemInterface();
-    if (result != 0)
-    {
-        std::stringstream msg;
-        msg << __FUNCTION__ << "(): Failed to RegisterSystemInterface(), result:" << result;
-        m_log->logMessage(msg.str());
-        m_engine->Release();
-        m_engine = nullptr;
-        return result;
-    }
-        
-    result = this->LoadScripts();
-    if (result != 0)
-    {
-        std::stringstream msg;
-        msg << __FUNCTION__ << "(): Failed to LoadScripts(), result:" << result;
-        m_log->logMessage(msg.str());
-        m_engine->Release();
-        m_engine = nullptr;
-        return result;
-    }
-
-    // Create a context that will execute the script.
-	m_context = m_engine->CreateContext();
-	if( m_context == nullptr ) 
-	{
-		std::stringstream msg;
-        msg << __FUNCTION__ << "(): Failed to create AngelScript context, result:" << result;
-        m_log->logMessage(msg.str());
-		m_engine->Release();
-        m_engine = nullptr;
-		return result;
-	}
-
-    // Find the function for the function we want to execute.
-	m_main_function = m_engine->GetModule(0)->GetFunctionByDecl("void Main()");
-	if( m_main_function == nullptr )
-	{
-		std::stringstream msg;
-        msg << __FUNCTION__ << "(): Failed to find function 'void Main()' in the loaded scripts.";
-        m_log->logMessage(msg.str());
-		m_context->Release();
-        m_context = nullptr;
-		m_engine->Release();
-        m_engine = nullptr;
-		return 1;
-	}
-
-#endif
-
-
-#if 0
 int ScriptEngine::RegisterSystemInterface()
 {
     using namespace AngelScript;
@@ -521,82 +360,5 @@ int ScriptEngine::RegisterSystemInterface()
 	}
 }
 
-
-
-
-
-void ScriptEngine::MessageCallback(const AngelScript::asSMessageInfo *msg)
-{
-	const char *type = "Error";
-	if ( msg->type == AngelScript::asMSGTYPE_INFORMATION )
-		type = "Info";
-	else if ( msg->type == AngelScript::asMSGTYPE_WARNING )
-		type = "Warning";
-
-	char tmp[1024]="";
-	sprintf(tmp, "%s (%d, %d): %s = %s", msg->section, msg->row, msg->col, type, msg->message);
-	m_log->logMessage(tmp);
-}
 #endif
-
-
-
-#if 0
-// Static helper
-void ScriptEngine::PrepareAndExecuteFunction(asIScriptFunction* func, asIScriptContext* ctx, asIScriptEngine* engine)
-{
-    // Prepare the script context with the function we wish to execute. Prepare()
-	// must be called on the context before each new script function that will be
-	// executed.
-	int result = ctx->Prepare(func);
-	if( result < 0 ) 
-	{
-		std::stringstream msg;
-        msg << __FUNCTION__ << "(): Failed to prepare AngelScript context, result: " << ContextPrepare_ErrorCodeToString(result);
-        throw std::runtime_error(msg.str());
-	}
-
-	ScriptEngine::ExecuteContext(ctx, engine);	
-}
-
- void        ScriptEngine::ExecuteContext(AngelScript::asIScriptContext* ctx, AngelScript::asIScriptEngine* engine)
-{
-	int result = ctx->Execute();
-
-    
-	if( result != asEXECUTION_FINISHED )
-	{
-		std::stringstream msg;
-		// The execution didn't finish as we had planned. Determine why.
-		if( result == asEXECUTION_ABORTED )
-        {
-            msg << "The execution was aborted with a call to Abort (asEXECUTION_ABORTED).";
-        }
-		else if( result == asEXECUTION_EXCEPTION )
-		{
-			msg << "The script ended with an exception." << endl;
-
-			// Write some information about the script exception
-            
-			int funcId = ctx->GetExceptionFunction();
-            const asIScriptFunction *func = engine->GetFunctionById(funcId);
-			msg << "\tFunction: " << func->GetDeclaration()        << endl;
-			msg << "\t  Module: " << func->GetModuleName()         << endl;
-			msg << "\t Section: " << func->GetScriptSectionName()  << endl;
-			msg << "\t LineNum: " << ctx->GetExceptionLineNumber() << endl;
-			msg << "\t Message: " << ctx->GetExceptionString()     << endl;
-		}
-		else
-        {
-			msg << "The script ended for some unforeseen reason (result=" << result << ")." << endl;
-        }
-		throw std::runtime_error(msg.str());
-	}
-}
-
-
-#endif
-
-
-
 

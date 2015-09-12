@@ -37,7 +37,8 @@ namespace RigEditor
 
 // Forward decl
 class  Main;
-struct ScriptEngineImpl; // Pimpl, because boost::python included to header won't compile for some reason.
+struct ScriptEngineImpl; 
+	// Pimpl, because <boost/python/object.hpp> included here won't compile for some::reason<T>.
 
 class ScriptEngine
 {
@@ -53,6 +54,9 @@ public:
 	void ShutDown();
 
 protected:
+
+	std::string GetConfigPath(const char* config_key);
+
 	Ogre::Log*                       m_log;
 	RigEditor::Main*                 m_rig_editor_instance;
 	std::string                      m_scripts_base_path;
