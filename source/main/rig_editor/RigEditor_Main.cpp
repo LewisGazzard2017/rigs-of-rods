@@ -29,6 +29,7 @@
 
 #include "Application.h"
 #include "CacheSystem.h"
+#include "ContentManager.h"
 #include "GlobalEnvironment.h"
 #include "GUI_RigEditorBeamsPanel.h"
 #include "GUI_RigEditorCommands2Panel.h"
@@ -73,6 +74,36 @@
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
 #include <sstream>
+
+// -----------------------------------------------------------------------------
+// C-style global instance
+
+namespace RoR { namespace RigEditor {
+
+Main* G_RigEditor = nullptr;
+
+void CreateRigEditorGlobalInstance()
+{
+	if (G_RigEditor == nullptr)
+	{
+		RoR::Application::GetContentManager()->AddResourcePack(ContentManager::ResourcePack::RIG_EDITOR);
+		Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("RigEditor");
+
+		RigEditor::Config* rig_editor_config = new RigEditor::Config(SSETTING("Config Root", "") + "rig_editor.cfg");
+		assert(rig_editor_config != nullptr);
+		G_RigEditor = new RigEditor::Main(rig_editor_config);
+	}
+}
+
+Main* GetRigEditorGlobalInstance()
+{
+	return G_RigEditor;
+}
+
+}} // namespaces
+
+// -----------------------------------------------------------------------------
+// class Main
 
 using namespace RoR;
 using namespace RoR::RigEditor;
@@ -124,6 +155,39 @@ Main::~Main()
 	}
 }
 
+void Main::PY_OnEnter_SetupCameraAndViewport()
+{
+	auto bg_color = m_config->viewport_background_color; // Locals for debugging
+	auto camera = m_camera;
+
+	// Setup 3D engine
+	OgreSubsystem* ror_ogre_subsystem = RoR::Application::GetOgreSubsystem();
+	assert(ror_ogre_subsystem != nullptr);
+	auto render_window = ror_ogre_subsystem->GetRenderWindow();
+	render_window->removeAllViewports();
+	auto viewport = render_window->addViewport(nullptr);
+	viewport->setBackgroundColour(bg_color);
+	int viewport_width = viewport->getActualWidth();
+	camera->setAspectRatio(viewport->getActualHeight() / viewport_width);
+	viewport->setCamera(camera);
+
+	m_viewport = viewport;
+}
+
+void Main::PY_OnEnter_SetupInput()
+{
+	// Setup input
+	RoR::Application::GetInputEngine()->SetKeyboardListener(m_input_handler);
+	RoR::Application::GetInputEngine()->SetMouseListener(m_input_handler);
+}
+
+
+
+// ===================================================================================
+// OBSOLETED AngelScript + C++ implementations
+// TO BE REVISED
+// ===================================================================================
+
 void Main::InvokeAngelScriptUserCommandCallback(IMain::UserCommand command)
 {
 /*	if (! m_as_user_command_callback.IsBound())
@@ -138,29 +202,14 @@ void Main::InvokeAngelScriptUserCommandCallback(IMain::UserCommand command)
 	*/
 }
 
-void Main::AS_OnEnter_SetupCameraAndViewport_UGLY()
-{
-    /* Setup 3D engine */
-	OgreSubsystem* ror_ogre_subsystem = RoR::Application::GetOgreSubsystem();
-	assert(ror_ogre_subsystem != nullptr);
-	m_viewport = ror_ogre_subsystem->GetRenderWindow()->addViewport(nullptr);
-	int viewport_width = m_viewport->getActualWidth();
-	m_viewport->setBackgroundColour(m_config->viewport_background_color);
-	m_camera->setAspectRatio(m_viewport->getActualHeight() / viewport_width);
-	m_viewport->setCamera(m_camera);
-}
+
 
 void Main::AS_RegisterUserCommandCallback_UGLY(AngelScript::asIScriptObject* object, std::string method_name)
 {
 	//m_as_user_command_callback.RegisterCallback(object, method_name);
 }
 
-void Main::AS_OnEnter_SetupInput_UGLY()
-{
-	/* Setup input */
-	RoR::Application::GetInputEngine()->SetKeyboardListener(m_input_handler);
-	RoR::Application::GetInputEngine()->SetMouseListener(m_input_handler);
-}
+
 
 void Main::AS_OnExit_ClearExitRequest_UGLY()
 {
@@ -187,10 +236,7 @@ void Main::AS_OnExit_HideGui_UGLY()
 
 void Main::AS_UpdateMainLoop_UGLY()
 {
-	/* Process window events */
-#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32 || OGRE_PLATFORM == OGRE_PLATFORM_LINUX
-	RoRWindowEventUtilities::messagePump();
-#endif
+
 
 	/* Update input events */
 	m_input_handler->ResetEvents();
@@ -958,7 +1004,7 @@ bool Main::AS_WasExitLoopRequested_UGLY()
 {
 	return m_exit_loop_requested;
 }
-
+#if 0 // disabled, to be cleaned
 #define INIT_OR_RESTORE_RIG_ELEMENT_PANEL(VAR, CLASSNAME) \
 	if ((VAR).get() == nullptr) \
 		(VAR) = std::unique_ptr<GUI::CLASSNAME>(new GUI::CLASSNAME(this, m_config)); \
@@ -1007,6 +1053,7 @@ void Main::AS_OnEnter_InitializeOrRestoreGui_UGLY()
         m_flares_list_panel->StretchToScreen(&m_config->gui_flares_list_panel_position, false, true);
 	}
 }
+#endif
 
 void Main::HideAllWheelGuiPanels()
 {

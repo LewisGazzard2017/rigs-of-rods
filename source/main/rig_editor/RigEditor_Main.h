@@ -158,14 +158,11 @@ public:
         BITMASK_SET_0(m_state_flags, IS_SELECT_FLARE_SCHEDULED | IS_DESELECT_FLARE_SCHEDULED | IS_SELECT_ALL_FLARES_SCHEDULED | IS_DESELECT_ALL_FLARES_SCHEDULED);
     }
 
-    // ========== Angelscript interface ========== 
+    // ========== Python interface ========== 
 
-    void AS_RefCountAdd()     {} // Do nothing
-    void AS_RefCountRelease() {} // Do nothing
-
-    void AS_OnEnter_SetupInput_UGLY();
-    void AS_OnEnter_SetupCameraAndViewport_UGLY();
-    void AS_OnEnter_InitializeOrRestoreGui_UGLY();
+    void PY_OnEnter_SetupInput();
+    void PY_OnEnter_SetupCameraAndViewport();
+    //void AS_OnEnter_InitializeOrRestoreGui_UGLY();
 
 	void AS_UpdateMainLoop_UGLY();
 	bool AS_WasExitLoopRequested_UGLY();
@@ -237,6 +234,10 @@ private:
 	// AngelScript
 	//AngelScriptCallbackSocket m_as_user_command_callback;
 };
+
+void CreateRigEditorGlobalInstance();
+
+Main* GetRigEditorGlobalInstance();
 
 } // namespace RigEditor
 

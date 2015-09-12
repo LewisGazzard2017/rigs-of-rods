@@ -36,6 +36,7 @@
 #include "RigEditor_Config.h"
 #include "RigEditor_Main.h"
 #include "RoRPrerequisites.h"
+#include "RoRWindowEventUtilities.h"
 
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
@@ -54,8 +55,41 @@ namespace RoR { namespace RigEditor {
 using namespace RoR;
 using namespace RigEditor;
 using namespace std;
+using namespace boost::python;
 
+// -----------------------------------------------------------------------------
+// Module "ror.system"
 
+void PY_EnterRigEditor()
+{
+	auto rig_editor = GetRigEditorGlobalInstance();
+	rig_editor->PY_OnEnter_SetupInput();
+	rig_editor->PY_OnEnter_SetupCameraAndViewport();
+}
+
+void PY_RenderFrameAndUpdateWindow()
+{
+#if OGRE_PLATFORM == OGRE_PLATFORM_WIN32 || OGRE_PLATFORM == OGRE_PLATFORM_LINUX
+	RoRWindowEventUtilities::messagePump();
+#endif
+
+	RoR::Application::GetOgreSubsystem()->GetOgreRoot()->renderOneFrame();
+	Ogre::RenderWindow* rw = RoR::Application::GetOgreSubsystem()->GetRenderWindow();
+	if (!rw->isActive() && rw->isVisible())
+	{
+		rw->update(); // update even when in background !
+	}
+}
+
+BOOST_PYTHON_MODULE(ror_system)
+{
+	using namespace boost::python;
+	def("enter_rig_editor",               PY_EnterRigEditor);
+	def("render_frame_and_update_window", PY_RenderFrameAndUpdateWindow);
+}
+
+// -----------------------------------------------------------------------------
+// class ScriptEngine
 
 ScriptEngine::ScriptEngine() :
 	m_rig_editor_instance(nullptr),
@@ -68,19 +102,13 @@ void ScriptEngine::Bootstrap()
 {
 	m_log = Ogre::LogManager::getSingleton().createLog(SSETTING("Log Path", "") + "/RigEditorScriptEngine.log", false);
 
-	Py_Initialize();  // start the interpreter and create the __main__ module.
-	int argc = 0;
-	wchar_t** argw = nullptr;
-	//PySys_SetArgv(argc, argw);
-	m_log->logMessage("Py_Initialize() DONE");
-
-	using namespace boost::python;
-
-	// Example from docs
+	// Import the module. Source: https://wiki.python.org/moin/boost.python/EmbeddingPython
+	PyImport_AppendInittab("ror_system", PyInit_ror_system); // Function "PyInit_ror_system" defined by BOOST_PYTHON_MODULE
+	// start the interpreter and create the __main__ module. Source: http://www.boost.org/doc/libs/1_59_0/libs/python/doc/tutorial
+	Py_Initialize();
+	// Create main module. Source: http://www.boost.org/doc/libs/1_59_0/libs/python/doc/tutorial
 	object main_module = import("__main__");
-	m_log->logMessage("PythonExample: import(__main__) DONE");
 	object main_namespace = main_module.attr("__dict__");
-	m_log->logMessage("PythonExample: main_module.attr(__dict__) DONE");
 
 	/*m_impl = new ScriptEngineImpl();
 	m_impl->py_main_module = main_module;
@@ -117,7 +145,10 @@ void ScriptEngine::Bootstrap()
 
 		//res = exec("5/0", main_namespace);// Test = force exception
 
+
 		// TMP - test
+		CreateRigEditorGlobalInstance(); // Global function
+
 		std::string main_script_path = SSETTING("RigEditor Scripts Path", "");
 		PythonHelper::PathConvertSlashesToForward(main_script_path);
 		main_script_path += "/Main.py";
@@ -131,6 +162,7 @@ void ScriptEngine::Bootstrap()
 
 	m_log->logMessage("DEBUG Bootstrap() is done, ready to launch RigEditor");
 
+	
 
 }
 
@@ -214,15 +246,7 @@ void AS_RequestRoRShutdown()
 	RoR::Application::GetMainThreadLogic()->RequestShutdown();
 }
 
-void AS_RenderFrameAndUpdateWindow()
-{
-	RoR::Application::GetOgreSubsystem()->GetOgreRoot()->renderOneFrame();
-	Ogre::RenderWindow* rw = RoR::Application::GetOgreSubsystem()->GetRenderWindow();
-	if (!rw->isActive() && rw->isVisible())
-	{
-		rw->update(); // update even when in background !
-	}
-}
+
 
 std::string AS_SYS_GetStringSetting(std::string key, std::string default_val)
 {
@@ -458,21 +482,6 @@ int ScriptEngine::RegisterSystemInterface()
 
 
 
-RigEditor::Main* ScriptEngine::GetRigEditorInstance()
-{
-    if (m_rig_editor_instance != nullptr)
-    {
-        return m_rig_editor_instance;
-    }
-    RoR::Application::GetContentManager()->AddResourcePack(ContentManager::ResourcePack::RIG_EDITOR);
-    Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("RigEditor");
-
-    RigEditor::Config* rig_editor_config = new RigEditor::Config(SSETTING("Config Root", "") + "rig_editor.cfg");
-    assert(rig_editor_config != nullptr);
-    m_rig_editor_instance = new RigEditor::Main(rig_editor_config);
-    
-    return m_rig_editor_instance;
-}
 
 
 void ScriptEngine::MessageCallback(const AngelScript::asSMessageInfo *msg)
