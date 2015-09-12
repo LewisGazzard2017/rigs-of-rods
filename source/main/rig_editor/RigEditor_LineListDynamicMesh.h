@@ -49,6 +49,7 @@ public:
     virtual ~LineListDynamicMesh() {};
 
     void AddLine(Ogre::Vector3 const & start, Ogre::Vector3 const & end, Ogre::ColourValue const & color);
+    void AddLine(Ogre::Vector3 const & start, Ogre::ColourValue const & color_start, Ogre::Vector3 const & end, Ogre::ColourValue const & color_end);
     void PY_AddLine(boost::python::object pos1, boost::python::object color1, boost::python::object pos2, boost::python::object color2);
 
     private:

@@ -26,6 +26,8 @@
 */
 
 #include "RigEditor_PointListDynamicMesh.h"
+
+#include "PythonHelper.h"
 #include "RigEditor_Main.h"
 
 #include <OgreMaterialManager.h>
@@ -98,6 +100,6 @@ void PointListDynamicMesh::AddPoint(Ogre::Vector3 const & pos, Ogre::ColourValue
 
 void PointListDynamicMesh::PY_AddPoint(boost::python::object pos, boost::python::object color)
 {
-	// Stub
+	this->AddPoint(PythonHelper::Vector3_Py2Ogre(pos), PythonHelper::Color_Py2Ogre(color));
 }
 

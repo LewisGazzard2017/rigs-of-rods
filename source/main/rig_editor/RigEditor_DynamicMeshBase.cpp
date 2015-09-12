@@ -112,8 +112,7 @@ void DynamicMeshBase::SetPosition(Ogre::Vector3 pos)
 
 void DynamicMeshBase::PY_SetPosition(boost::python::object pos)
 {
-	auto v3 = PythonHelper::PythonVector3ToOgreVector3(pos);
-	this->SetPosition(v3);
+	this->SetPosition(PythonHelper::Vector3_Py2Ogre(pos));
 }
 
 void DynamicMeshBase::SetOrientation(Ogre::Quaternion rot)

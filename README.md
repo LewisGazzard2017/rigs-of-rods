@@ -12,11 +12,12 @@ it will be carefully cherry-picked to master branch.
 
 #### Status
 
-Working test RoR launches "scripts/rig_editor/Main.py" which
-1. sets up scene/camera; 
-2. renders one frame (dark purple background); 
-3. speeps for 5 sec; 
-4. exits
+Working test: RoR launches "scripts/rig_editor/Main.py" which
+1. sets up scene/camera (dark purple background);
+2. draws one LinesMesh with 3 axis-lines. 
+3. renders one frame; 
+4. speeps for 5 sec; 
+5. exits
 
 #### API Draft
 
@@ -29,38 +30,36 @@ Bindings for RigDef* C++ API for reading/writing files in the classic .truck for
     class Serializer
         Serializer.serialize(rig_instance, file_path)
 
-##### Module "ror_gui" (draft)
+##### Module "ror_gui"
 Simplified bindings to MyGUI library for GUI manipulation. Entire editor GUI will be made through this module.
 
-    load_layout(file_path) >> Window -- Loads MyGUI's XML .layout file
-    class Window
-        Window.find_widget(widget_name) >> Widget
-    class Widget
-        Widget.bind_event_callback(event_type, callback_func)
+    (draft) load_layout(file_path) >> Window -- Loads MyGUI's XML .layout file
+    (draft) class Window
+        (draft) Window.find_widget(widget_name) >> Widget
+    (draft) class Widget
+        (draft) Widget.bind_event_callback(event_type, callback_func)
     
-##### Module "ror_drawing" (draft)
+##### Module "ror_drawing"
 Simplified bindings to OGRE engine for creating/manipulating 3D objects. All editor visualizations will be done through this module.
 
-    class DynamicMeshOfLines
-    class DynamicMeshOfPoints
-        DynamicMesh*.begin_init()
-        DynamicMesh*.end_init()
-        DynamicMesh*.begin_update()
-        DynamicMesh*.end_update()
-        DynamicMeshOfLines.add_line(position1, color1, position2, color2)
-        DynamicMeshOfPoints.add_point(position, color)
-    class CameraController
-        CameraController.set_rotation_center(position)
-        CameraController.get_rotation_center(position)
-        CameraController.update(move_horizontal, move_vertical, zoom)
+    [DONE] class LinesMesh
+    [DONE] class PointsMesh
+        [DONE] *Mesh.begin_update()
+        [DONE] *Mesh.end_update()
+        [DONE] LinesMesh.add_line(position1, color1, position2, color2)
+        [DONE] PointsMesh.add_point(position, color)
+    (draft) class CameraController
+        (draft) CameraController.set_rotation_center(position)
+        (draft) CameraController.get_rotation_center(position)
+        (draft) CameraController.update(move_horizontal, move_vertical, zoom)
 
-##### Module "ror_system" (draft)
+##### Module "ror_system"
 Minimal necessary interaction with the surrounding application.
 
     [DONE] enter_rig_editor()
     [DONE] render_frame_and_update_window()
-    register_input_listener(input_listener_object)
-    update_input_and_GUI()
-    show_open_save_file_dialog(mode, finished_callback)
+    (draft) register_input_listener(input_listener_object)
+    (draft) update_input_and_GUI()
+    (draft) show_open_save_file_dialog(mode, finished_callback)
     
     

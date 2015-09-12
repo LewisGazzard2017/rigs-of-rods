@@ -30,12 +30,23 @@ void PythonHelper::PathConvertSlashesToForward(std::string& path)
 }
 
 // Static
-Ogre::Vector3 PythonHelper::PythonVector3ToOgreVector3(boost::python::object& pos)
+Ogre::Vector3 PythonHelper::Vector3_Py2Ogre(boost::python::object& pos)
 {
 	using namespace boost::python;
 	auto x = extract<float>(pos.attr("x"));
 	auto y = extract<float>(pos.attr("y"));
 	auto z = extract<float>(pos.attr("z"));
 	return Ogre::Vector3(x,y,z);
+}
+
+// Static
+Ogre::ColourValue PythonHelper::Color_Py2Ogre(boost::python::object& pos)
+{
+	using namespace boost::python;
+	auto r = extract<float>(pos.attr("r"));
+	auto g = extract<float>(pos.attr("g"));
+	auto b = extract<float>(pos.attr("b"));
+	auto a = extract<float>(pos.attr("a"));
+	return Ogre::ColourValue(r,g,b,a);
 }
 

@@ -26,6 +26,8 @@
 */
 
 #include "RigEditor_LineListDynamicMesh.h"
+
+#include "PythonHelper.h"
 #include "RigEditor_Main.h"
 
 #include <OgreMaterialManager.h>
@@ -93,8 +95,20 @@ void LineListDynamicMesh::AddLine(Ogre::Vector3 const & start, Ogre::Vector3 con
 	m_dynamic_mesh->colour(color);
 }
 
+void LineListDynamicMesh::AddLine(Ogre::Vector3 const & start, Ogre::ColourValue const & color_start, Ogre::Vector3 const & end, Ogre::ColourValue const & color_end)
+{
+	m_dynamic_mesh->position(start);
+	m_dynamic_mesh->colour(color_start);
+	m_dynamic_mesh->position(end);
+	m_dynamic_mesh->colour(color_end);
+}
+
 void LineListDynamicMesh::PY_AddLine(boost::python::object pos1, boost::python::object color1, boost::python::object pos2, boost::python::object color2)
 {
-	// Stub, just to get compiled...
+	auto p1 = PythonHelper::Vector3_Py2Ogre(pos1);
+	auto p2 = PythonHelper::Vector3_Py2Ogre(pos2);
+	auto c1 = PythonHelper::Color_Py2Ogre(color1);
+	auto c2 = PythonHelper::Color_Py2Ogre(color2);
+	this->AddLine(p1, c1, p2, c2);
 }
 

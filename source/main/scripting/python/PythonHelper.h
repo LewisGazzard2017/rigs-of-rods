@@ -7,6 +7,7 @@
 	// Replaces #include <Python.h>, recommended in Boost docs. Must be included before system headers (Python restriction)
 #include <boost/python.hpp>
 #include <OgreVector3.h>
+#include <OgreColourValue.h>
 
 // Forward decl.
 namespace Ogre
@@ -25,7 +26,8 @@ public:
 	/// Python likes paths with '/'; '\' is an escape.
 	static void PathConvertSlashesToForward(std::string& path);
 	
-	static Ogre::Vector3 PythonVector3ToOgreVector3(boost::python::object& obj);
+	static Ogre::Vector3     Vector3_Py2Ogre(boost::python::object& obj);
+	static Ogre::ColourValue Color_Py2Ogre(boost::python::object& obj);
 };
 
 } // namespace RoR

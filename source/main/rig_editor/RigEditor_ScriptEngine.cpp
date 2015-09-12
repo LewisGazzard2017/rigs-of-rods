@@ -108,24 +108,24 @@ BOOST_PYTHON_MODULE(ror_drawing)
 {
 	using namespace boost::python;
 
-	class_<PointListDynamicMesh>("PointMesh", no_init)
+	class_<PointListDynamicMesh>("PointsMesh", no_init)
 		.def("set_position",      &PointListDynamicMesh::PY_SetPosition)
-		.def("attach_to_scene",   &PointListDynamicMesh::AttachToScene)
+		.def("attach_to_scene",   &PointListDynamicMesh::PY_AttachToScene)
 		.def("detach_from_scene", &PointListDynamicMesh::DetachFromScene)
 		.def("begin_update",      &PointListDynamicMesh::BeginUpdate)
-		.def("begin_update",      &PointListDynamicMesh::EndUpdate)
+		.def("end_update",        &PointListDynamicMesh::EndUpdate)
 		.def("add_point",         &PointListDynamicMesh::PY_AddPoint);
 
-	class_<LineListDynamicMesh>("LineMesh", no_init)
+	class_<LineListDynamicMesh>("LinesMesh", no_init)
 		.def("set_position",      &LineListDynamicMesh::PY_SetPosition)
-		.def("attach_to_scene",   &LineListDynamicMesh::AttachToScene)
+		.def("attach_to_scene",   &LineListDynamicMesh::PY_AttachToScene)
 		.def("detach_from_scene", &LineListDynamicMesh::DetachFromScene)
 		.def("begin_update",      &LineListDynamicMesh::BeginUpdate)
-		.def("begin_update",      &LineListDynamicMesh::EndUpdate)
+		.def("end_update",        &LineListDynamicMesh::EndUpdate)
 		.def("add_line",          &LineListDynamicMesh::PY_AddLine);
 
-	def("create_point_mesh", PY_CreateDynamicMeshOfPoints, return_value_policy<reference_existing_object>());
-	def("create_line_mesh",  PY_CreateDynamicMeshOfLines,  return_value_policy<reference_existing_object>());
+	def("create_points_mesh", PY_CreateDynamicMeshOfPoints, return_value_policy<reference_existing_object>());
+	def("create_lines_mesh",  PY_CreateDynamicMeshOfLines,  return_value_policy<reference_existing_object>());
 }
 
 // -----------------------------------------------------------------------------
@@ -181,7 +181,7 @@ void ScriptEngine::Bootstrap()
 	}
 
 	CreateRigEditorGlobalInstance(); // Global function
-	m_log->logMessage("Startup is finished.");
+	m_log->logMessage("RigEditor/ScriptEngine: Startup is finished.");
 }
 
 bool ScriptEngine::EnterRigEditor()
@@ -205,6 +205,7 @@ bool ScriptEngine::EnterRigEditor()
 		m_log->logMessage("==================================================");
 		m_log->logMessage("An <boost::python::error_already_set> exception occured.");
 		m_log->logMessage("Inspect 'logs/RigEditorPythonStderr.log' for details");
+		PyErr_Print(); // Prints error to python's standard error output (stderr)
 		return false;
 	}
 	catch (std::runtime_error e)
@@ -220,7 +221,7 @@ void ScriptEngine::ShutDown()
 {
 	if (m_log != nullptr)
 	{
-		m_log->logMessage("ScriptEngine: Shutting down.");
+		m_log->logMessage("RigEditor/ScriptEngine: Shutting down.");
 		delete m_log;
 		m_log = nullptr;
 	}
