@@ -26,6 +26,8 @@
 */
 
 #include "RigEditor_DynamicMeshBase.h"
+
+#include "PythonHelper.h"
 #include "RigEditor_Main.h"
 
 #include <OgreMaterialManager.h>
@@ -37,9 +39,19 @@
 #include <OgreSceneManager.h>
 
 #include <memory>
+#include <boost/python.hpp>
 
 using namespace RoR;
 using namespace RigEditor;
+
+DynamicMeshBase::~DynamicMeshBase()
+{
+	if (m_dynamic_mesh)
+	{
+		delete m_dynamic_mesh;
+		m_dynamic_mesh = nullptr;
+	}
+}
 
 void DynamicMeshBase::Initialize(
 	RigEditor::Main* rig_editor,
@@ -51,9 +63,7 @@ void DynamicMeshBase::Initialize(
 
     auto* scene_manager = rig_editor->GetOgreSceneManager();
 
-	m_dynamic_mesh = std::unique_ptr<Ogre::ManualObject>(
-			scene_manager->createManualObject()
-		);
+	m_dynamic_mesh = scene_manager->createManualObject();
 
 	// Setup
 	m_dynamic_mesh->estimateVertexCount(estimate_line_count * 2);
@@ -63,7 +73,9 @@ void DynamicMeshBase::Initialize(
 
     // Create scene node
     m_scene_node = scene_manager->createSceneNode();
-    m_scene_node->attachObject(m_dynamic_mesh.get());
+    m_scene_node->attachObject(m_dynamic_mesh);
+
+	m_root_scene_node = scene_manager->getRootSceneNode();
 }
 
 void DynamicMeshBase::BeginUpdate()
@@ -84,18 +96,24 @@ void DynamicMeshBase::DetachFromScene()
 	}
 }
 
-void DynamicMeshBase::AttachToScene(Ogre::SceneNode* parent_scene_node)
+void DynamicMeshBase::PY_AttachToScene()
 {
-	assert(parent_scene_node != nullptr);
+	assert(m_root_scene_node != nullptr);
 	if (!m_scene_node->isInSceneGraph())
 	{
-        parent_scene_node->addChild(m_scene_node);
+		m_root_scene_node->addChild(m_scene_node);
 	}
 }
 
 void DynamicMeshBase::SetPosition(Ogre::Vector3 pos)
 {
     m_scene_node->setPosition(pos);
+}
+
+void DynamicMeshBase::PY_SetPosition(boost::python::object pos)
+{
+	auto v3 = PythonHelper::PythonVector3ToOgreVector3(pos);
+	this->SetPosition(v3);
 }
 
 void DynamicMeshBase::SetOrientation(Ogre::Quaternion rot)

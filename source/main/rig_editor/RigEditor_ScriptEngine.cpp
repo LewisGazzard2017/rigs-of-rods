@@ -34,10 +34,13 @@
 #include "PlatformUtils.h"
 #include "PythonHelper.h"
 #include "RigEditor_Config.h"
+#include "RigEditor_LineListDynamicMesh.h"
 #include "RigEditor_Main.h"
+#include "RigEditor_PointListDynamicMesh.h"
 #include "RoRPrerequisites.h"
 #include "RoRWindowEventUtilities.h"
 
+#include <OgreManualObject.h>
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
 
@@ -58,7 +61,7 @@ using namespace std;
 using namespace boost::python;
 
 // -----------------------------------------------------------------------------
-// Module "ror.system"
+// Module "ror_system"
 
 void PY_EnterRigEditor()
 {
@@ -89,6 +92,43 @@ BOOST_PYTHON_MODULE(ror_system)
 }
 
 // -----------------------------------------------------------------------------
+// Module "ror_drawing"
+
+PointListDynamicMesh* PY_CreateDynamicMeshOfPoints(float point_size)
+{
+	return new PointListDynamicMesh(GetRigEditorGlobalInstance(), point_size, 10);
+}
+
+LineListDynamicMesh* PY_CreateDynamicMeshOfLines()
+{
+	return new LineListDynamicMesh(GetRigEditorGlobalInstance(), 10);
+}
+
+BOOST_PYTHON_MODULE(ror_drawing)
+{
+	using namespace boost::python;
+
+	class_<PointListDynamicMesh>("PointMesh", no_init)
+		.def("set_position",      &PointListDynamicMesh::PY_SetPosition)
+		.def("attach_to_scene",   &PointListDynamicMesh::AttachToScene)
+		.def("detach_from_scene", &PointListDynamicMesh::DetachFromScene)
+		.def("begin_update",      &PointListDynamicMesh::BeginUpdate)
+		.def("begin_update",      &PointListDynamicMesh::EndUpdate)
+		.def("add_point",         &PointListDynamicMesh::PY_AddPoint);
+
+	class_<LineListDynamicMesh>("LineMesh", no_init)
+		.def("set_position",      &LineListDynamicMesh::PY_SetPosition)
+		.def("attach_to_scene",   &LineListDynamicMesh::AttachToScene)
+		.def("detach_from_scene", &LineListDynamicMesh::DetachFromScene)
+		.def("begin_update",      &LineListDynamicMesh::BeginUpdate)
+		.def("begin_update",      &LineListDynamicMesh::EndUpdate)
+		.def("add_line",          &LineListDynamicMesh::PY_AddLine);
+
+	def("create_point_mesh", PY_CreateDynamicMeshOfPoints, return_value_policy<reference_existing_object>());
+	def("create_line_mesh",  PY_CreateDynamicMeshOfLines,  return_value_policy<reference_existing_object>());
+}
+
+// -----------------------------------------------------------------------------
 // class ScriptEngine
 
 ScriptEngine::ScriptEngine() :
@@ -103,7 +143,8 @@ void ScriptEngine::Bootstrap()
 	m_log = Ogre::LogManager::getSingleton().createLog(SSETTING("Log Path", "") + "/RigEditorScriptEngine.log", false);
 
 	// Import the module. Source: https://wiki.python.org/moin/boost.python/EmbeddingPython
-	PyImport_AppendInittab("ror_system", PyInit_ror_system); // Function "PyInit_ror_system" defined by BOOST_PYTHON_MODULE
+	PyImport_AppendInittab("ror_system",  PyInit_ror_system);  // Function "PyInit_ror_system" defined by BOOST_PYTHON_MODULE
+	PyImport_AppendInittab("ror_drawing", PyInit_ror_drawing); // Function "PyInit_ror_drawing" defined by BOOST_PYTHON_MODULE
 	// start the interpreter and create the __main__ module. Source: http://www.boost.org/doc/libs/1_59_0/libs/python/doc/tutorial
 	Py_Initialize();
 	// Create main module. Source: http://www.boost.org/doc/libs/1_59_0/libs/python/doc/tutorial
@@ -137,11 +178,11 @@ void ScriptEngine::Bootstrap()
 		m_log->logMessage(stderr_log_path);
 
 		object res;
-		res = exec("import io, sys", main_namespace);                              m_log->logMessage("DEBUG: Executed statement: import");
-		res = exec(stdout_statement.c_str(), main_namespace);                            m_log->logMessage("DEBUG: Executed statement: stdout >> file");
-		res = exec(stderr_statement.c_str(), main_namespace);                            m_log->logMessage("DEBUG: Executed statement: stderr >> file");
-		res = exec("print('Rig Editor: Python standard output (stdout)\\n')", main_namespace);               m_log->logMessage("DEBUG: Executed statement: test stdio");
-		res = exec("sys.stderr.write('Rig Editor: Python standard error output (stderr)\\n')", main_namespace);    m_log->logMessage("DEBUG: Executed statement: test stderr");
+		res = exec("import io, sys", main_namespace);
+		res = exec(stdout_statement.c_str(), main_namespace);
+		res = exec(stderr_statement.c_str(), main_namespace);
+		res = exec("print('Rig Editor: Python standard output (stdout)\\n')", main_namespace);
+		res = exec("sys.stderr.write('Rig Editor: Python standard error output (stderr)\\n')", main_namespace);
 
 		//res = exec("5/0", main_namespace);// Test = force exception
 

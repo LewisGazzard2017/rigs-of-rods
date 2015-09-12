@@ -29,6 +29,7 @@
 
 #include "RigEditor_ForwardDeclarations.h"
 
+#include <boost/python/object.hpp>
 #include <OgreMaterialManager.h>
 
 namespace RoR
@@ -42,14 +43,18 @@ class DynamicMeshBase
 {
 public:
     DynamicMeshBase():
-        m_scene_node(nullptr)
+        m_scene_node(nullptr),
+        m_root_scene_node(nullptr)
     {}
+    virtual ~DynamicMeshBase();
 
     void BeginUpdate();
     void EndUpdate();
-    void AttachToScene(Ogre::SceneNode* parent_scene_node);
+    void AttachToScene(Ogre::SceneNode* sn) {}; // Just to keep the world compiling...
+    void PY_AttachToScene();
     void DetachFromScene();
     void SetPosition(Ogre::Vector3 pos);
+    void PY_SetPosition(boost::python::object pos);
     void SetOrientation(Ogre::Quaternion rot);
 
 protected:
@@ -60,8 +65,10 @@ protected:
         size_t estimate_vertex_count
     );
     
-    std::unique_ptr<Ogre::ManualObject> m_dynamic_mesh;
+    // unique_ptr<> refused to compile with boost::python for some reason<T>...
+    Ogre::ManualObject*                 m_dynamic_mesh;
     Ogre::SceneNode*                    m_scene_node;
+    Ogre::SceneNode*                    m_root_scene_node;
 };
 
 } // namespace RigEditor

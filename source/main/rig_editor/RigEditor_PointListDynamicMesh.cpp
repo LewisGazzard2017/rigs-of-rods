@@ -95,3 +95,9 @@ void PointListDynamicMesh::AddPoint(Ogre::Vector3 const & pos, Ogre::ColourValue
 	m_dynamic_mesh->position(pos);
 	m_dynamic_mesh->colour(color);	
 }
+
+void PointListDynamicMesh::PY_AddPoint(boost::python::object pos, boost::python::object color)
+{
+	// Stub
+}
+

@@ -31,6 +31,7 @@
 #include "RigEditor_ForwardDeclarations.h"
 
 #include <OgreMaterialManager.h>
+#include <boost/python/object.hpp>
 
 namespace RoR
 {
@@ -47,8 +48,10 @@ public:
         float point_size,
         size_t estimate_point_count
     );
+    virtual ~PointListDynamicMesh() {};
+
     void AddPoint(Ogre::Vector3 const & pos, Ogre::ColourValue const & color);
-    
+    void PY_AddPoint(boost::python::object pos, boost::python::object color);
 
     private:
     

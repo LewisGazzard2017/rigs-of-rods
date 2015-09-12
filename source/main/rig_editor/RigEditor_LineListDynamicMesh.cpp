@@ -93,3 +93,8 @@ void LineListDynamicMesh::AddLine(Ogre::Vector3 const & start, Ogre::Vector3 con
 	m_dynamic_mesh->colour(color);
 }
 
+void LineListDynamicMesh::PY_AddLine(boost::python::object pos1, boost::python::object color1, boost::python::object pos2, boost::python::object color2)
+{
+	// Stub, just to get compiled...
+}
+
