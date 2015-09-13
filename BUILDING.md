@@ -1,6 +1,12 @@
 # Building instructions
 Please refer to http://www.rigsofrods.com/wiki/pages/Compiling_Sources
 
+## Specifics of 'rig-editor-python' branch
+
+You need to manually build boost::python with Python 3.4. See file "tools/boost_build_python3/project-config.jam" for more details.
+
+The CMake scripts are not updated to accompany boost::python and Python. You'll need to update the generated project files manually.
+
 ## CMake options
 ##### Rigs of Rods core:  
 | option                         | effect                                               |
