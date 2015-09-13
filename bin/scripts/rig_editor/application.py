@@ -21,9 +21,9 @@ class Application:
         mesh = ror_drawing.create_lines_mesh();
         mesh.set_position(Vector3(0,0,0))
         mesh.begin_update()
-        mesh.add_line(Vector3(0,0,0), Color(1,0.5,0), Vector3(1,0,0), Color(1,0,0))
-        mesh.add_line(Vector3(0,0,0), Color(0,0.5,1), Vector3(0,0,1), Color(0,0,1))
-        mesh.add_line(Vector3(0,0,0), Color(0,1,0.5), Vector3(0,1,0), Color(0,1,0))
+        mesh.add_line(Vector3(0, 0, 0), Color(1, 1 ,0),     Vector3(5, 0, 0), Color(1, 0, 0))
+        mesh.add_line(Vector3(0, 0, 0), Color(0.2, 0.8 ,1), Vector3(0, 0, 5), Color(0, 0, 1))
+        mesh.add_line(Vector3(0, 0, 0), Color(0.1, 1, 0.7), Vector3(0, 5, 0), Color(0, 1, 0))
         mesh.end_update()
         mesh.attach_to_scene()
     
