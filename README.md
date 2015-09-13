@@ -13,10 +13,10 @@ it will be carefully cherry-picked to master branch.
 #### Status
 
 Working technical preview:
-1. sets up scene/camera (dark purple background);
-2. draws one LinesMesh with 3 axis-lines. 
-3. stays idle until you pres ESC key to exit to main menu.
-4. user may enter RigEditor any number of times.
+ 1. sets up scene/camera (dark purple background);
+ 2. draws one LinesMesh with 3 axis-lines. 
+ 3. stays idle until you pres ESC key to exit to main menu.
+ 4. user may enter RigEditor any number of times.
 
 #### API Draft
 
