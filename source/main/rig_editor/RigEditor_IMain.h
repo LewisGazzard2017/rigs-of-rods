@@ -36,6 +36,9 @@ namespace RigEditor
 {
 
 /** Command interface to RigEditor */
+
+// RIG_EDITOR_PYTHON: 
+//    TO BE REMOVED... Filled with empty bodies just to compile.
 class IMain
 {
 public:
@@ -59,57 +62,57 @@ public:
 	};
 
     // File management
-	virtual void CommandShowDialogOpenRigFile() = 0;
-	virtual void CommandShowDialogSaveRigFileAs() = 0;
-	virtual void CommandSaveRigFile() = 0;
-	virtual void CommandCloseCurrentRig() = 0;
-    virtual void CommandCreateNewEmptyRig() = 0;
+	virtual void CommandShowDialogOpenRigFile() {};
+	virtual void CommandShowDialogSaveRigFileAs() {};
+	virtual void CommandSaveRigFile() {};
+	virtual void CommandCloseCurrentRig() {};
+    virtual void CommandCreateNewEmptyRig() {};
 
-	virtual void CommandCurrentRigDeleteSelectedNodes() = 0;
+	virtual void CommandCurrentRigDeleteSelectedNodes() {};
 
-	virtual void CommandCurrentRigDeleteSelectedBeams() = 0;
+	virtual void CommandCurrentRigDeleteSelectedBeams() {};
 
-	virtual void CommandQuitRigEditor() = 0;
+	virtual void CommandQuitRigEditor() {};
 
-	virtual void CommandShowRigPropertiesWindow() = 0;
+	virtual void CommandShowRigPropertiesWindow() {};
 
-	virtual void CommandSaveContentOfRigPropertiesWindow() = 0;
+	virtual void CommandSaveContentOfRigPropertiesWindow() {};
 
-	virtual void CommandShowLandVehiclePropertiesWindow() = 0;
+	virtual void CommandShowLandVehiclePropertiesWindow() {};
     
-	virtual void CommandSaveLandVehiclePropertiesWindowData() = 0;
+	virtual void CommandSaveLandVehiclePropertiesWindowData() {};
 
-	virtual void CommandShowHelpWindow() = 0;
+	virtual void CommandShowHelpWindow() {};
 
 	// Rig updaters
-	virtual void CommandRigSelectedNodesUpdateAttributes     (const RigAggregateNodesData*      data) = 0;
-	virtual void CommandRigSelectedPlainBeamsUpdateAttributes(const RigAggregatePlainBeamsData* data) = 0;
-	virtual void CommandRigSelectedShocksUpdateAttributes    (const RigAggregateShocksData*     data) = 0;
-	virtual void CommandRigSelectedShocks2UpdateAttributes   (const RigAggregateShocks2Data*    data) = 0;
-	virtual void CommandRigSelectedHydrosUpdateAttributes    (const RigAggregateHydrosData*     data) = 0;
-	virtual void CommandRigSelectedCommands2UpdateAttributes (const RigAggregateCommands2Data*  data) = 0;
+	virtual void CommandRigSelectedNodesUpdateAttributes     (const RigAggregateNodesData*      data) {};
+	virtual void CommandRigSelectedPlainBeamsUpdateAttributes(const RigAggregatePlainBeamsData* data) {};
+	virtual void CommandRigSelectedShocksUpdateAttributes    (const RigAggregateShocksData*     data) {};
+	virtual void CommandRigSelectedShocks2UpdateAttributes   (const RigAggregateShocks2Data*    data) {};
+	virtual void CommandRigSelectedHydrosUpdateAttributes    (const RigAggregateHydrosData*     data) {};
+	virtual void CommandRigSelectedCommands2UpdateAttributes (const RigAggregateCommands2Data*  data) {};
 
 	// Land vehicle wheel list
-	virtual void CommandScheduleSetWheelSelected (LandVehicleWheel* wheel_ptr, int wheel_index, bool state_selected) = 0;
-	virtual void CommandSetWheelHovered          (LandVehicleWheel* wheel_ptr, int wheel_index, bool state_hovered) = 0;
-	virtual void CommandScheduleSetAllWheelsSelected (bool state_selected) = 0;
-	virtual void CommandSetAllWheelsHovered          (bool state_selected) = 0;
+	virtual void CommandScheduleSetWheelSelected (LandVehicleWheel* wheel_ptr, int wheel_index, bool state_selected) {};
+	virtual void CommandSetWheelHovered          (LandVehicleWheel* wheel_ptr, int wheel_index, bool state_hovered) {};
+	virtual void CommandScheduleSetAllWheelsSelected (bool state_selected) {};
+	virtual void CommandSetAllWheelsHovered          (bool state_selected) {};
 	
     // Flares list
-    virtual void CommandShowFlaresList() = 0;
-	virtual void CommandScheduleSetFlareSelected (Flare* flare_ptr, int flare_index, bool state_selected) = 0;
-	virtual void CommandSetFlareHovered          (Flare* flare_ptr, int flare_index, bool state_hovered) = 0;
-	virtual void CommandScheduleSetAllFlaresSelected(bool state_selected) = 0;
-	virtual void CommandSetAllFlaresHovered         (bool state_selected) = 0;
+    virtual void CommandShowFlaresList() {};
+	virtual void CommandScheduleSetFlareSelected (Flare* flare_ptr, int flare_index, bool state_selected) {};
+	virtual void CommandSetFlareHovered          (Flare* flare_ptr, int flare_index, bool state_hovered) {};
+	virtual void CommandScheduleSetAllFlaresSelected(bool state_selected) {};
+	virtual void CommandSetAllFlaresHovered         (bool state_selected) {};
 
     // GETTERS
 
-    virtual RigEditor::Node*      GetCurrentRigLastSelectedNode() = 0;
+    virtual RigEditor::Node*      GetCurrentRigLastSelectedNode() { return nullptr; };
 
     // FACTORIES
 
-    virtual PointListDynamicMesh*    CreateInstanceOfPointListDynamicMesh(float point_size, size_t estimate_point_count) = 0;
-    virtual LineListDynamicMesh*     CreateInstanceOfLineListDynamicMesh(size_t estimate_line_count) = 0;
+    virtual PointListDynamicMesh*    CreateInstanceOfPointListDynamicMesh(float point_size, size_t estimate_point_count) { return nullptr; };
+    virtual LineListDynamicMesh*     CreateInstanceOfLineListDynamicMesh(size_t estimate_line_count) { return nullptr; };
 };
 
 } // namespace RigEditor

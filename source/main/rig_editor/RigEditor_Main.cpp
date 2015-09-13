@@ -112,12 +112,7 @@ Main::Main(Config* config):
 	m_config(config),
 	m_scene_manager(nullptr),
 	m_camera(nullptr),
-	m_viewport(nullptr),
-	m_rig_entity(nullptr),
-	m_exit_loop_requested(false),
-	m_input_handler(nullptr),
-	m_rig(nullptr),
-    m_state_flags(0)
+	m_viewport(nullptr)
 {
 	/* Setup 3D engine */
 	OgreSubsystem* ror_ogre_subsystem = RoR::Application::GetOgreSubsystem();
@@ -132,9 +127,6 @@ Main::Main(Config* config):
 	m_camera->setFOVy(Ogre::Degree(config->camera_FOVy_degrees));
 	m_camera->setAutoAspectRatio(true);
 
-	/* Setup input */
-	m_input_handler = new InputHandler();
-
 	/* Camera handling */
 	m_camera_handler = new CameraHandler(m_camera);
 	m_camera_handler->SetOrbitTarget(m_scene_manager->getRootSceneNode());	
@@ -145,14 +137,6 @@ Main::Main(Config* config):
 
 Main::~Main()
 {
-	// GUI objects are cleaned up by std::unique_ptr
-
-	if (m_rig != nullptr)
-	{
-		m_rig->DetachFromScene();
-		delete m_rig;
-		m_rig = nullptr;
-	}
 }
 
 void Main::PY_OnEnter_SetupCameraAndViewport()
@@ -177,8 +161,8 @@ void Main::PY_OnEnter_SetupCameraAndViewport()
 void Main::PY_OnEnter_SetupInput()
 {
 	// Setup input
-	RoR::Application::GetInputEngine()->SetKeyboardListener(m_input_handler);
-	RoR::Application::GetInputEngine()->SetMouseListener(m_input_handler);
+	RoR::Application::GetInputEngine()->SetKeyboardListener(&m_input_handler);
+	RoR::Application::GetInputEngine()->SetMouseListener(&m_input_handler);
 }
 
 
@@ -187,60 +171,14 @@ void Main::PY_OnEnter_SetupInput()
 // OBSOLETED AngelScript + C++ implementations
 // TO BE REVISED
 // ===================================================================================
-
-void Main::InvokeAngelScriptUserCommandCallback(IMain::UserCommand command)
-{
-/*	if (! m_as_user_command_callback.IsBound())
-	{
-		return;
-	}
-
-	using namespace AngelScript;
-	asIScriptContext* ctx = m_as_user_command_callback.PrepareContext();
-	m_as_user_command_callback.SetArgInt(ctx, 0, static_cast<int>(command));
-	m_as_user_command_callback.ExecuteContext(ctx);
-	*/
-}
-
-
-
-void Main::AS_RegisterUserCommandCallback_UGLY(AngelScript::asIScriptObject* object, std::string method_name)
-{
-	//m_as_user_command_callback.RegisterCallback(object, method_name);
-}
-
-
-
-void Main::AS_OnExit_ClearExitRequest_UGLY()
-{
-	m_exit_loop_requested = false;
-}
-
-void Main::AS_OnExit_HideGui_UGLY()
-{
-	// Hide GUI
-	m_gui_menubar->Hide();
-	m_gui_delete_menu->Hide();
-
-	// Supress panels (if visible)
-	m_nodes_panel           ->HideTemporarily();
-	m_beams_panel           ->HideTemporarily();
-	m_hydros_panel          ->HideTemporarily();
-	m_commands2_panel       ->HideTemporarily();
-	m_shocks_panel          ->HideTemporarily();
-	m_shocks2_panel         ->HideTemporarily();
-    m_meshwheels2_panel     ->HideTemporarily();
-    m_flexbodywheels_panel  ->HideTemporarily();
-    m_flares_list_panel     ->HideTemporarily();
-}
-
+#if 0
 void Main::AS_UpdateMainLoop_UGLY()
 {
 
 
 	/* Update input events */
 	m_input_handler->ResetEvents();
-	RoR::Application::GetInputEngine()->Capture(); // Also injects input to GUI (through RigEditor::InputHandler)
+	
 
 	/* Handle key presses */
 	bool camera_ortho_toggled = false;
@@ -1302,6 +1240,8 @@ void Main::AS_HandleCommandCreateNewEmptyRig_UGLY()
     // Accomodate
     this->OnNewRigCreatedOrLoaded(m_scene_manager->getRootSceneNode());
 }
+
+#endif // #if 0
 
 // ----------------------------------------------------------------------------
 // End

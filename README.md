@@ -12,12 +12,11 @@ it will be carefully cherry-picked to master branch.
 
 #### Status
 
-Working test: RoR launches "scripts/rig_editor/Main.py" which
+Working technical preview:
 1. sets up scene/camera (dark purple background);
 2. draws one LinesMesh with 3 axis-lines. 
-3. renders one frame; 
-4. speeps for 5 sec; 
-5. exits
+3. stays idle until you pres ESC key to exit to main menu.
+4. user may enter RigEditor any number of times.
 
 #### API Draft
 
@@ -58,6 +57,9 @@ Minimal necessary interaction with the surrounding application.
 
     [DONE] enter_rig_editor()
     [DONE] render_frame_and_update_window()
+    [DONE] is_application_window_closed()
+    [DONE] request_application_shutdown()
+    [DONE] set_input_listener()
     (draft) register_input_listener(input_listener_object)
     (draft) update_input_and_GUI()
     (draft) show_open_save_file_dialog(mode, finished_callback)

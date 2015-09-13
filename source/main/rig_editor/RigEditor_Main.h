@@ -27,22 +27,15 @@
 
 #pragma once
 
-//#include "AngelScriptCallbackSocket.h"
 #include "ConfigFile.h"
 #include "GUI_OpenSaveFileDialog.h"
 #include "RigDef_Prerequisites.h"
-#include "RigEditor_IMain.h"
 #include "RigEditor_ForwardDeclarations.h"
+#include "RigEditor_IMain.h"
+#include "RigEditor_InputHandler.h"
 #include "RoRPrerequisites.h"
 
 #include <string>
-
-// Forward decl.
-namespace AngelScript
-{
-	class asIScriptObject;
-	class asIScriptFunction;
-}
 
 namespace RoR
 {
@@ -59,46 +52,31 @@ public:
 
 	void EnterMainLoop();
 
-	Ogre::SceneManager* GetOgreSceneManager()
-	{
-		return m_scene_manager;
-	}
+	// Getters...
 
-	Config* GetConfig()
-	{
-		return m_config;
-	}
+	inline InputHandler&         GetInputHandler()       { return m_input_handler; }
+	inline Ogre::SceneManager*   GetOgreSceneManager()   { return m_scene_manager; }
+	inline Config*               GetConfig()             { return m_config; }
 
-	Rig* GetRig()
-	{
-		return m_rig;
-	}
+	// Python interface...
 
-	// ===== Command interface implementation ===== //
+    void PY_OnEnter_SetupInput();
+    void PY_OnEnter_SetupCameraAndViewport();
 
-    // File management
-	virtual void CommandShowDialogOpenRigFile();
-	virtual void CommandShowDialogSaveRigFileAs();
-	virtual void CommandSaveRigFile();
-	virtual void CommandCloseCurrentRig();
-    virtual void CommandCreateNewEmptyRig();
+private:
+	Config*              m_config;
+	Ogre::SceneManager*  m_scene_manager;
+	Ogre::Viewport*      m_viewport;
+	Ogre::Camera*        m_camera;
+	InputHandler         m_input_handler;
+	CameraHandler*       m_camera_handler;
 
-	virtual void CommandCurrentRigDeleteSelectedNodes();
 
-	virtual void CommandCurrentRigDeleteSelectedBeams();
+	/*
+	// =============================================================================
+	// TO BE CLEANED
+	// =============================================================================
 
-	virtual void CommandQuitRigEditor();
-
-	virtual void CommandShowRigPropertiesWindow();
-
-	virtual void CommandSaveContentOfRigPropertiesWindow();
-
-    // Land vehicle window
-	virtual void CommandShowLandVehiclePropertiesWindow();
-	virtual void CommandSaveLandVehiclePropertiesWindowData();
-
-    // Help window
-	virtual void CommandShowHelpWindow();
 
 	// Rig updaters
 	virtual void CommandRigSelectedNodesUpdateAttributes     (const RigAggregateNodesData*      data);
@@ -158,10 +136,7 @@ public:
         BITMASK_SET_0(m_state_flags, IS_SELECT_FLARE_SCHEDULED | IS_DESELECT_FLARE_SCHEDULED | IS_SELECT_ALL_FLARES_SCHEDULED | IS_DESELECT_ALL_FLARES_SCHEDULED);
     }
 
-    // ========== Python interface ========== 
-
-    void PY_OnEnter_SetupInput();
-    void PY_OnEnter_SetupCameraAndViewport();
+    
     //void AS_OnEnter_InitializeOrRestoreGui_UGLY();
 
 	void AS_UpdateMainLoop_UGLY();
@@ -203,14 +178,7 @@ private:
 
 	void InvokeAngelScriptUserCommandCallback(IMain::UserCommand command);
 
-	Config*              m_config;
-	Ogre::SceneManager*  m_scene_manager;
-	Ogre::Viewport*      m_viewport;
-	Ogre::Camera*        m_camera;
-	Ogre::Entity*        m_rig_entity;
-	InputHandler*        m_input_handler;
-	CameraHandler*       m_camera_handler;
-	Rig*                 m_rig;
+
 
     unsigned int         m_state_flags;
 	bool                 m_exit_loop_requested;
@@ -233,7 +201,10 @@ private:
 
 	// AngelScript
 	//AngelScriptCallbackSocket m_as_user_command_callback;
+	*/
 };
+
+
 
 void CreateRigEditorGlobalInstance();
 

@@ -28,7 +28,7 @@
 
 #include "Application.h"
 #include "ContentManager.h"
-#include "Settings.h"
+#include "InputEngine.h"
 #include "MainThread.h"
 #include "OgreSubsystem.h"
 #include "PlatformUtils.h"
@@ -39,6 +39,7 @@
 #include "RigEditor_PointListDynamicMesh.h"
 #include "RoRPrerequisites.h"
 #include "RoRWindowEventUtilities.h"
+#include "Settings.h"
 
 #include <OgreManualObject.h>
 #include <OgreRoot.h>
@@ -84,11 +85,35 @@ void PY_RenderFrameAndUpdateWindow()
 	}
 }
 
+bool PY_IsRoRApplicationWindowClosed()
+{
+	return RoR::Application::GetOgreSubsystem()->GetRenderWindow()->isClosed();
+}
+
+void PY_RequestRoRShutdown()
+{
+	RoR::Application::GetMainThreadLogic()->RequestShutdown();
+}
+
+void PY_CaptureInputAndUpdateGUI()
+{
+	RoR::Application::GetInputEngine()->Capture(); // Also injects input to GUI (through RigEditor::InputHandler)
+}
+
+void PY_SetInputListener(object listener)
+{
+	GetRigEditorGlobalInstance()->GetInputHandler().SetPythonInputListener(listener);
+}
+
 BOOST_PYTHON_MODULE(ror_system)
 {
 	using namespace boost::python;
 	def("enter_rig_editor",               PY_EnterRigEditor);
 	def("render_frame_and_update_window", PY_RenderFrameAndUpdateWindow);
+	def("is_application_window_closed",   PY_IsRoRApplicationWindowClosed);
+	def("request_application_shutdown",   PY_RequestRoRShutdown);
+	def("capture_input_and_update_gui",   PY_CaptureInputAndUpdateGUI);
+	def("set_input_listener",             PY_SetInputListener);
 }
 
 // -----------------------------------------------------------------------------
@@ -160,7 +185,6 @@ void ScriptEngine::Bootstrap()
 		// Buffering must be set to 1 (flush after every line) because we can't use Py_Finalize() 
 		//     to close files - it's broken in boost 1_59,
 		//     see http://www.boost.org/doc/libs/1_48_0/libs/python/doc/tutorial/doc/html/python/embedding.html
-		// Path must use forward slashes '/' because '\' are Python escapes.
 		auto log_dir = this->GetConfigPath("Log Path");
 		char py_code[2000];
 		sprintf(py_code,
@@ -168,8 +192,11 @@ void ScriptEngine::Bootstrap()
 			"sys.stdout = open('%s/RigEditorPythonStdout.log', 'w', buffering=1)       \n"
 			"sys.stderr = open('%s/RigEditorPythonStderr.log', 'w', buffering=1)       \n"
 			"print('Rig Editor: Python standard output (stdout)\\n')                   \n"
-			"sys.stderr.write('Rig Editor: Python standard error output (stderr)\\n')  \n",
-			log_dir.c_str(), log_dir.c_str()
+			"sys.stderr.write('Rig Editor: Python standard error output (stderr)\\n')  \n"
+			"sys.path.append('%s')                                                     \n", // Make local modules visible to "import"
+			log_dir.c_str(), 
+			log_dir.c_str(), 
+			this->GetConfigPath("RigEditor Scripts Path").c_str()
 			);
 		object res_ignored = exec(py_code, m_impl->py_main_namespace);
 	}
@@ -192,7 +219,7 @@ bool ScriptEngine::EnterRigEditor()
 	}
 	try
 	{
-		std::string path = this->GetConfigPath("RigEditor Scripts Path") + "/Main.py";
+		std::string path = this->GetConfigPath("RigEditor Scripts Path") + "/main.py";
 		m_log->logMessage("Executing the rig editor script");
 		m_log->logMessage("==================================================");
 		object res_ignored = boost::python::exec_file(path.c_str(), m_impl->py_main_namespace);
@@ -234,6 +261,7 @@ void ScriptEngine::ShutDown()
 
 std::string ScriptEngine::GetConfigPath(const char* config_key)
 {
+	// Path must use forward slashes '/' because '\' are Python escapes.
 	std::string path = SSETTING(config_key, "");
 	PythonHelper::PathConvertSlashesToForward(path);
 	return path;
@@ -247,17 +275,7 @@ std::string ScriptEngine::GetConfigPath(const char* config_key)
 
 #if 0
 
-bool AS_IsRoRApplicationWindowClosed()
-{
-	return RoR::Application::GetOgreSubsystem()->GetRenderWindow()->isClosed();
-}
-
-void AS_RequestRoRShutdown()
-{
-	RoR::Application::GetMainThreadLogic()->RequestShutdown();
-}
-
-std::string AS_SYS_GetStringSetting(std::string key, std::string default_val)
+std::string AS_GetStringSetting(std::string key, std::string default_val)
 {
 	return std::string(SSETTING(key, default_val));
 }
