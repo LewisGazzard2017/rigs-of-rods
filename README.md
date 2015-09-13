@@ -37,6 +37,7 @@ Simplified bindings to MyGUI library for GUI manipulation. Entire editor GUI wil
         (draft) Window.find_widget(widget_name) >> Widget
     (draft) class Widget
         (draft) Widget.bind_event_callback(event_type, callback_func)
+    (draft) show_open_save_file_dialog(mode, finished_callback)
     
 ##### Module "ror_drawing"
 Simplified bindings to OGRE engine for creating/manipulating 3D objects. All editor visualizations will be done through this module.
@@ -59,9 +60,6 @@ Minimal necessary interaction with the surrounding application.
     [DONE] render_frame_and_update_window()
     [DONE] is_application_window_closed()
     [DONE] request_application_shutdown()
-    [DONE] set_input_listener()
-    (draft) register_input_listener(input_listener_object)
-    (draft) update_input_and_GUI()
-    (draft) show_open_save_file_dialog(mode, finished_callback)
-    
+    [DONE] register_input_listener(input_listener)
+    [DONE] capture_input_and_update_gui()
     

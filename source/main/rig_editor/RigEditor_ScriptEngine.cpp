@@ -100,7 +100,7 @@ void PY_CaptureInputAndUpdateGUI()
 	RoR::Application::GetInputEngine()->Capture(); // Also injects input to GUI (through RigEditor::InputHandler)
 }
 
-void PY_SetInputListener(object listener)
+void PY_RegisterInputListener(object listener)
 {
 	GetRigEditorGlobalInstance()->GetInputHandler().SetPythonInputListener(listener);
 }
@@ -113,7 +113,7 @@ BOOST_PYTHON_MODULE(ror_system)
 	def("is_application_window_closed",   PY_IsRoRApplicationWindowClosed);
 	def("request_application_shutdown",   PY_RequestRoRShutdown);
 	def("capture_input_and_update_gui",   PY_CaptureInputAndUpdateGUI);
-	def("set_input_listener",             PY_SetInputListener);
+	def("register_input_listener",        PY_RegisterInputListener);
 }
 
 // -----------------------------------------------------------------------------

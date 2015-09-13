@@ -15,7 +15,7 @@ class Application:
         print('Application initialized')
         self.was_exit_requested = False
         self.input_handler = input.InputListener()
-        ror_system.set_input_listener(self.input_handler)
+        ror_system.register_input_listener(self.input_handler)
         
     def draw_demo_mesh(self):
         mesh = ror_drawing.create_lines_mesh();
