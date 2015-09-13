@@ -21,3 +21,5 @@ ror-dependencies-*.zip
 dependencies-*.zip
 _build
 libangelscript_addons*.a
+# Python compiled scripts:
+*.pyc
