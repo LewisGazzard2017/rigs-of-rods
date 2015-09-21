@@ -75,9 +75,10 @@ void CameraWrapper::PY_SetPosition(boost::python::object world_pos)
     m_camera->setPosition(PythonHelper::Vector3_FromPython(world_pos));
 }
 
-float CameraWrapper::PY_PointZDistance(boost::python::object world_pos)
+float CameraWrapper::PY_PointZDistance(boost::python::object py_world_pos)
 {
-	return (m_camera->getViewMatrix() * PythonHelper::Vector3_FromPython(world_pos)).z * -1;
+	Ogre::Vector3 world_pos = PythonHelper::Vector3_FromPython(py_world_pos);
+	return (m_camera->getViewMatrix() * world_pos).z * -1;
 }
 
 void CameraWrapper::PY_YawDegrees(float deg)

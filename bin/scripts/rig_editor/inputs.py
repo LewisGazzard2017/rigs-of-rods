@@ -208,7 +208,7 @@ class MouseState():
         self.relative_x = 0
         self.relative_y = 0
         self.relative_z = 0
-        for i in len(MouseButtons.NUM_BUTTONS):
+        for i in range(0, MouseButtons.NUM_BUTTONS-1):
             self.button_down_events[i] = False
             self.button_up_events[i] = False
                
@@ -226,6 +226,15 @@ class MouseState():
     def button_released(self, button_code):
         self.button_pressed_states[button_code] = False
         self.button_up_events[button_code] = True
+        
+    def is_left_button_pressed(self):
+        return self.button_pressed_states[MouseButtons.LEFT]
+        
+    def is_right_button_pressed(self):
+        return self.button_pressed_states[MouseButtons.RIGHT]
+        
+    def is_middle_button_pressed(self):
+        return self.button_pressed_states[MouseButtons.MIDDLE]
     
                 
 
@@ -257,6 +266,9 @@ class InputListener:
         self.mouse_down_map = {}
         self.mouse_up_map = {}
         self.mouse_state = MouseState()
+        
+    def reset_inputs(self):
+        self.mouse_state.reset()
         
     def add_key_down_event_mapping(self, key_code, event):
         InputListener._add_event_mapping(self.key_down_map, key_code, event)
@@ -297,14 +309,15 @@ class InputListener:
             table[input_code] = InputMapping()
             
     def _handle_callback(table, input_code):
-        mapping = table[input_code]
-        if (mapping.event is not None):
-            event.was_fired = True
-        if mapping.mode is not None:
-            if mapping.mode_operation is InputMapping.MODE_ACTIVATE:
-                mapping.mode.activate()
-            elif mapping.mode_operation is InputMapping.MODE_DEACTIVATE:
-                mapping.mode.deactivate()
+        if input_code in table:
+            mapping = table[input_code]
+            if (mapping.event is not None):
+                event.was_fired = True
+            if mapping.mode is not None:
+                if mapping.mode_operation is InputMapping.MODE_ACTIVATE:
+                    mapping.mode.activate()
+                elif mapping.mode_operation is InputMapping.MODE_DEACTIVATE:
+                    mapping.mode.deactivate()
     
     # --------------------------------------------------------------------------
     # Keyboard callbacks
@@ -328,7 +341,7 @@ class InputListener:
         self.mouse_state.button_released(button_code)
         InputListener._handle_callback(self.mouse_up_map, button_code)
     
-    def mouse_moved_or_scrolled_callback(self, x_rel, y_rel, z_rel, x_abs, y_abs):
+    def mouse_moved_or_scrolled_callback(self, x_abs, y_abs, x_rel, y_rel, z_rel):
         self.mouse_state.update(x_abs, y_abs, x_rel, y_rel, z_rel)
         
         

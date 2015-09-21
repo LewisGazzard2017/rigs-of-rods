@@ -92,7 +92,7 @@ bool InputHandler::mousePressed( const OIS::MouseEvent &mouse_event, OIS::MouseB
 		);
 
 	auto& state = mouse_event.state;
-	m_listener.attr("mouse_pressed_callback")(button_id, state.X.abs, state.Y.abs);
+	m_listener.attr("mouse_pressed_callback")(static_cast<int>(button_id), state.X.abs, state.Y.abs);
 	return true;
 }
 
@@ -105,6 +105,6 @@ bool InputHandler::mouseReleased( const OIS::MouseEvent &mouse_event, OIS::Mouse
 		);
 
 	auto& state = mouse_event.state;
-	m_listener.attr("mouse_released_callback")(button_id, state.X.abs, state.Y.abs);
+	m_listener.attr("mouse_released_callback")(static_cast<int>(button_id), state.X.abs, state.Y.abs);
 	return true;
 }

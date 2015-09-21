@@ -1,7 +1,9 @@
 
 # Local
-from datatypes import Vector3, Color
+from euclid3 import Vector3
+from datatypes import Color
 import inputs
+import camera
 
 # System
 import ror_system
@@ -41,6 +43,7 @@ class Application:
     def __init__(self):
         print('Application initialized')
         self.was_exit_requested = False
+        self.camera_controller = None
         self.input_handler = inputs.InputListener()
         ror_system.register_input_listener(self.input_handler)
         self.events = {}
@@ -75,15 +78,26 @@ class Application:
         mesh.add_line(Vector3(0, 0, 0), Color(0.1, 1, 0.7), Vector3(0, 5, 0), Color(0, 1, 0))
         mesh.end_update()
         mesh.attach_to_scene()
+        
+    def _update_camera(self):
+        mouse_state = self.input_handler.mouse_state
+        do_orbit = mouse_state.is_right_button_pressed()
+        self.camera_controller.inject_mouse_move(
+            do_orbit, mouse_state.relative_x, mouse_state.relative_y, mouse_state.relative_z)
     
     def go(self):
         ror_system.enter_rig_editor()
         self.draw_demo_mesh()
+        self.camera_controller = camera.CameraOrbitController(
+            ror_system.get_camera(), ortho_zoom_ratio=1.7)
         self.was_exit_requested = False
         
         while (not self.was_exit_requested):
             self.reset_events()
+            self.input_handler.reset_inputs()
             ror_system.capture_input_and_update_gui()
+            
+            self._update_camera()
             
             if (self.events["exit_rig_editor"].was_fired):
                 self.was_exit_requested = True
