@@ -105,10 +105,10 @@ void LineListDynamicMesh::AddLine(Ogre::Vector3 const & start, Ogre::ColourValue
 
 void LineListDynamicMesh::PY_AddLine(boost::python::object pos1, boost::python::object color1, boost::python::object pos2, boost::python::object color2)
 {
-	auto p1 = PythonHelper::Vector3_Py2Ogre(pos1);
-	auto p2 = PythonHelper::Vector3_Py2Ogre(pos2);
-	auto c1 = PythonHelper::Color_Py2Ogre(color1);
-	auto c2 = PythonHelper::Color_Py2Ogre(color2);
+	auto p1 = PythonHelper::Vector3_FromPython(pos1);
+	auto p2 = PythonHelper::Vector3_FromPython(pos2);
+	auto c1 = PythonHelper::Color_FromPython(color1);
+	auto c2 = PythonHelper::Color_FromPython(color2);
 	this->AddLine(p1, c1, p2, c2);
 }
 

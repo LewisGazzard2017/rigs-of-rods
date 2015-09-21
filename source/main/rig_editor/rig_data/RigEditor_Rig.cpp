@@ -30,7 +30,6 @@
 #include "RigDef_File.h"
 #include "RigEditor_Beam.h"
 #include "RigEditor_CineCamera.h"
-#include "RigEditor_CameraHandler.h"
 #include "RigEditor_Config.h"
 #include "RigEditor_Flare.h"
 #include "RigEditor_FlexBodyWheel.h"
@@ -767,8 +766,10 @@ void Rig::BuildFromModule(RigDef::File::Module* module, RigBuildingReport* repor
 
 void Rig::RefreshNodeScreenPosition(Node & node, CameraHandler* camera_handler)
 {
+	// ===== STUB ====
+
 	Vector2int screen_pos(-1, -1);
-	bool node_visible = camera_handler->ConvertWorldToScreenPosition(node.GetPosition(), screen_pos);
+	bool node_visible = false; //camera_handler->ConvertWorldToScreenPosition(node.GetPosition(), screen_pos);
 	if (node_visible)
 	{
 		node.SetScreenPosition(screen_pos);

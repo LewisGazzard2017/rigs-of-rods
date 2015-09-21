@@ -69,7 +69,7 @@ bool InputHandler::keyReleased( const OIS::KeyEvent &arg )
 // ================================================================================
 // OIS Mouse listener
 // ================================================================================
-/* // TODO: Pythonize
+
 bool InputHandler::mouseMoved( const OIS::MouseEvent &mouse_event )
 {
 	MyGUI::InputManager::getInstance().injectMouseMove(
@@ -78,11 +78,8 @@ bool InputHandler::mouseMoved( const OIS::MouseEvent &mouse_event )
 		mouse_event.state.Z.abs
 		);
 
-	m_mouse_motion_event.AddRelativeMove(mouse_event.state.X.rel, mouse_event.state.Y.rel, mouse_event.state.Z.rel);
-	m_mouse_motion_event.abs_x = mouse_event.state.X.abs;
-	m_mouse_motion_event.abs_y = mouse_event.state.Y.abs;
-	m_mouse_motion_event.abs_wheel = mouse_event.state.Z.abs;
-
+	auto& state = mouse_event.state;
+	m_listener.attr("mouse_moved_or_scrolled_callback")(state.X.abs, state.Y.abs, state.X.rel, state.Y.rel, state.Z.rel);
 	return true;
 }
 
@@ -94,27 +91,8 @@ bool InputHandler::mousePressed( const OIS::MouseEvent &mouse_event, OIS::MouseB
 		MyGUI::MouseButton::Enum(button_id)
 		);
 
-	m_mouse_button_event.ButtonPressInputReceived(handled_by_gui);
-	if (handled_by_gui)
-	{
-		return true;
-	}
-
-	switch (button_id)
-	{
-	case OIS::MB_Right:
-		m_mouse_button_event.RightButtonDown();
-		break;
-	case OIS::MB_Left:
-		m_mouse_button_event.LeftButtonDown();
-		break;
-	case OIS::MB_Middle:
-		m_mouse_button_event.MiddleButtonDown();
-		break;
-	default:
-		assert(false && "Invalid OIS::MouseButtonID");
-	}
-
+	auto& state = mouse_event.state;
+	m_listener.attr("mouse_pressed_callback")(button_id, state.X.abs, state.Y.abs);
 	return true;
 }
 
@@ -126,26 +104,7 @@ bool InputHandler::mouseReleased( const OIS::MouseEvent &mouse_event, OIS::Mouse
 		MyGUI::MouseButton::Enum(button_id)
 		);
 
-	m_mouse_button_event.ButtonReleaseInputReceived(handled_by_gui);
-	if (handled_by_gui)
-	{
-		return true;
-	}
-
-	switch (button_id)
-	{
-	case OIS::MB_Right:
-		m_mouse_button_event.RightButtonUp();
-		break;
-	case OIS::MB_Left:
-		m_mouse_button_event.LeftButtonUp();
-		break;
-	case OIS::MB_Middle:
-		m_mouse_button_event.MiddleButtonUp();
-		break;
-	default:
-		assert(false && "Invalid OIS::MouseButtonID");
-	}
-
+	auto& state = mouse_event.state;
+	m_listener.attr("mouse_released_callback")(button_id, state.X.abs, state.Y.abs);
 	return true;
-}*/
+}

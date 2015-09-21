@@ -9,6 +9,8 @@
 #include <OgreVector3.h>
 #include <OgreColourValue.h>
 
+#include "RigEditor_Types.h"
+
 // Forward decl.
 namespace Ogre
 {
@@ -26,8 +28,9 @@ public:
 	/// Python likes paths with '/'; '\' is an escape.
 	static void PathConvertSlashesToForward(std::string& path);
 	
-	static Ogre::Vector3     Vector3_Py2Ogre(boost::python::object& obj);
-	static Ogre::ColourValue Color_Py2Ogre(boost::python::object& obj);
+	static Ogre::Vector3          Vector3_FromPython(boost::python::object& obj);
+	static RigEditor::Vector2int  Vector2int_FromPython(boost::python::object& obj);
+	static Ogre::ColourValue      Color_FromPython(boost::python::object& obj);
 };
 
 } // namespace RoR

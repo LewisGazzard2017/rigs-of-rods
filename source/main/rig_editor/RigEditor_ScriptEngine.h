@@ -28,6 +28,7 @@
 #pragma once
 
 #include "RoRPrerequisites.h"
+#include <boost/python/object.hpp>
 
 namespace RoR
 {
@@ -52,6 +53,8 @@ public:
 	bool EnterRigEditor();
 
 	void ShutDown();
+
+	boost::python::object Vector3_ToPython(Ogre::Vector3& v);
 
 protected:
 

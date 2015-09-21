@@ -37,6 +37,7 @@
 #include "RigEditor_LineListDynamicMesh.h"
 #include "RigEditor_Main.h"
 #include "RigEditor_PointListDynamicMesh.h"
+#include "RigEditor_CameraWrapper.h"
 #include "RoRPrerequisites.h"
 #include "RoRWindowEventUtilities.h"
 #include "Settings.h"
@@ -105,9 +106,34 @@ void PY_RegisterInputListener(object listener)
 	GetRigEditorGlobalInstance()->GetInputHandler().SetPythonInputListener(listener);
 }
 
+RigEditor::CameraWrapper* PY_GetCamera()
+{
+	return GetRigEditorGlobalInstance()->GetCameraWrapper();
+}
+
 BOOST_PYTHON_MODULE(ror_system)
 {
 	using namespace boost::python;
+
+	class_<CameraWrapper>("Camera", no_init)
+		.def("look_at",                          &CameraWrapper::PY_LookAt)
+		.def("yaw_degrees",                      &CameraWrapper::PY_YawDegrees)
+		.def("roll_degrees",                     &CameraWrapper::PY_RollDegrees)
+		.def("set_position",                     &CameraWrapper::PY_SetPosition)
+		.def("pitch_degrees",                    &CameraWrapper::PY_PitchDegrees)
+		.def("is_mode_ortho",                    &CameraWrapper::PY_IsModeOrtho)
+		.def("set_mode_ortho",                   &CameraWrapper::PY_SetModeOrtho)
+		.def("toggle_mode_ortho",                &CameraWrapper::PY_ToggleModeOrtho)
+		.def("set_fov_y_degrees",                &CameraWrapper::PY_SetFOVyDegrees)
+		.def("get_point_z_distance",             &CameraWrapper::PY_PointZDistance)
+		.def("set_far_clip_distance",            &CameraWrapper::PY_SetFarClipDistance)
+		.def("set_near_clip_distance",           &CameraWrapper::PY_SetNearClipDistance)
+		.def("set_ortho_window_width",           &CameraWrapper::PY_SetOrthoWindowWidth)
+		.def("convert_world_to_screen_position", &CameraWrapper::PY_ConvertWorldToScreenPosition)
+		.def("convert_screen_to_world_position", &CameraWrapper::PY_ConvertScreenToWorldPosition);
+
+	def("get_camera", &PY_GetCamera, return_value_policy<reference_existing_object>());
+
 	def("enter_rig_editor",               PY_EnterRigEditor);
 	def("render_frame_and_update_window", PY_RenderFrameAndUpdateWindow);
 	def("is_application_window_closed",   PY_IsRoRApplicationWindowClosed);
@@ -265,6 +291,15 @@ std::string ScriptEngine::GetConfigPath(const char* config_key)
 	std::string path = SSETTING(config_key, "");
 	PythonHelper::PathConvertSlashesToForward(path);
 	return path;
+}
+
+boost::python::object ScriptEngine::Vector3_ToPython(Ogre::Vector3& v)
+{
+	object res = eval("Vector3()", this->m_impl->py_main_namespace);
+	res['x'] = v.x;
+	res['y'] = v.y;
+	res['z'] = v.z;
+	return res;
 }
 
 // ###################################################################################################

@@ -43,6 +43,9 @@ namespace RoR
 namespace RigEditor
 {
 
+// Forward decl.
+class CameraWrapper;
+
 class Main: public IMain
 {
 public:
@@ -57,6 +60,7 @@ public:
 	inline InputHandler&         GetInputHandler()       { return m_input_handler; }
 	inline Ogre::SceneManager*   GetOgreSceneManager()   { return m_scene_manager; }
 	inline Config*               GetConfig()             { return m_config; }
+	inline CameraWrapper*        GetCameraWrapper()      { return m_camera_wrapper; }
 
 	// Python interface...
 
@@ -69,7 +73,7 @@ private:
 	Ogre::Viewport*      m_viewport;
 	Ogre::Camera*        m_camera;
 	InputHandler         m_input_handler;
-	CameraHandler*       m_camera_handler;
+	CameraWrapper*       m_camera_wrapper;
 
 
 	/*

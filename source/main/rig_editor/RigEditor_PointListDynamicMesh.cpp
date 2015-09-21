@@ -100,6 +100,6 @@ void PointListDynamicMesh::AddPoint(Ogre::Vector3 const & pos, Ogre::ColourValue
 
 void PointListDynamicMesh::PY_AddPoint(boost::python::object pos, boost::python::object color)
 {
-	this->AddPoint(PythonHelper::Vector3_Py2Ogre(pos), PythonHelper::Color_Py2Ogre(color));
+	this->AddPoint(PythonHelper::Vector3_FromPython(pos), PythonHelper::Color_FromPython(color));
 }
 

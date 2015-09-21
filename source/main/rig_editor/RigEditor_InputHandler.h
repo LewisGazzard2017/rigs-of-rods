@@ -58,10 +58,9 @@ public:
 	bool keyReleased( const OIS::KeyEvent &arg );
 
 	// OIS MouseListener
-	// TO BE PYTHONIZED ... empty bodies, just to compile.
-	bool mouseMoved( const OIS::MouseEvent &arg ) { return false; };
-	bool mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id ) { return false; };
-	bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id ) { return false; };
+	bool mouseMoved( const OIS::MouseEvent &arg );
+	bool mousePressed( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
+	bool mouseReleased( const OIS::MouseEvent &arg, OIS::MouseButtonID id );
 
 private:
 

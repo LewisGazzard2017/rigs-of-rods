@@ -52,7 +52,7 @@
 #include "RigDef_Parser.h"
 #include "RigDef_Serializer.h"
 #include "RigDef_Validator.h"
-#include "RigEditor_CameraHandler.h"
+#include "RigEditor_CameraWrapper.h"
 #include "RigEditor_Config.h"
 #include "RigEditor_InputHandler.h"
 #include "RigEditor_LineListDynamicMesh.h"
@@ -112,6 +112,7 @@ Main::Main(Config* config):
 	m_config(config),
 	m_scene_manager(nullptr),
 	m_camera(nullptr),
+	m_camera_wrapper(nullptr),
 	m_viewport(nullptr)
 {
 	/* Setup 3D engine */
@@ -128,15 +129,17 @@ Main::Main(Config* config):
 	m_camera->setAutoAspectRatio(true);
 
 	/* Camera handling */
-	m_camera_handler = new CameraHandler(m_camera);
-	m_camera_handler->SetOrbitTarget(m_scene_manager->getRootSceneNode());	
-	m_camera_handler->SetOrthoZoomRatio(config->ortho_camera_zoom_ratio);
-	m_camera->setPosition(Ogre::Vector3(10,5,10));
-
+	m_camera_wrapper = new CameraWrapper();
+	m_camera_wrapper->SetCamera(m_camera);
 }
 
 Main::~Main()
 {
+	if (m_camera_wrapper)
+	{
+		delete m_camera_wrapper;
+		m_camera_wrapper = nullptr;
+	}
 }
 
 void Main::PY_OnEnter_SetupCameraAndViewport()
