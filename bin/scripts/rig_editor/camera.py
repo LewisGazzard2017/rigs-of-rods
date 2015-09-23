@@ -13,6 +13,11 @@ class CameraOrbitController:
         
         camera.set_position(Vector3(10,5,10)) # Initial pos. TODO: Make configurable
         camera.look_at(self.orbit_target)
+        # TODO - IMPORTANT
+        # Investigate why result of {camera.get_point_z_distance()}
+        # may be slightly inaccurate (too high) depending on camera angle.
+        # Observed when using this funcion to compute distance each frame:
+        # under most angles, the camera was moving away from the target.
         self.camera_distance = camera.get_point_z_distance(self.orbit_target)
         
     def update_ortho_zoom(self):
