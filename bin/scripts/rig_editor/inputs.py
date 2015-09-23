@@ -343,31 +343,4 @@ class InputListener:
     
     def mouse_moved_or_scrolled_callback(self, x_abs, y_abs, x_rel, y_rel, z_rel):
         self.mouse_state.update(x_abs, y_abs, x_rel, y_rel, z_rel)
-        
-        
-"""    # Only mouse buttons can have events    
-    def add_mouse_event_mapping(self, mouse_button_code, event):
-        if self.mouse_button_map[mouse_button_code] == None:
-            self.mouse_button_map[mouse_button_code] = InputMapping()
-        self.mouse_button_map[mouse_button_code].set_event(event)
-    
-    # Only mouse buttons can have modes    
-    def add_mouse_mode_mapping(self, mouse_button_code, mode, mode_op):
-        if self.mouse_button_map[mouse_button_code] == None:
-            self.mouse_button_map[mouse_button_code] = InputMapping()
-        self.mouse_button_map[mouse_button_code].set_mode(mode, mode_op) 
-"""        
-"""    def _add_mouse_event_mapping(mousemap, btn_code, event):
-        InputListener._check_mouse_mapping(mousemap, btn_code)
-        mousemap[btn_code].set_event(event)
-        
-    def _add_mouse_event_mapping(mousemap, btn_code, mode, mode_op):
-        InputListener._check_mouse_mapping(mousemap, btn_code)
-        mousemap[btn_code].set_mode(mode, mode_op)
-            
-    def _check_mouse_mapping(mousemap, mouse_button_code):
-        if mousemap[mouse_button_code] == None:
-            mousemap[mouse_button_code] = InputMapping() 
-"""
 
-        
