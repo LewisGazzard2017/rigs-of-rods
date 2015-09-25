@@ -18,48 +18,9 @@ Working technical preview:
  3. stays idle until you pres ESC key to exit to main menu.
  4. user may enter RigEditor any number of times.
 
-#### API Draft
+#### Documentation
 
-##### Module "ror_truck_fileformat" (draft)
-Bindings for RigDef* C++ API for reading/writing files in the classic .truck format.
+RigEditor uses Sphinx (www.sphinx-doc.org) to generate documentation.
 
-    class Parser
-        Parser.parse(file_path) >> Rig instance
-        Parser.get_report() >> List of messages
-    class Serializer
-        Serializer.serialize(rig_instance, file_path)
-
-##### Module "ror_gui"
-Simplified bindings to MyGUI library for GUI manipulation. Entire editor GUI will be made through this module.
-
-    (draft) load_layout(file_path) >> Window -- Loads MyGUI's XML .layout file
-    (draft) class Window
-        (draft) Window.find_widget(widget_name) >> Widget
-    (draft) class Widget
-        (draft) Widget.bind_event_callback(event_type, callback_func)
-    (draft) show_open_save_file_dialog(mode, finished_callback)
-    
-##### Module "ror_drawing"
-Simplified bindings to OGRE engine for creating/manipulating 3D objects. All editor visualizations will be done through this module.
-
-    [DONE] class LinesMesh
-    [DONE] class PointsMesh
-        [DONE] *Mesh.begin_update()
-        [DONE] *Mesh.end_update()
-        [DONE] LinesMesh.add_line(position1, color1, position2, color2)
-        [DONE] PointsMesh.add_point(position, color)
-    (draft) class CameraController
-        (draft) CameraController.set_rotation_center(position)
-        (draft) CameraController.get_rotation_center(position)
-        (draft) CameraController.update(move_horizontal, move_vertical, zoom)
-
-##### Module "ror_system"
-Minimal necessary interaction with the surrounding application.
-
-    [DONE] enter_rig_editor()
-    [DONE] render_frame_and_update_window()
-    [DONE] is_application_window_closed()
-    [DONE] request_application_shutdown()
-    [DONE] register_input_listener(input_listener)
-    [DONE] capture_input_and_update_gui()
-    
+The source text is located in doc/sphinx. 
+Build scripts (Makefile + make.bat) are included.
