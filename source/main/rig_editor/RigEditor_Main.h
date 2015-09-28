@@ -45,6 +45,7 @@ namespace RigEditor
 
 // Forward decl.
 class CameraWrapper;
+class ScriptEngine;
 
 class Main: public IMain
 {

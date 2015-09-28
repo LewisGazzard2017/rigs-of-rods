@@ -294,13 +294,15 @@ std::string ScriptEngine::GetConfigPath(const char* config_key)
 	return path;
 }
 
-boost::python::object ScriptEngine::Vector3_ToPython(Ogre::Vector3& v)
+void ScriptEngine::Vector3_ToPython(Ogre::Vector3& v, void* boost_python_object_ptr)
 {
 	object res = eval("Vector3()", this->m_impl->py_main_namespace);
 	res['x'] = v.x;
 	res['y'] = v.y;
 	res['z'] = v.z;
-	return res;
+
+	object* target = static_cast<object*>(boost_python_object_ptr);
+	*target = res;
 }
 
 // ###################################################################################################

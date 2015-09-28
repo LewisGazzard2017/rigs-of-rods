@@ -28,7 +28,6 @@
 #pragma once
 
 #include "RoRPrerequisites.h"
-#include <boost/python/object.hpp>
 
 namespace RoR
 {
@@ -54,7 +53,8 @@ public:
 
 	void ShutDown();
 
-	boost::python::object Vector3_ToPython(Ogre::Vector3& v);
+	/// @param boost_python_object_ptr Void*, because boost::python can't be included in headers for some::reason<T>.
+	void Vector3_ToPython(Ogre::Vector3& v, void* boost_python_object_ptr);
 
 protected:
 
