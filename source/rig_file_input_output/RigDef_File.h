@@ -91,6 +91,21 @@ struct NodeDefaults
 	float volume;
 	float surface;
 	unsigned int options; ///< Bit flags
+
+	// IMPORTANT!
+	// These definitions _MUST_ match definitions in RigDef::Node
+	BITMASK_PROPERTY( options,  1, OPTION_n_MOUSE_GRAB        , HasFlag_n, SetFlag_n)
+	BITMASK_PROPERTY( options,  2, OPTION_m_NO_MOUSE_GRAB     , HasFlag_m, SetFlag_m)
+	BITMASK_PROPERTY( options,  3, OPTION_f_NO_SPARKS         , HasFlag_f, SetFlag_f)
+	BITMASK_PROPERTY( options,  4, OPTION_x_EXHAUST_POINT     , HasFlag_x, SetFlag_x)
+	BITMASK_PROPERTY( options,  5, OPTION_y_EXHAUST_DIRECTION , HasFlag_y, SetFlag_y)
+	BITMASK_PROPERTY( options,  6, OPTION_c_NO_GROUND_CONTACT , HasFlag_c, SetFlag_c)
+	BITMASK_PROPERTY( options,  7, OPTION_h_HOOK_POINT        , HasFlag_h, SetFlag_h)
+	BITMASK_PROPERTY( options,  8, OPTION_e_TERRAIN_EDIT_POINT, HasFlag_e, SetFlag_e)
+	BITMASK_PROPERTY( options,  9, OPTION_b_EXTRA_BUOYANCY    , HasFlag_b, SetFlag_b)
+	BITMASK_PROPERTY( options, 10, OPTION_p_NO_PARTICLES      , HasFlag_p, SetFlag_p)
+	BITMASK_PROPERTY( options, 11, OPTION_L_LOG               , HasFlag_L, SetFlag_L)
+	BITMASK_PROPERTY( options, 12, OPTION_l_LOAD_WEIGHT       , HasFlag_l, SetFlag_l)
 };
 
 /* -------------------------------------------------------------------------- */
