@@ -34,6 +34,9 @@ namespace RigDef
 	{
 		public:
 		static void AppendInittab();
+
+		static void ExportNode();
+		static void ExportFile();
 	};
 }
 
