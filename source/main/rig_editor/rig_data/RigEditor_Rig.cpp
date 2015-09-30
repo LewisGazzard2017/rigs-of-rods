@@ -1216,7 +1216,7 @@ boost::shared_ptr<RigDef::File> Rig::Export()
 
 	// Allocate
 	auto def = boost::shared_ptr<File>(new RigDef::File());
-	auto module = boost::shared_ptr<File::Module>(new File::Module("_Root_"));
+	auto module = boost::shared_ptr<File::Module>(new File::Module());
 	def->root_module = module;
 
 	// Fill node data

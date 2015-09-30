@@ -545,4 +545,11 @@ std::string Validator::ProcessMessagesToString()
 	return report.str();
 }
 
+boost::shared_ptr<File> Validator::GetFileOwnership()
+{
+	auto file = m_file;
+	m_file.reset();
+	return file;
+}
+
 } // namespace RigDef

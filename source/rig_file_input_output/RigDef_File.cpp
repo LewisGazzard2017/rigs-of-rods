@@ -520,8 +520,7 @@ const char * File::KeywordToString(File::Keyword keyword)
 	}
 }
 
-File::Module::Module(Ogre::String const & name):
-	name(name)
+File::Module::Module()
 {
 	/* Pre-allocate */
 	airbrakes.reserve(10);

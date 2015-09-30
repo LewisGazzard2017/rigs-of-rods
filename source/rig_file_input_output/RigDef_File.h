@@ -1968,7 +1968,7 @@ struct File
 	*/
 	struct Module
 	{
-		Module(Ogre::String const & name);
+		Module();
 
 		Ogre::String name;
 

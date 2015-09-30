@@ -98,6 +98,8 @@ public:
 
     std::string ProcessMessagesToString();
 
+	boost::shared_ptr<File> GetFileOwnership();
+
 private:
 
 	/**

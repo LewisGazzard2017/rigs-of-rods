@@ -5482,7 +5482,8 @@ void Parser::SetCurrentModule(Ogre::String const & name)
 	}
 	else
 	{
-		m_current_module = boost::shared_ptr<File::Module>( new File::Module(name) );
+		m_current_module = boost::shared_ptr<File::Module>( new File::Module() );
+		m_current_module->name = name;
 		m_definition->modules.insert( 
 				std::pair< Ogre::String, boost::shared_ptr<File::Module> >(name, m_current_module) 
 			);
@@ -5579,7 +5580,8 @@ void Parser::Prepare()
 	m_user_node_defaults = m_ror_node_defaults;
 	m_current_managed_material_options = ManagedMaterialsOptions();
 
-	m_root_module = boost::shared_ptr<File::Module>( new File::Module("_Root_") );
+	m_root_module = boost::shared_ptr<File::Module>( new File::Module() );
+	m_root_module->name = "_Root_";
 	m_definition->root_module = m_root_module;
 	m_current_module = m_root_module;
 

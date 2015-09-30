@@ -147,6 +147,8 @@ struct Node
 
     Ref CreateRef();
 
+	bool operator==(Node const & rhs) { return this->id.Str() == rhs.id.Str(); }
+
 	BITMASK_PROPERTY( options,  1, OPTION_n_MOUSE_GRAB        , HasFlag_n, SetFlag_n)
 	BITMASK_PROPERTY( options,  2, OPTION_m_NO_MOUSE_GRAB     , HasFlag_m, SetFlag_m)
 	BITMASK_PROPERTY( options,  3, OPTION_f_NO_SPARKS         , HasFlag_f, SetFlag_f)

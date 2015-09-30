@@ -8,6 +8,7 @@ import camera
 # System
 import ror_system
 import ror_drawing
+import ror_truckfile
 
 
 
@@ -69,7 +70,7 @@ class Application:
             mode.was_activated = False
             mode.was_deactivated = False  
         
-    def draw_demo_mesh(self):
+    def TEST_draw_demo_mesh(self):
         mesh = ror_drawing.create_lines_mesh();
         mesh.set_position(Vector3(0,0,0))
         mesh.begin_update()
@@ -79,6 +80,19 @@ class Application:
         mesh.end_update()
         mesh.attach_to_scene()
         
+    def TEST_import_truckfile(self, directory, filename):
+        parser = ror_truckfile.Parser()
+        parser.parse_file(directory, filename)
+        truck = parser.get_parsed_file()
+        print("-- TRUCK --")
+        print("name: ", truck.name)
+        print("-- ROOT MODULE --")
+        m = truck.root_module
+        print("name:", m.name)
+        m.name = "NameTest" # Does string assignment work?
+        print("name test: [" + truck.root_module.name + "]")
+        print("num nodes: ", len(m.nodes))       
+        
     def _update_camera(self):
         mouse_state = self.input_handler.mouse_state
         do_orbit = mouse_state.is_right_button_pressed()
@@ -87,10 +101,13 @@ class Application:
     
     def go(self):
         ror_system.enter_rig_editor()
-        self.draw_demo_mesh()
+        self.TEST_draw_demo_mesh()
         self.camera_controller = camera.CameraOrbitController(
             ror_system.get_camera(), ortho_zoom_ratio=1.7)
         self.was_exit_requested = False
+        
+        # Truckfile import test
+        self.TEST_import_truckfile("d:\Projects\Rigs of Rods\RigEditor-Python", "test-rig.truck")
         
         while (not self.was_exit_requested):
             self.reset_events()
