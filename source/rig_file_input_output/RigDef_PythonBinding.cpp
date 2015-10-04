@@ -107,9 +107,11 @@ BOOST_PYTHON_MODULE(ror_truckfile)
 		;
 
 	PythonBinding::ExportNode();
+	PythonBinding::ExportBeam();
 
 	class_<RigDef::File::Module>("Module")
 		.def_readwrite("nodes", &File::Module::nodes)
+		.def_readwrite("beams", &File::Module::beams)
 		.def_readwrite("name",  &File::Module::name)
 		;
 

@@ -447,6 +447,13 @@ struct Beam
 	BITMASK_PROPERTY(options, 2, OPTION_r_ROPE     , HasFlag_r_Rope     , SetFlag_r_Rope     );
 	BITMASK_PROPERTY(options, 3, OPTION_s_SUPPORT  , HasFlag_s_Support  , SetFlag_s_Support  );
 
+	Node::Ref PY_GetNode1()              { return this->nodes[0]; }
+	Node::Ref PY_GetNode2()              { return this->nodes[1]; }
+	void      PY_SetNode1(Node::Ref ref) { this->nodes[0] = ref;  }
+	void      PY_SetNode2(Node::Ref ref) { this->nodes[1] = ref;  }
+
+	bool operator==(Beam const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
 	Node::Ref nodes[2];
 	unsigned int options; ///< Bit flags
 	float extension_break_limit;

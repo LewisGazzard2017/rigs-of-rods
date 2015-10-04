@@ -47,8 +47,13 @@ void PythonBinding::ExportNode()
 	class_<RigDef::Node::Id>("NodeId")
 		.def("to_str", &Node::Id::ToString)
 
-		//.add_property("id_str",    &Node::Id::Str, &Node::Id::SetStr)
+		.add_property("id_str",    &Node::Id::StrCopy, &Node::Id::SetStr)
 		.add_property("id_num",    &Node::Id::Num, &Node::Id::SetNum)
+		;
+
+	class_<RigDef::Node::Ref>("NodeRef")
+		.def("get_id_str", &Node::Ref::StrCopy)
+		.def("get_id_num", &Node::Ref::Num)
 		;
 
 	class_<RigDef::NodeDefaults>("NodeDefaults")

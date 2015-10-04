@@ -36,7 +36,7 @@ namespace RigDef
 		static void AppendInittab();
 
 		static void ExportNode();
-		static void ExportFile();
+		static void ExportBeam();
 	};
 }
 

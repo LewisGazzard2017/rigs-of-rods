@@ -60,6 +60,7 @@ struct Node
 
         // Getters
         inline std::string const & Str() const           { return m_id_str; }
+        inline std::string         StrCopy() const       { return m_id_str; }
         inline unsigned int        Num() const           { return m_id_num; }
         inline unsigned int        GetFlagsRaw() const   { return m_flags; }
 
@@ -93,8 +94,10 @@ struct Node
         Ref(std::string const & id_str, unsigned int id_num, unsigned flags, unsigned line_number_defined);
         Ref();
 
-        inline std::string const & Str() const        { return m_id; }
-        inline unsigned int        Num() const        { return m_id_as_number; }
+        inline std::string         StrCopy() const        { return m_id; }
+        inline std::string const & Str()     const        { return m_id; }
+        inline unsigned int        Num()     const        { return m_id_as_number; }
+
 
         inline bool Compare   (Ref const & rhs) const { return m_id == rhs.m_id; }
         inline bool operator==(Ref const & rhs) const { return Compare(rhs); }
