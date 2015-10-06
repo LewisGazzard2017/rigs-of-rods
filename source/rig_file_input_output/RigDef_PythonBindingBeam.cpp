@@ -51,7 +51,7 @@ void PythonBinding::ExportBeam()
 		.def_readwrite("breaking_threshold_constant"   , &BeamDefaultsScale::breaking_threshold_constant   )
 		;
 
-	class_<RigDef::BeamDefaults>("BeamDefaults")
+	class_<RigDef::BeamDefaults>("BeamPreset")
 		.def_readwrite("springiness"                   ,  &BeamDefaults::springiness                   )
 		.def_readwrite("damping_constant"              ,  &BeamDefaults::damping_constant              )
 		.def_readwrite("deformation_threshold_constant",  &BeamDefaults::deformation_threshold_constant)

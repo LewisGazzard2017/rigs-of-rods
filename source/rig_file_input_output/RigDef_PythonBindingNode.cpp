@@ -56,7 +56,7 @@ void PythonBinding::ExportNode()
 		.def("get_id_num", &Node::Ref::Num)
 		;
 
-	class_<RigDef::NodeDefaults>("NodeDefaults")
+	class_<RigDef::NodeDefaults>("NodePreset")
 		.def_readwrite("load_weight", &NodeDefaults::load_weight)
 		.def_readwrite("friction",    &NodeDefaults::friction)
 		.def_readwrite("volume",      &NodeDefaults::volume)
