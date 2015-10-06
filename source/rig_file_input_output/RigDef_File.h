@@ -462,6 +462,18 @@ struct Beam
 	boost::shared_ptr<BeamDefaults> defaults;
 };
 
+struct BeamGroupWithPreset
+{
+	boost::shared_ptr<BeamDefaults> preset;
+	std::vector<Beam>               beams;
+
+	// For boost::python::vector_indexing_suite to compile
+	bool operator==(BeamGroupWithPreset const & rhs)
+	{
+		return rhs.preset.get() == this->preset.get();
+	}
+};
+
 /* -------------------------------------------------------------------------- */
 /* Section CAMERAS
 /* -------------------------------------------------------------------------- */
@@ -2003,6 +2015,7 @@ struct File
 		boost::shared_ptr<AntiLockBrakes>  anti_lock_brakes;
 		std::vector<Axle>                  axles;
 		std::vector<Beam>                  beams;
+		std::vector<BeamGroupWithPreset>   beams_by_preset;
 		boost::shared_ptr<Brakes>          brakes;
 		std::vector<Camera>                cameras;
 		std::vector<CameraRail>            camera_rails;
@@ -2010,12 +2023,12 @@ struct File
 		std::vector<Cinecam>               cinecam;
 		std::vector<Command2>              commands_2; /* sections 'commands' & 'commands2' are unified */
 		boost::shared_ptr<CruiseControl>   cruise_control;
-		std::vector<Node::Ref>              contacters;
+		std::vector<Node::Ref>             contacters;
 		boost::shared_ptr<Engine>          engine;
 		boost::shared_ptr<Engoption>       engoption;
 		std::vector<Exhaust>               exhausts;
 		boost::shared_ptr<ExtCamera>       ext_camera;
-		std::vector<Node::Ref>              fixes;
+		std::vector<Node::Ref>             fixes;
 		std::vector<Flare2>                flares_2;
 		std::vector<
 			boost::shared_ptr<Flexbody>
@@ -2032,6 +2045,7 @@ struct File
 		std::vector<MeshWheel>             mesh_wheels;
 		std::vector<MeshWheel2>            mesh_wheels_2;
 		std::vector<Node>                  nodes; /* Nodes and Nodes2 are unified in this parser */
+		std::vector<NodeGroupWithPreset>   nodes_by_preset;
 		std::vector<NodeCollision>         node_collisions;
 		std::vector<Particle>              particles;
 		std::vector<Pistonprop>            pistonprops;
@@ -2064,6 +2078,9 @@ struct File
 		std::vector<Wheel>                 wheels;
 		std::vector<Wheel2>                wheels_2;
 		std::vector<Wing>                  wings;
+
+		void GroupBeamsByPreset();
+		void GroupNodesByPreset();
 	};
 
 	File();
@@ -2271,6 +2288,9 @@ struct File
 	static const char * SectionToString(Section section);
 
 	static const char * KeywordToString(Keyword keyword);
+
+	void GroupBeamsByPreset();
+	void GroupNodesByPreset();
 
 	unsigned int file_format_version;
 	Ogre::String guid;

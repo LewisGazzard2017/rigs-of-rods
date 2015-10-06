@@ -35,7 +35,7 @@ class Demo:
         print("-- NODES --")
         
         def print_node(node):
-            text = "\tNode | id: " + node.id.to_str()
+            text = "\t\tNode | id: " + node.id.to_str()
             text += ", id_num: " + str(node.id.id_num)
             text += ", id_str: " + node.id.id_str
             text += ", x: " + str(node.position.x)
@@ -43,29 +43,25 @@ class Demo:
             text += ", flag_l: " + str(node.option_l)
             print(text) 
         
-        print("num nodes: ", len(m.nodes))
-        for node in m.nodes:
-            print_node(node)
-        # Does property assignment work?
-        n = m.nodes[0]
-        print("node flag test A: ", n.option_x)
-        m.nodes[0].option_x = True
-        print("node flag test B: ", m.nodes[0].option_x) 
-        # String property test
-        print("string property test A: ", n.id.id_str)
-        n.id.id_str = "TestPassed!"
-        print("string property test B: ", m.nodes[0].id.id_str)
+        print("num node presets: ", len(m.nodes_by_preset))
+        for node_group in m.nodes_by_preset:
+            print("\tNodePreset (count:", len(node_group.nodes), ")")
+            for node in node_group.nodes:
+                print_node(node)
         
         # Beams
         print("-- BEAMS --")
         
         def print_beam(beam):
-          text = "\tBeam | node1:" + beam.node_1.get_id_str()
+          text = "\t\tBeam | node1:" + beam.node_1.get_id_str()
           text += ", node2:" + beam.node_2.get_id_str()
           print(text)  
         
-        print("num beams: ", len(m.beams))
-        for beam in m.beams:
-            print_beam(beam)
+        print("num beam presets: ", len(m.beams_by_preset))
+        for beam_group in m.beams_by_preset:
+            print("\tBeamPreset (count:", len(beam_group.beams), ")")
+            for beam in beam_group.beams:
+                print_beam(beam)
+        
         
         

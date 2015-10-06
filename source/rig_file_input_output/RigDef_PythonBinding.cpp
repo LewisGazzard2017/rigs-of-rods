@@ -86,7 +86,10 @@ public:
 
 	boost::shared_ptr<File> PY_GetParsedFile()
 	{
-		return m_validator.GetFileOwnership();
+		auto file = m_validator.GetFileOwnership();
+		file->GroupNodesByPreset();
+		file->GroupBeamsByPreset();
+		return file;
 	}
 
 private:
@@ -110,9 +113,9 @@ BOOST_PYTHON_MODULE(ror_truckfile)
 	PythonBinding::ExportBeam();
 
 	class_<RigDef::File::Module>("Module")
-		.def_readwrite("nodes", &File::Module::nodes)
-		.def_readwrite("beams", &File::Module::beams)
-		.def_readwrite("name",  &File::Module::name)
+		.def_readwrite("nodes_by_preset", &File::Module::nodes_by_preset)
+		.def_readwrite("beams_by_preset", &File::Module::beams_by_preset)
+		.def_readwrite("name",            &File::Module::name)
 		;
 
 	register_ptr_to_python< boost::shared_ptr<RigDef::File::Module> >();

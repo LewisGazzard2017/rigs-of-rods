@@ -103,4 +103,13 @@ void PythonBinding::ExportNode()
 		.def(vector_indexing_suite< std::vector<RigDef::Node> >())
 		;
 
+	class_<RigDef::NodeGroupWithPreset>("NodeGroupWithPreset")
+		.def_readwrite("preset",  &NodeGroupWithPreset::preset)
+		.def_readwrite("nodes",   &NodeGroupWithPreset::nodes)
+		;
+
+	class_<std::vector<RigDef::NodeGroupWithPreset> >("NodeGroupVector")
+		.def(vector_indexing_suite< std::vector<RigDef::NodeGroupWithPreset> >())
+		;
+
 }

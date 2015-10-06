@@ -87,4 +87,13 @@ void PythonBinding::ExportBeam()
 	class_<std::vector<RigDef::Beam> >("BeamVector")
 		.def(vector_indexing_suite< std::vector<RigDef::Beam> >())
 		;
+
+	class_<RigDef::BeamGroupWithPreset>("BeamGroupWithPreset")
+		.def_readwrite("preset",  &BeamGroupWithPreset::preset)
+		.def_readwrite("beams",   &BeamGroupWithPreset::beams)
+		;
+
+	class_<std::vector<RigDef::BeamGroupWithPreset> >("BeamGroupVector")
+		.def(vector_indexing_suite< std::vector<RigDef::BeamGroupWithPreset> >())
+		;
 }

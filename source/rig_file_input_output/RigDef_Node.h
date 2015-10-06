@@ -175,4 +175,16 @@ struct Node
 	int detacher_group;
 };
 
+struct NodeGroupWithPreset
+{
+	boost::shared_ptr<NodeDefaults> preset;
+	std::vector<Node>               nodes;
+
+	// For boost::python::vector_indexing_suite to compile
+	bool operator==(NodeGroupWithPreset const & rhs)
+	{
+		return rhs.preset.get() == this->preset.get();
+	}
+};
+
 } //namespace RigDef

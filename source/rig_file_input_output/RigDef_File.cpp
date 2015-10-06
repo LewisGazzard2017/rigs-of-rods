@@ -588,4 +588,112 @@ File::File():
 	description.reserve(20);
 }
 
+void File::GroupBeamsByPreset()
+{
+	this->root_module->GroupBeamsByPreset();
+
+	auto module_itor = this->modules.begin();
+	auto module_iend = this->modules.end();
+	for (; module_itor != module_iend; ++module_itor)
+	{
+		File::Module* module = (*module_itor).second.get();
+		module->GroupBeamsByPreset();
+	}
+}
+
+void File::Module::GroupBeamsByPreset()
+{
+	if (this->beams.empty())
+	{
+		return;
+	}
+
+	std::unordered_map< BeamDefaults*, BeamGroupWithPreset > beams_by_preset;
+	auto beam_iend = this->beams.end();
+	auto beam_itor = this->beams.begin();
+	for (; beam_itor != beam_iend; ++beam_itor)
+	{
+		Beam & beam = *beam_itor;
+		BeamDefaults* preset = beam.defaults.get();
+
+		// Ensure preset is in map
+		auto found_itor = beams_by_preset.find(preset);
+		if (found_itor == beams_by_preset.end())
+		{
+			// Preset not in map, insert it and add beam.
+			BeamGroupWithPreset group;
+			group.beams.reserve(100);
+			group.beams.push_back(beam);
+			beams_by_preset.insert(std::make_pair(preset, group));
+		}
+		else
+		{
+			// Preset in map, just add beam.
+			found_itor->second.beams.push_back(beam);
+		}
+	}
+
+	// Transfer grouped beams to Module
+	auto group_itor = beams_by_preset.begin();
+	auto group_iend = beams_by_preset.end();
+	for (; group_itor != group_iend; ++group_itor)
+	{
+		this->beams_by_preset.emplace_back(group_itor->second);
+	}
+}
+
+void File::GroupNodesByPreset()
+{
+	this->root_module->GroupNodesByPreset();
+
+	auto module_itor = this->modules.begin();
+	auto module_iend = this->modules.end();
+	for (; module_itor != module_iend; ++module_itor)
+	{
+		File::Module* module = (*module_itor).second.get();
+		module->GroupNodesByPreset();
+	}
+}
+
+void File::Module::GroupNodesByPreset()
+{
+	if (this->nodes.empty())
+	{
+		return;
+	}
+
+	std::unordered_map< NodeDefaults*, NodeGroupWithPreset > nodes_by_preset;
+	auto node_iend = this->nodes.end();
+	auto node_itor = this->nodes.begin();
+	for (; node_itor != node_iend; ++node_itor)
+	{
+		Node & node = *node_itor;
+		NodeDefaults* preset = node.node_defaults.get();
+
+		// Ensure preset is in map
+		auto found_itor = nodes_by_preset.find(preset);
+		if (found_itor == nodes_by_preset.end())
+		{
+			// Preset not in map, insert it and add node.
+			NodeGroupWithPreset group;
+			group.nodes.reserve(100);
+			group.nodes.push_back(node);
+			nodes_by_preset.insert(std::make_pair(preset, group));
+		}
+		else
+		{
+			// Preset in map, just add node.
+			found_itor->second.nodes.push_back(node);
+		}
+	}
+
+	// Transfer grouped nodes to Module
+	auto group_itor = nodes_by_preset.begin();
+	auto group_iend = nodes_by_preset.end();
+	for (; group_itor != group_iend; ++group_itor)
+	{
+		this->nodes_by_preset.emplace_back(group_itor->second);
+	}
+}
+
 } /* namespace RigDef */
