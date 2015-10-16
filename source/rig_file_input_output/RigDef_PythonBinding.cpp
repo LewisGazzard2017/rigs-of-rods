@@ -88,7 +88,7 @@ public:
 	{
 		auto file = m_validator.GetFileOwnership();
 		file->GroupNodesByPreset();
-		file->GroupBeamsByPreset();
+		file->GroupAllBeamTypesByPreset();
 		return file;
 	}
 
@@ -111,11 +111,14 @@ BOOST_PYTHON_MODULE(ror_truckfile)
 
 	PythonBinding::ExportNode();
 	PythonBinding::ExportBeam();
+	PythonBinding::ExportPowertrain();
+	PythonBinding::ExportCommandHydro();
 
 	class_<RigDef::File::Module>("Module")
-		.def_readwrite("nodes_by_preset", &File::Module::nodes_by_preset)
-		.def_readwrite("beams_by_preset", &File::Module::beams_by_preset)
-		.def_readwrite("name",            &File::Module::name)
+		.def_readwrite("nodes_by_preset",          &File::Module::nodes_by_preset)
+		.def_readwrite("beams_by_preset",          &File::Module::beams_by_preset)
+		.def_readwrite("command_hydros_by_preset", &File::Module::commands2_by_preset)
+		.def_readwrite("name",                     &File::Module::name)
 		;
 
 	register_ptr_to_python< boost::shared_ptr<RigDef::File::Module> >();
@@ -130,6 +133,14 @@ BOOST_PYTHON_MODULE(ror_truckfile)
 	class_<ParserWrapper>("Parser")
 		.def("parse_file",      &ParserWrapper::PY_ParseFile)
 		.def("get_parsed_file", &ParserWrapper::PY_GetParsedFile)
+		;
+
+	class_<std::vector<float> >("FloatVector")
+		.def(vector_indexing_suite< std::vector<float> >())
+		;
+
+	class_<std::vector<char> >("CharVector")
+		.def(vector_indexing_suite< std::vector<char> >())
 		;
 }
 

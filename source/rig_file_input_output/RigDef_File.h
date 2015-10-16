@@ -428,6 +428,16 @@ struct Axle
 
 	Node::Ref wheels[2][2];
 	std::vector<char> options; //!< Order matters!
+
+	Node::Ref  PY_GetNode_Wheel1Node1()            { return wheels[0][0]; }
+	Node::Ref  PY_GetNode_Wheel1Node2()            { return wheels[0][1]; }
+	Node::Ref  PY_GetNode_Wheel2Node1()            { return wheels[1][0]; }
+	Node::Ref  PY_GetNode_Wheel2Node2()            { return wheels[1][1]; }
+
+	void       PY_SetNode_Wheel1Node1(Node::Ref n) { this->wheels[0][0] = n; }
+	void       PY_SetNode_Wheel1Node2(Node::Ref n) { this->wheels[0][1] = n; }
+	void       PY_SetNode_Wheel2Node1(Node::Ref n) { this->wheels[1][0] = n; }
+	void       PY_SetNode_Wheel2Node2(Node::Ref n) { this->wheels[1][1] = n; }
 };
 
 /* -------------------------------------------------------------------------- */
@@ -1275,9 +1285,28 @@ struct Command2
 	boost::shared_ptr<DefaultInertia> inertia_defaults;
 	int detacher_group;
 
+	bool operator==(Command2 const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
 	inline bool HasOption(unsigned int option) const
 	{
 		return BITMASK_IS_1(options, option);
+	}
+
+	Node::Ref PY_GetNode1()              { return this->nodes[0]; }
+	Node::Ref PY_GetNode2()              { return this->nodes[1]; }
+	void      PY_SetNode1(Node::Ref ref) { this->nodes[0] = ref;  }
+	void      PY_SetNode2(Node::Ref ref) { this->nodes[1] = ref;  }
+};
+
+struct Command2GroupWithPreset
+{
+	boost::shared_ptr<BeamDefaults> preset;
+	std::vector<Command2>           commands;
+
+	// For boost::python::vector_indexing_suite to compile
+	bool operator==(Command2GroupWithPreset const & rhs)
+	{
+		return rhs.preset.get() == this->preset.get();
 	}
 };
 
@@ -2021,8 +2050,9 @@ struct File
 		std::vector<CameraRail>            camera_rails;
 		std::vector<CollisionBox>          collision_boxes;
 		std::vector<Cinecam>               cinecam;
-		std::vector<Command2>              commands_2; /* sections 'commands' & 'commands2' are unified */
-		boost::shared_ptr<CruiseControl>   cruise_control;
+		std::vector<Command2>                commands_2; /* sections 'commands' & 'commands2' are unified */
+        std::vector<Command2GroupWithPreset> commands2_by_preset;
+		boost::shared_ptr<CruiseControl>     cruise_control;
 		std::vector<Node::Ref>             contacters;
 		boost::shared_ptr<Engine>          engine;
 		boost::shared_ptr<Engoption>       engoption;
@@ -2081,6 +2111,7 @@ struct File
 
 		void GroupBeamsByPreset();
 		void GroupNodesByPreset();
+		void GroupCommandHydrosByPreset();
 	};
 
 	File();
@@ -2289,7 +2320,7 @@ struct File
 
 	static const char * KeywordToString(Keyword keyword);
 
-	void GroupBeamsByPreset();
+	void GroupAllBeamTypesByPreset();
 	void GroupNodesByPreset();
 
 	unsigned int file_format_version;

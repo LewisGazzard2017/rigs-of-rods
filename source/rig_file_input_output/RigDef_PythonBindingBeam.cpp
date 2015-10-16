@@ -81,7 +81,7 @@ void PythonBinding::ExportBeam()
 		.def_readwrite("extension_break_limit"     , &Beam::extension_break_limit)     
 		.def_readwrite("_has_extension_break_limit", &Beam::_has_extension_break_limit)
 		.def_readwrite("detacher_group"            , &Beam::detacher_group)            
-		.def_readwrite("defaults"                  , &Beam::defaults)                  
+		.def_readwrite("preset"                    , &Beam::defaults)                  
 		;
 
 	class_<std::vector<RigDef::Beam> >("BeamVector")

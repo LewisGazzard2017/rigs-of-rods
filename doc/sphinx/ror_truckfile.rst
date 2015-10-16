@@ -96,6 +96,10 @@ are put into "root module".
    
    List of :class:`BeamGroupWithPreset` objects.
    
+   .. attribute:: command_hydros_by_preset
+   
+   List of :class:`CommandHydroGroupWithPreset` objects.
+   
    
    
 Data structures: Physics body
@@ -254,7 +258,43 @@ Data structures: Physics body
    
    .. attribute:: preset
    
-   Instance of :class:`BeamPreset` 
+   Instance of :class:`BeamPreset`
+   
+   
+.. class:: CommandHydro()
+
+   Special beam. Hydraulics responding to user input.
+   
+   .. attribute:: shorten_rate
+   .. attribute:: lengthen_rate
+   .. attribute:: max_contraction
+   .. attribute:: max_extension
+   .. attribute:: contract_key
+   .. attribute:: extend_key
+   .. attribute:: description
+   .. attribute:: affect_engine
+   .. attribute:: needs_engine
+   
+   .. attribute:: detacher_group
+   .. attribute:: beam_preset
+   .. attribute:: inertia_preset
+   
+   .. attribute:: option_r_rope             
+   .. attribute:: option_c_auto_center      
+   .. attribute:: option_f_not_faster       
+   .. attribute:: option_p_press_once       
+   .. attribute:: option_o_press_once_center
+   
+.. class:: BeamGroupWithPreset() 
+
+   .. attribute:: command_hydros
+   
+   List of :class:`CommandHydro`
+   
+   .. attribute:: preset
+   
+   Instance of :class:`BeamPreset`   
+ 
    
 
 Project status

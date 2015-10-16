@@ -62,6 +62,20 @@ class Demo:
             print("\tBeamPreset (count:", len(beam_group.beams), ")")
             for beam in beam_group.beams:
                 print_beam(beam)
+                
+        # Hydros
+        print ("-- HYDROS --")
+        
+        def print_command(command):
+          text = "\t\tCommand | node1:" + beam.node_1.get_id_str()
+          text += ", node2:" + beam.node_2.get_id_str()
+          print(text) 
+          
+        print("num beam presets: ", len(m.command_hydros_by_preset))
+        for group in m.command_hydros_by_preset:
+            print("\tBeamPreset (count:", len(group.command_hydros), ")")
+            for command in group.command_hydros:
+                print_command(command) 
         
         
         

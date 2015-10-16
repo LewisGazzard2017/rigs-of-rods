@@ -588,9 +588,10 @@ File::File():
 	description.reserve(20);
 }
 
-void File::GroupBeamsByPreset()
+void File::GroupAllBeamTypesByPreset()
 {
 	this->root_module->GroupBeamsByPreset();
+	this->root_module->GroupCommandHydrosByPreset();
 
 	auto module_itor = this->modules.begin();
 	auto module_iend = this->modules.end();
@@ -598,48 +599,57 @@ void File::GroupBeamsByPreset()
 	{
 		File::Module* module = (*module_itor).second.get();
 		module->GroupBeamsByPreset();
+		module->GroupCommandHydrosByPreset();
 	}
 }
 
+#define GROUP_BEAM_ELEMENT_BY_PRESET(SRC_VAR, DST_VAR, GROUP_TYPE, GROUPS_VAR, BEAM_DEFAULTS_VAR) \
+	if (this->SRC_VAR.empty())                                       \
+	{                                                                \
+		return;                                                      \
+	}                                                                \
+                                                                     \
+	std::unordered_map< BeamDefaults*, GROUP_TYPE > beams_by_preset; \
+	auto beam_iend = this->SRC_VAR.end();                            \
+	auto beam_itor = this->SRC_VAR.begin();                          \
+	for (; beam_itor != beam_iend; ++beam_itor)                      \
+	{                                                                \
+		auto & beam = *beam_itor;                                    \
+		BeamDefaults* preset = beam.BEAM_DEFAULTS_VAR.get();         \
+                                                                     \
+		/* Ensure preset is in map */                                \
+		auto found_itor = beams_by_preset.find(preset);              \
+		if (found_itor == beams_by_preset.end())                     \
+		{                                                            \
+			/* Preset not in map, insert it and add beam. */         \
+			GROUP_TYPE group;                                        \
+			group.DST_VAR.reserve(100);                              \
+			group.DST_VAR.push_back(beam);                           \
+			beams_by_preset.insert(std::make_pair(preset, group));   \
+		}                                                            \
+		else                                                         \
+		{                                                            \
+			/* Preset in map, just add beam. */                      \
+			found_itor->second.DST_VAR.push_back(beam);              \
+		}                                                            \
+	}                                                                \
+                                                                     \
+	/* Transfer grouped beams to Module */                           \
+	auto group_itor = beams_by_preset.begin();                       \
+	auto group_iend = beams_by_preset.end();                         \
+	for (; group_itor != group_iend; ++group_itor)                   \
+	{                                                                \
+		this->GROUPS_VAR.emplace_back(group_itor->second);           \
+	}
+
 void File::Module::GroupBeamsByPreset()
 {
-	if (this->beams.empty())
-	{
-		return;
-	}
+	GROUP_BEAM_ELEMENT_BY_PRESET(beams, beams, BeamGroupWithPreset, beams_by_preset, defaults)
+}
 
-	std::unordered_map< BeamDefaults*, BeamGroupWithPreset > beams_by_preset;
-	auto beam_iend = this->beams.end();
-	auto beam_itor = this->beams.begin();
-	for (; beam_itor != beam_iend; ++beam_itor)
-	{
-		Beam & beam = *beam_itor;
-		BeamDefaults* preset = beam.defaults.get();
-
-		// Ensure preset is in map
-		auto found_itor = beams_by_preset.find(preset);
-		if (found_itor == beams_by_preset.end())
-		{
-			// Preset not in map, insert it and add beam.
-			BeamGroupWithPreset group;
-			group.beams.reserve(100);
-			group.beams.push_back(beam);
-			beams_by_preset.insert(std::make_pair(preset, group));
-		}
-		else
-		{
-			// Preset in map, just add beam.
-			found_itor->second.beams.push_back(beam);
-		}
-	}
-
-	// Transfer grouped beams to Module
-	auto group_itor = beams_by_preset.begin();
-	auto group_iend = beams_by_preset.end();
-	for (; group_itor != group_iend; ++group_itor)
-	{
-		this->beams_by_preset.emplace_back(group_itor->second);
-	}
+void File::Module::GroupCommandHydrosByPreset()
+{
+	GROUP_BEAM_ELEMENT_BY_PRESET(commands_2, commands, Command2GroupWithPreset, commands2_by_preset, beam_defaults)
 }
 
 void File::GroupNodesByPreset()

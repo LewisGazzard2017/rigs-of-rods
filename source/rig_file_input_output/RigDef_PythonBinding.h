@@ -37,6 +37,8 @@ namespace RigDef
 
 		static void ExportNode();
 		static void ExportBeam();
+		static void ExportPowertrain();
+		static void ExportCommandHydro();
 	};
 }
 
