@@ -109,38 +109,24 @@ BOOST_PYTHON_MODULE(ror_truckfile)
 		.def_readwrite("z", &Ogre::Vector3::z)
 		;
 
-	PythonBinding::ExportNode();
-	PythonBinding::ExportBeam();
-	PythonBinding::ExportPowertrain();
-	PythonBinding::ExportCommandHydro();
-
-	class_<RigDef::File::Module>("Module")
-		.def_readwrite("nodes_by_preset",          &File::Module::nodes_by_preset)
-		.def_readwrite("beams_by_preset",          &File::Module::beams_by_preset)
-		.def_readwrite("command_hydros_by_preset", &File::Module::commands2_by_preset)
-		.def_readwrite("name",                     &File::Module::name)
-		;
-
-	register_ptr_to_python< boost::shared_ptr<RigDef::File::Module> >();
-
-	class_<RigDef::File>("File")
-		.def_readwrite("root_module", &File::root_module)
-		.def_readwrite("name",        &File::name)
-		;
-
-	register_ptr_to_python< boost::shared_ptr<RigDef::File> >();
-	
-	class_<ParserWrapper>("Parser")
-		.def("parse_file",      &ParserWrapper::PY_ParseFile)
-		.def("get_parsed_file", &ParserWrapper::PY_GetParsedFile)
-		;
-
 	class_<std::vector<float> >("FloatVector")
 		.def(vector_indexing_suite< std::vector<float> >())
 		;
 
 	class_<std::vector<char> >("CharVector")
 		.def(vector_indexing_suite< std::vector<char> >())
+		;
+
+	PythonBinding::ExportAerial();
+	PythonBinding::ExportBeam();
+	PythonBinding::ExportCommandHydro();
+	PythonBinding::ExportFile();
+	PythonBinding::ExportNode();
+	PythonBinding::ExportPowertrain();
+	
+	class_<ParserWrapper>("Parser")
+		.def("parse_file",      &ParserWrapper::PY_ParseFile)
+		.def("get_parsed_file", &ParserWrapper::PY_GetParsedFile)
 		;
 }
 

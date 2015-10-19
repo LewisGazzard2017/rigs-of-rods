@@ -39,6 +39,9 @@ namespace RigDef
 		static void ExportBeam();
 		static void ExportPowertrain();
 		static void ExportCommandHydro();
+		static void ExportAerial();
+		static void ExportFile();
+		static void ExportWheels();
 	};
 }
 

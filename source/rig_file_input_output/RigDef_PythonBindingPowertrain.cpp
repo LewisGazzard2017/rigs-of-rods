@@ -70,6 +70,8 @@ void PythonBinding::ExportPowertrain()
 		.def_readwrite("gear_ratios" ,        &Engine::gear_ratios) // vector<float> registered in PythonBinding.cpp
 		;
 
+	register_ptr_to_python< boost::shared_ptr<RigDef::Engine> >();
+
 	class_<RigDef::Axle>("Axle")
 		.def_readonly("OPTION_o_OPEN"   , &Axle::OPTION_o_OPEN  )
 		.def_readonly("OPTION_l_LOCKED" , &Axle::OPTION_l_LOCKED)
@@ -81,6 +83,17 @@ void PythonBinding::ExportPowertrain()
 		.add_property("wheel2_node2", &Axle::PY_GetNode_Wheel2Node2, &Axle::PY_SetNode_Wheel2Node2)
 
 		.def_readwrite("options" , &Axle::options) // vector<char> registered in PythonBinding.cpp
+		;
+
+	class_<std::vector<RigDef::Axle> >("AxleVector")
+		.def(vector_indexing_suite< std::vector<RigDef::Axle> >())
+		;
+
+	enum_<RigDef::Engoption::EngineType>("EngineType")
+		.value("TRUCK",           Engoption::ENGINE_TYPE_t_TRUCK)
+		.value("CAR",             Engoption::ENGINE_TYPE_c_CAR)
+		.value("ELECTRIC_CAR",    Engoption::ENGINE_TYPE_e_ECAR)
+		.value("INVALID",         Engoption::ENGINE_TYPE_INVALID)
 		;
 
 	class_<RigDef::Engoption>("Engoption")
@@ -98,14 +111,22 @@ void PythonBinding::ExportPowertrain()
 		.def_readwrite("min_idle_mixture" ,          &Engoption::min_idle_mixture)
 		;
 
+	register_ptr_to_python< boost::shared_ptr<RigDef::Engoption> >();
+
 	class_<RigDef::TorqueCurve::Sample>("TorqueCurveSample")
 		.def_readwrite("power" ,          &TorqueCurve::Sample::power)
 		.def_readwrite("torque_percent" , &TorqueCurve::Sample::torque_percent)
+		;
+
+	class_<std::vector<RigDef::TorqueCurve::Sample> >("TorqueCurveSampleVector")
+		.def(vector_indexing_suite< std::vector<RigDef::TorqueCurve::Sample> >())
 		;
 
 	class_<RigDef::TorqueCurve>("TorqueCurve")
 		.def_readwrite("samples" , &TorqueCurve::samples)
 		.def_readwrite("predefined_func_name" , &TorqueCurve::predefined_func_name)
 		;
+
+	register_ptr_to_python< boost::shared_ptr<RigDef::TorqueCurve> >();
 
 }

@@ -588,6 +588,18 @@ File::File():
 	description.reserve(20);
 }
 
+std::string File::PY_GetDescription()
+{
+	std::stringstream msg;
+	auto iend = this->description.end();
+	auto itor = this->description.begin();
+	for (; itor != iend; ++itor)
+	{
+		msg << *itor;
+	}
+	return msg.str();
+}
+
 void File::GroupAllBeamTypesByPreset()
 {
 	this->root_module->GroupBeamsByPreset();

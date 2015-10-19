@@ -310,6 +310,8 @@ struct Airbrake
 {
 	Airbrake();
 
+	bool operator==(Airbrake const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
 	Node::Ref reference_node;
 	Node::Ref x_axis_node;
 	Node::Ref y_axis_node;
@@ -421,6 +423,8 @@ struct Axle
 	Axle():
 		options(0)
 	{}
+
+	bool operator==(Axle const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	static const char OPTION_o_OPEN   = 'o';
 	static const char OPTION_l_LOCKED = 'l';
@@ -568,6 +572,8 @@ struct Author
 		forum_account_id(0),
 		_has_forum_account(false)
 	{}
+
+	bool operator==(Author const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	Ogre::String type;
 	unsigned int forum_account_id;
@@ -1574,6 +1580,21 @@ struct Pistonprop
 		pitch(0)
 	{}
 
+	bool operator==(Pistonprop const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
+	void PY_SetBladeTipNode(int index, Node::Ref ref)
+	{
+		if (index >= 0 && index <= 3)
+		{
+			this->blade_tip_nodes[index] = ref;
+		}
+	}
+
+	Node::Ref PY_GetBladeTipNode(int index)
+	{
+		return (index >= 0 && index <= 3) ? this->blade_tip_nodes[index] : Node::Ref(); // Defaults to "invalid"
+	}
+
 	Node::Ref reference_node;
 	Node::Ref axis_node;
 	Node::Ref blade_tip_nodes[4];
@@ -1903,6 +1924,8 @@ struct TorqueCurve
 
 		float power;
 		float torque_percent;
+
+		bool operator==(Sample const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 	};
 
 	std::vector<Sample> samples;
@@ -1923,6 +1946,8 @@ struct Turbojet
 		back_diameter(0),
 		nozzle_length(0)
 	{}
+
+	bool operator==(Turbojet const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	Node::Ref front_node;
 	Node::Ref back_node;
@@ -1945,6 +1970,21 @@ struct Turboprop2
 		turbine_power_kW(0),
 		_format_version(2)
 	{}
+
+	bool operator==(Turboprop2 const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
+	void PY_SetBladeTipNode(int index, Node::Ref ref)
+	{
+		if (index >= 0 && index <= 3)
+		{
+			this->blade_tip_nodes[index] = ref;
+		}
+	}
+
+	Node::Ref PY_GetBladeTipNode(int index)
+	{
+		return (index >= 0 && index <= 3) ? this->blade_tip_nodes[index] : Node::Ref(); // Defaults to "invalid"
+	}
 
 	Node::Ref reference_node;
 	Node::Ref axis_node;
@@ -2010,6 +2050,32 @@ struct Wing
 
 		CONTROL_INVALID                 = 0xFFFFFFFF
 	};
+
+	Node::Ref PY_GetNode(int index)
+	{
+		if (index >= 0 && index <= 7)
+			return this->nodes[0];
+		else
+			return Node::Ref(); // Defaults to "INVALID"
+	}
+	void PY_SetNode(int index, Node::Ref ref)
+	{
+		if (index >= 0 && index <= 7)
+		{
+			this->nodes[index] = ref;
+		}
+	}
+
+	void PY_SetTexcoord(int index, float x, float y)
+	{
+		if (index >= 0 && index <= 3)
+		{
+			this->tex_coords[index * 2] = x;
+			this->tex_coords[1 + index * 2] = y;
+		}
+	}
+
+	bool operator==(Wing const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	Node::Ref nodes[8];
 	float tex_coords[8];
@@ -2322,6 +2388,8 @@ struct File
 
 	void GroupAllBeamTypesByPreset();
 	void GroupNodesByPreset();
+
+	std::string PY_GetDescription();
 
 	unsigned int file_format_version;
 	Ogre::String guid;
