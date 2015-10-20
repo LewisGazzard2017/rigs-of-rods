@@ -825,6 +825,13 @@ struct BaseWheel
 	virtual ~BaseWheel()
 	{}
 
+	Node::Ref PY_GetNode1()              { return this->nodes[0]; }
+	Node::Ref PY_GetNode2()              { return this->nodes[1]; }
+	void      PY_SetNode1(Node::Ref ref) { this->nodes[0] = ref;  }
+	void      PY_SetNode2(Node::Ref ref) { this->nodes[1] = ref;  }
+
+	bool operator==(BaseWheel const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
 	float width;
 	unsigned int num_rays;
 	Node::Ref nodes[2];

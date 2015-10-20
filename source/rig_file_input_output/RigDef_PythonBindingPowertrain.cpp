@@ -85,9 +85,7 @@ void PythonBinding::ExportPowertrain()
 		.def_readwrite("options" , &Axle::options) // vector<char> registered in PythonBinding.cpp
 		;
 
-	class_<std::vector<RigDef::Axle> >("AxleVector")
-		.def(vector_indexing_suite< std::vector<RigDef::Axle> >())
-		;
+	PYTHON_REGISTER_STD_VECTOR(RigDef::Axle, "AxleVector")
 
 	enum_<RigDef::Engoption::EngineType>("EngineType")
 		.value("TRUCK",           Engoption::ENGINE_TYPE_t_TRUCK)
@@ -118,9 +116,7 @@ void PythonBinding::ExportPowertrain()
 		.def_readwrite("torque_percent" , &TorqueCurve::Sample::torque_percent)
 		;
 
-	class_<std::vector<RigDef::TorqueCurve::Sample> >("TorqueCurveSampleVector")
-		.def(vector_indexing_suite< std::vector<RigDef::TorqueCurve::Sample> >())
-		;
+	PYTHON_REGISTER_STD_VECTOR(RigDef::TorqueCurve::Sample, "TorqueCurveSampleVector")
 
 	class_<RigDef::TorqueCurve>("TorqueCurve")
 		.def_readwrite("samples" , &TorqueCurve::samples)

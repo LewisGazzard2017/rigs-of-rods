@@ -123,6 +123,7 @@ BOOST_PYTHON_MODULE(ror_truckfile)
 	PythonBinding::ExportFile();
 	PythonBinding::ExportNode();
 	PythonBinding::ExportPowertrain();
+	PythonBinding::ExportWheels();
 	
 	class_<ParserWrapper>("Parser")
 		.def("parse_file",      &ParserWrapper::PY_ParseFile)

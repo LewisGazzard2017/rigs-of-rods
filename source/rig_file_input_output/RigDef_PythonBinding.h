@@ -28,6 +28,12 @@
 
 #pragma once
 
+// Assumes boost::python is included and namespace is used.
+#define PYTHON_REGISTER_STD_VECTOR(CLASS, PYNAME)                \
+	class_<std::vector<CLASS> >(PYNAME)                          \
+		.def(vector_indexing_suite< std::vector<CLASS> >())      \
+		;
+
 namespace RigDef
 {
 	class PythonBinding

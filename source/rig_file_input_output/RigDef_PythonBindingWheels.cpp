@@ -42,20 +42,24 @@
 using namespace boost::python;
 using namespace RigDef;
 
-// ## TODO: Add nodes (PY_GetNode*) at home
-#define REGISTER_BASE_WHEEL_ATTRS(CLASSNAME)                            \
-    .def_readwrite("width",              &CLASSNAME::width)             \
-    .def_readwrite("num_rays",           &CLASSNAME::num_rays)          \
-    .def_readwrite("rigidity_node",      &CLASSNAME::rigidity_node)     \
-    .def_readwrite("braking",            &CLASSNAME::braking)           \
-    .def_readwrite("propulsion",         &CLASSNAME::propulsion)        \
-    .def_readwrite("reference_arm_node", &CLASSNAME::reference_arm_node)\
-    .def_readwrite("mass",               &CLASSNAME::mass)              \
-    .def_readwrite("node_preset",        &CLASSNAME::node_defaults)     \
-    .def_readwrite("beam_preset",        &CLASSNAME::beam_defaults)     \
-    
+#define REGISTER_WHEEL_NODE_ATTRS(CLASSNAME)                                  \
+    .add_property("node_1", &CLASSNAME::PY_GetNode1, &CLASSNAME::PY_SetNode1) \
+    .add_property("node_2", &CLASSNAME::PY_GetNode2, &CLASSNAME::PY_SetNode2) \
+
+#define REGISTER_BASE_WHEEL_ATTRS(CLASSNAME)                             \
+    REGISTER_WHEEL_NODE_ATTRS(CLASSNAME)                                 \
+    .def_readwrite("width",              &CLASSNAME::width)              \
+    .def_readwrite("num_rays",           &CLASSNAME::num_rays)           \
+    .def_readwrite("rigidity_node",      &CLASSNAME::rigidity_node)      \
+    .def_readwrite("braking",            &CLASSNAME::braking)            \
+    .def_readwrite("propulsion",         &CLASSNAME::propulsion)         \
+    .def_readwrite("reference_arm_node", &CLASSNAME::reference_arm_node) \
+    .def_readwrite("mass",               &CLASSNAME::mass)               \
+    .def_readwrite("node_preset",        &CLASSNAME::node_defaults)      \
+    .def_readwrite("beam_preset",        &CLASSNAME::beam_defaults)      \
 
 #define REGISTER_BASE_WHEEL_2_ATTRS(CLASSNAME)                          \
+    REGISTER_WHEEL_NODE_ATTRS(CLASSNAME)                                \
     .def_readwrite("rim_radius",       &CLASSNAME::rim_radius)          \
     .def_readwrite("tyre_radius",      &CLASSNAME::tyre_radius)         \
     .def_readwrite("tyre_springiness", &CLASSNAME::tyre_springiness)    \
@@ -89,6 +93,8 @@ void PythonBinding::ExportWheels()
         .def_readwrite("face_material_name", &Wheel::face_material_name)
         .def_readwrite("band_material_name", &Wheel::band_material_name)
         ;
+
+    PYTHON_REGISTER_STD_VECTOR(RigDef::Wheel, "WheelVector")
     
     class_<RigDef::Wheel2>("Wheel2")
         REGISTER_BASE_WHEEL_2_ATTRS(Wheel2)
@@ -97,7 +103,9 @@ void PythonBinding::ExportWheels()
         .def_readwrite("rim_springiness",    &Wheel2::rim_springiness)
         .def_readwrite("rim_damping",        &Wheel2::rim_damping)
         ;
-    
+
+    PYTHON_REGISTER_STD_VECTOR(RigDef::Wheel2, "Wheel2Vector")
+
     enum_<RigDef::MeshWheel::Side>("MeshWheelSide")
         .value("SIDE_INVALID",   MeshWheel::SIDE_INVALID)
         .value("SIDE_RIGHT",     MeshWheel::SIDE_RIGHT)
@@ -114,6 +122,8 @@ void PythonBinding::ExportWheels()
         .def_readwrite("spring",        &MeshWheel::spring)
         .def_readwrite("damping",       &MeshWheel::damping)
         ;
+
+    PYTHON_REGISTER_STD_VECTOR(RigDef::MeshWheel, "MeshWheelVector")
         
     class_<RigDef::MeshWheel2>("MeshWheel2")
         REGISTER_BASE_WHEEL_2_ATTRS(MeshWheel2)        
@@ -121,6 +131,8 @@ void PythonBinding::ExportWheels()
         .def_readwrite("mesh_name",     &MeshWheel2::mesh_name)
         .def_readwrite("material_name", &MeshWheel2::material_name)
         ;
+
+    PYTHON_REGISTER_STD_VECTOR(RigDef::MeshWheel2, "MeshWheel2Vector")
         
     class_<RigDef::FlexBodyWheel>("FlexBodyWheel")
         REGISTER_BASE_WHEEL_2_ATTRS(FlexBodyWheel)        
@@ -130,5 +142,7 @@ void PythonBinding::ExportWheels()
         .def_readwrite("rim_mesh_name",    &FlexBodyWheel::rim_mesh_name)   
         .def_readwrite("tyre_mesh_name",   &FlexBodyWheel::tyre_mesh_name)
         ;
+
+    PYTHON_REGISTER_STD_VECTOR(RigDef::FlexBodyWheel, "FlexBodyWheelVector")
 
 }

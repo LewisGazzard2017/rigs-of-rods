@@ -44,29 +44,29 @@ using namespace RigDef;
 
 void PythonBinding::ExportFile()
 {
-    class_<RigDef::File>("File")
-        .def_readonly("description",                    &File::PY_GetDescription)
+	class_<RigDef::File>("File")
+		.def_readonly("description",                    &File::PY_GetDescription)
 
-        .def_readwrite("file_format_version",           &File::file_format_version)
-        .def_readwrite("guid",                          &File::guid)
-        .def_readwrite("hide_in_chooser",               &File::hide_in_chooser)
-        .def_readwrite("enable_advanced_deformation",   &File::enable_advanced_deformation)
-        .def_readwrite("slide_nodes_connect_instantly", &File::slide_nodes_connect_instantly)
-        .def_readwrite("rollon",                        &File::rollon)
-        .def_readwrite("forward_commands",              &File::forward_commands)
-        .def_readwrite("import_commands",               &File::import_commands)
-        .def_readwrite("lockgroup_default_nolock",      &File::lockgroup_default_nolock)
-        .def_readwrite("rescuer",                       &File::rescuer)
-        .def_readwrite("disable_default_sounds",        &File::disable_default_sounds)
-        .def_readwrite("name",                          &File::name)
-        .def_readwrite("collision_range",               &File::collision_range)
-        .def_readwrite("_collision_range_set",          &File::_collision_range_set)
-        .def_readwrite("minimum_mass",                  &File::minimum_mass)
-        .def_readwrite("_minimum_mass_set",             &File::_minimum_mass_set)
-        .def_readwrite("authors",                       &File::authors)
-        .def_readwrite("file_info",                     &File::file_info)
-        .def_readwrite("root_module",                   &File::root_module)
-        ;
+		.def_readwrite("file_format_version",           &File::file_format_version)
+		.def_readwrite("guid",                          &File::guid)
+		.def_readwrite("hide_in_chooser",               &File::hide_in_chooser)
+		.def_readwrite("enable_advanced_deformation",   &File::enable_advanced_deformation)
+		.def_readwrite("slide_nodes_connect_instantly", &File::slide_nodes_connect_instantly)
+		.def_readwrite("rollon",                        &File::rollon)
+		.def_readwrite("forward_commands",              &File::forward_commands)
+		.def_readwrite("import_commands",               &File::import_commands)
+		.def_readwrite("lockgroup_default_nolock",      &File::lockgroup_default_nolock)
+		.def_readwrite("rescuer",                       &File::rescuer)
+		.def_readwrite("disable_default_sounds",        &File::disable_default_sounds)
+		.def_readwrite("name",                          &File::name)
+		.def_readwrite("collision_range",               &File::collision_range)
+		.def_readwrite("_collision_range_set",          &File::_collision_range_set)
+		.def_readwrite("minimum_mass",                  &File::minimum_mass)
+		.def_readwrite("_minimum_mass_set",             &File::_minimum_mass_set)
+		.def_readwrite("authors",                       &File::authors)
+		.def_readwrite("file_info",                     &File::file_info)
+		.def_readwrite("root_module",                   &File::root_module)
+		;
 
 	class_<RigDef::File::Module>("Module")
 		.def_readwrite("name",                     &File::Module::name)
@@ -87,39 +87,45 @@ void PythonBinding::ExportFile()
 		.def_readwrite("wings",                    &File::Module::wings)
 		.def_readwrite("airbrakes",                &File::Module::airbrakes)
 		.def_readwrite("fusedrag",                 &File::Module::fusedrag)
+		// Wheels
+		.def_readwrite("wheels",                   &File::Module::wheels)
+		.def_readwrite("wheels_2",                 &File::Module::wheels_2)
+		.def_readwrite("mesh_wheels",              &File::Module::mesh_wheels)
+		.def_readwrite("mesh_wheels_2",            &File::Module::mesh_wheels_2)
+		.def_readwrite("flex_body_wheels",         &File::Module::flex_body_wheels)
 		;
 
 	register_ptr_to_python< boost::shared_ptr<RigDef::File::Module> >();
 
 	register_ptr_to_python< boost::shared_ptr<RigDef::File> >();
-        
-    class_<RigDef::Author>("Author")
-        .def_readwrite("type",               &Author::type)
-        .def_readwrite("forum_account_id",   &Author::forum_account_id)
-        .def_readwrite("name",               &Author::name)
-        .def_readwrite("email",              &Author::email)
-        .def_readwrite("_has_forum_account", &Author::_has_forum_account)
-        ;
-        
-    class_<std::vector<RigDef::Author> >("AuthorVector")
-         .def(vector_indexing_suite< std::vector<RigDef::Author> >())
-         ;
-     
-    class_<RigDef::Globals>("Globals")   
-        .def_readwrite("dry_mass",      &Globals::dry_mass)
-        .def_readwrite("cargo_mass",    &Globals::cargo_mass)
-        .def_readwrite("material_name", &Globals::material_name)
-        ;
-        
-    class_<RigDef::Fileinfo>("FileInfo")
-        .def_readwrite("unique_id",             &Fileinfo::unique_id)
-        .def_readwrite("category_id",           &Fileinfo::category_id)
-        .def_readwrite("file_version",          &Fileinfo::file_version)
-        .def_readwrite("_has_unique_id",        &Fileinfo::_has_unique_id)
-        .def_readwrite("_has_category_id",      &Fileinfo::_has_category_id)
-        .def_readwrite("_has_file_version_set", &Fileinfo::_has_file_version_set)
-        ;
+
+	class_<RigDef::Author>("Author")
+		.def_readwrite("type",               &Author::type)
+		.def_readwrite("forum_account_id",   &Author::forum_account_id)
+		.def_readwrite("name",               &Author::name)
+		.def_readwrite("email",              &Author::email)
+		.def_readwrite("_has_forum_account", &Author::_has_forum_account)
+		;
+
+	class_<std::vector<RigDef::Author> >("AuthorVector")
+			.def(vector_indexing_suite< std::vector<RigDef::Author> >())
+			;
+
+	class_<RigDef::Globals>("Globals")   
+		.def_readwrite("dry_mass",      &Globals::dry_mass)
+		.def_readwrite("cargo_mass",    &Globals::cargo_mass)
+		.def_readwrite("material_name", &Globals::material_name)
+		;
+
+	class_<RigDef::Fileinfo>("FileInfo")
+		.def_readwrite("unique_id",             &Fileinfo::unique_id)
+		.def_readwrite("category_id",           &Fileinfo::category_id)
+		.def_readwrite("file_version",          &Fileinfo::file_version)
+		.def_readwrite("_has_unique_id",        &Fileinfo::_has_unique_id)
+		.def_readwrite("_has_category_id",      &Fileinfo::_has_category_id)
+		.def_readwrite("_has_file_version_set", &Fileinfo::_has_file_version_set)
+		;
 
 	register_ptr_to_python< boost::shared_ptr<RigDef::Fileinfo> >();
-        
+
 };
