@@ -70,7 +70,7 @@ void PythonBinding::ExportPowertrain()
 		.def_readwrite("gear_ratios" ,        &Engine::gear_ratios) // vector<float> registered in PythonBinding.cpp
 		;
 
-	register_ptr_to_python< boost::shared_ptr<RigDef::Engine> >();
+    PYTHON_REGISTER_SHARED_PTR(RigDef::Engine)
 
 	class_<RigDef::Axle>("Axle")
 		.def_readonly("OPTION_o_OPEN"   , &Axle::OPTION_o_OPEN  )
@@ -109,7 +109,7 @@ void PythonBinding::ExportPowertrain()
 		.def_readwrite("min_idle_mixture" ,          &Engoption::min_idle_mixture)
 		;
 
-	register_ptr_to_python< boost::shared_ptr<RigDef::Engoption> >();
+    PYTHON_REGISTER_SHARED_PTR(RigDef::Engoption)
 
 	class_<RigDef::TorqueCurve::Sample>("TorqueCurveSample")
 		.def_readwrite("power" ,          &TorqueCurve::Sample::power)
@@ -123,7 +123,7 @@ void PythonBinding::ExportPowertrain()
 		.def_readwrite("predefined_func_name" , &TorqueCurve::predefined_func_name)
 		;
 
-	register_ptr_to_python< boost::shared_ptr<RigDef::TorqueCurve> >();
+    PYTHON_REGISTER_SHARED_PTR(RigDef::TorqueCurve)
 
     class_<RigDef::CruiseControl>("CruiseControl")
         .def_readwrite("min_speed", &TorqueCurve::min_speed)
@@ -133,9 +133,9 @@ void PythonBinding::ExportPowertrain()
     PYTHON_REGISTER_SHARED_PTR(RigDef::CruiseControl)
 
     class_<RigDef::Brakes>("Brakes")
-        .def_readwrite("default_braking_force"   , &Brakes::default_braking_force   )
-        .def_readwrite("parking_brake_force"     , &Brakes::parking_brake_force     )
-        .def_readwrite("_parking_brake_force_set", &Brakes::_parking_brake_force_set)
+        .def_readwrite("default_braking_force"           , &Brakes::default_braking_force   )
+        .def_readwrite("parking_brake_force"             , &Brakes::parking_brake_force     )
+        .def_readwrite("_was_parking_brake_force_defined", &Brakes::_parking_brake_force_set)
         ;
 
     PYTHON_REGISTER_SHARED_PTR(RigDef::Brakes)
@@ -146,10 +146,10 @@ void PythonBinding::ExportPowertrain()
         .add_property("has_mode_no_dashboard", &AntiLockBrakes::GetModeNoDashboard, &AntiLockBrakes::SetModeNoDashboard)
         .add_property("has_mode_no_togle",     &AntiLockBrakes::GetModeNoToggle,    &AntiLockBrakes::SetModeNoToggle)
 
-        .def_readwrite("regulation_force"   , &AntiLockBrakes::regulation_force  )
-        .def_readwrite("min_speed"          , &AntiLockBrakes::min_speed         )
-        .def_readwrite("pulse_per_sec"      , &AntiLockBrakes::pulse_per_sec     )
-        .def_readwrite("_pulse_per_sec_set" , &AntiLockBrakes::_pulse_per_sec_set)
+        .def_readwrite("regulation_force"           , &AntiLockBrakes::regulation_force  )
+        .def_readwrite("min_speed"                  , &AntiLockBrakes::min_speed         )
+        .def_readwrite("pulse_per_sec"              , &AntiLockBrakes::pulse_per_sec     )
+        .def_readwrite("_was_pulse_per_sec_defined" , &AntiLockBrakes::_pulse_per_sec_set)
         ;
 
     PYTHON_REGISTER_SHARED_PTR(RigDef::AntiLockBrakes)
