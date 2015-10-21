@@ -34,6 +34,10 @@
 		.def(vector_indexing_suite< std::vector<CLASS> >())      \
 		;
 
+// Assumes boost::python is included and namespace is used.
+#define PYTHON_REGISTER_SHARED_PTR(CLASS)                 \
+    register_ptr_to_python< boost::shared_ptr<CLASS> >(); \
+
 namespace RigDef
 {
 	class PythonBinding

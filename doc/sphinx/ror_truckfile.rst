@@ -516,7 +516,62 @@ Powertrain
 .. class:: TorqueCurve
         
    .. attribute:: samples               
-   .. attribute:: predefined_func_name  
+   .. attribute:: predefined_func_name
+   
+   
+   
+.. class:: CruiseControl      
+            
+   .. attribute:: min_speed
+   .. attribute:: autobrake
+
+
+
+.. class:: Brakes              
+    
+   .. attribute:: default_braking_force   
+   .. attribute:: parking_brake_force     
+   .. attribute:: _was_parking_brake_force_defined
+   
+      Informs whether the optional attribute "parking_brake_force" was specified.
+
+
+
+.. class:: AntiLockBrakes    
+              
+   .. attribute:: has_mode_on          
+   .. attribute:: has_mode_off         
+   .. attribute:: has_mode_no_dashboard
+   .. attribute:: has_mode_no_togle    
+
+   .. attribute:: regulation_force  
+   .. attribute:: min_speed         
+   .. attribute:: pulse_per_sec     
+   .. attribute:: _was_pulse_per_sec_defined
+   
+      Informs whether the optional attribute "pulse_per_sec" was specified.
+
+
+
+.. class:: SlopeBrake         
+     
+   .. attribute:: regulating_force
+   .. attribute:: attach_angle     
+   .. attribute:: release_angle    
+
+
+
+.. class:: TractionControl                  
+
+   .. attribute:: has_mode_on          
+   .. attribute:: has_mode_off         
+   .. attribute:: has_mode_no_dashboard
+   .. attribute:: has_mode_no_togle    
+
+   .. attribute:: regulation_force
+   .. attribute:: wheel_slip       
+   .. attribute:: fade_speed       
+   .. attribute:: pulse_per_sec         
         
 
 Wheels

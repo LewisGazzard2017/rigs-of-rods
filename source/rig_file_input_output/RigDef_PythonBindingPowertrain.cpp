@@ -125,4 +125,54 @@ void PythonBinding::ExportPowertrain()
 
 	register_ptr_to_python< boost::shared_ptr<RigDef::TorqueCurve> >();
 
+    class_<RigDef::CruiseControl>("CruiseControl")
+        .def_readwrite("min_speed", &TorqueCurve::min_speed)
+        .def_readwrite("autobrake", &TorqueCurve::autobrake)
+        ;
+
+    PYTHON_REGISTER_SHARED_PTR(RigDef::CruiseControl)
+
+    class_<RigDef::Brakes>("Brakes")
+        .def_readwrite("default_braking_force"   , &Brakes::default_braking_force   )
+        .def_readwrite("parking_brake_force"     , &Brakes::parking_brake_force     )
+        .def_readwrite("_parking_brake_force_set", &Brakes::_parking_brake_force_set)
+        ;
+
+    PYTHON_REGISTER_SHARED_PTR(RigDef::Brakes)
+
+    class_<RigDef::AntiLockBrakes>("AntiLockBrakes")
+        .add_property("has_mode_on",           &AntiLockBrakes::GetModeIsOn,        &AntiLockBrakes::SetModeIsOn)
+        .add_property("has_mode_off",          &AntiLockBrakes::GetModeIsOff,       &AntiLockBrakes::SetModeIsOff)
+        .add_property("has_mode_no_dashboard", &AntiLockBrakes::GetModeNoDashboard, &AntiLockBrakes::SetModeNoDashboard)
+        .add_property("has_mode_no_togle",     &AntiLockBrakes::GetModeNoToggle,    &AntiLockBrakes::SetModeNoToggle)
+
+        .def_readwrite("regulation_force"   , &AntiLockBrakes::regulation_force  )
+        .def_readwrite("min_speed"          , &AntiLockBrakes::min_speed         )
+        .def_readwrite("pulse_per_sec"      , &AntiLockBrakes::pulse_per_sec     )
+        .def_readwrite("_pulse_per_sec_set" , &AntiLockBrakes::_pulse_per_sec_set)
+        ;
+
+    PYTHON_REGISTER_SHARED_PTR(RigDef::AntiLockBrakes)
+
+    class_<RigDef::SlopeBrake>("SlopeBrake")
+        .def_readwrite("regulating_force" , &SlopeBrake::regulating_force)
+        .def_readwrite("attach_angle"     , &SlopeBrake::attach_angle)
+        .def_readwrite("release_angle"    , &SlopeBrake::release_angle)
+        ;
+
+    PYTHON_REGISTER_SHARED_PTR(RigDef::SlopeBrake)
+
+    class_<RigDef::TractionControl>("TractionControl")
+        .add_property("has_mode_on",           &TractionControl::GetModeIsOn,        &TractionControl::SetModeIsOn)
+        .add_property("has_mode_off",          &TractionControl::GetModeIsOff,       &TractionControl::SetModeIsOff)
+        .add_property("has_mode_no_dashboard", &TractionControl::GetModeNoDashboard, &TractionControl::SetModeNoDashboard)
+        .add_property("has_mode_no_togle",     &TractionControl::GetModeNoToggle,    &TractionControl::SetModeNoToggle)
+
+        .def_readwrite("regulation_force"    , &TractionControl::regulation_force)
+        .def_readwrite("wheel_slip"          , &TractionControl::wheel_slip)
+        .def_readwrite("fade_speed"          , &TractionControl::fade_speed)
+        .def_readwrite("pulse_per_sec"       , &TractionControl::pulse_per_sec)
+        ;
+
+    PYTHON_REGISTER_SHARED_PTR(RigDef::TractionControl)
 }
