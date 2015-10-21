@@ -47,8 +47,8 @@ Loading and saving truckfiles
       Subsequent calls will return None!
       
 
-Data structures: Containers
----------------------------      
+File, Modules and properties
+----------------------------
 
 The root container is :class:`File` which defines global attributes,
 such as the name of the rig.
@@ -102,8 +102,8 @@ are put into "root module".
    
    
    
-Data structures: Physics body
------------------------------
+Physics body
+------------
 
    RoR uses a spring-mass-damp model: The physics body
    (called Rig in RoR jargon) 
@@ -293,9 +293,322 @@ Data structures: Physics body
    
    .. attribute:: preset
    
-   Instance of :class:`BeamPreset`   
+   Instance of :class:`BeamPreset`
+   
+   
+   
+Aerial
+------
+
+      
+.. class:: WingControlSurface
+
+   Constants
+
+   .. attribute:: n_NONE                 
+   .. attribute:: a_RIGHT_AILERON        
+   .. attribute:: b_LEFT_AILERON         
+   .. attribute:: f_FLAP                 
+   .. attribute:: e_ELEVATOR             
+   .. attribute:: r_RUDDER               
+   .. attribute:: S_RIGHT_HAND_STABILATOR
+   .. attribute:: T_LEFT_HAND_STABILATOR 
+   .. attribute:: c_RIGHT_ELEVON         
+   .. attribute:: d_LEFT_ELEVON          
+   .. attribute:: g_RIGHT_FLAPERON       
+   .. attribute:: h_LEFT_FLAPERON        
+   .. attribute:: U_RIGHT_HAND_TAILERON  
+   .. attribute:: V_LEFT_HAND_TAILERON   
+   .. attribute:: i_RIGHT_RUDDERVATOR    
+   .. attribute:: j_LEFT_RUDDERVATOR     
+   .. attribute:: INVALID                
+
+
+
+
+.. class:: Wing
+
+   .. attribute:: control_surface
+   .. attribute:: chord_point    
+   .. attribute:: min_deflection 
+   .. attribute:: max_deflection 
+   .. attribute:: airfoil_name   
+   .. attribute:: efficacy_coef  
+        
+   .. method:: get_node(index)
+
+      Index must be from interval (0, 7)
+
+   .. method:: set_node(index, node_ref)
+
+      Index must be from interval (0, 7)
+
+   .. method:: get_texcoord(index)
+
+      Index must be from interval (0, 3)
+
+   .. method:: set_texcoord(index, x, y)
+
+      Index must be from interval (0, 3); X/Y are U/V texture coordinates (0 - 1)
+
+
+
+
+.. class:: Airbrake
+    
+   .. attribute:: reference_node       
+   .. attribute:: x_axis_node          
+   .. attribute:: y_axis_node          
+   .. attribute:: aditional_node       
+   .. attribute:: offset               
+   .. attribute:: width                
+   .. attribute:: height               
+   .. attribute:: max_inclination_angle
+   .. attribute:: texcoord_x1          
+   .. attribute:: texcoord_x2          
+   .. attribute:: texcoord_y1          
+   .. attribute:: texcoord_y2          
+   .. attribute:: lift_coefficient     
+
+
+
+
+.. class:: Turbojet
+   
+   .. attribute:: front_node     
+   .. attribute:: back_node      
+   .. attribute:: side_node      
+   .. attribute:: is_reversable  
+   .. attribute:: dry_thrust     
+   .. attribute:: wet_thrust     
+   .. attribute:: front_diameter 
+   .. attribute:: back_diameter  
+   .. attribute:: nozzle_length  
+
+
+
+
+.. class:: Turboprop
+
+   .. method:: get_blade_tip_node(index)
+
+      Index must be from interval (0, 7)
+
+   .. method:: set_blade_tip_node(index, node_ref)
+
+      Index must be from interval (0, 7)
+
+   .. attribute:: reference_node   
+   .. attribute:: axis_node        
+   .. attribute:: turbine_power_kW 
+   .. attribute:: airfoil          
+   .. attribute:: couple_node      
+   .. attribute:: _format_version  
+
+
+
+
+.. class:: Pistonprop
+
+   .. method:: get_blade_tip_node(index)
+
+      Index must be from interval (0, 7)
+
+   .. method:: set_blade_tip_node(index, node_ref)
+
+      Index must be from interval (0, 7)
+
+   .. attribute:: reference_node  
+   .. attribute:: axis_node        
+   .. attribute:: couple_node      
+   .. attribute:: _couple_node_set 
+   .. attribute:: turbine_power_kW 
+   .. attribute:: pitch            
+   .. attribute:: airfoil          
+
+
+
+
+.. class:: Fusedrag
+
+   .. method:: use_autocalc       
+   .. method:: front_node         
+   .. method:: rear_node          
+   .. method:: approximate_width  
+   .. method:: airfoil_name       
+   .. method:: area_coefficient   
+
  
    
+Powertrain
+----------
+
+
+.. class:: InertiaPreset
+        
+   .. attribute:: start_delay_factor
+   .. attribute:: stop_delay_factor 
+   .. attribute:: start_function    
+   .. attribute:: stop_function     
+        
+
+
+.. class:: OptionalInertia
+        
+   .. attribute:: start_delay_factor     
+   .. attribute:: stop_delay_factor      
+   .. attribute:: start_function         
+   .. attribute:: stop_function          
+   .. attribute:: _start_delay_factor_set
+   .. attribute:: _stop_delay_factor_set 
+        
+
+
+.. class:: Engine
+        
+   .. attribute:: shift_down_rpm      
+   .. attribute:: shift_up_rpm        
+   .. attribute:: torque              
+   .. attribute:: global_gear_ratio   
+   .. attribute:: reverse_gear_ratio  
+   .. attribute:: neutral_gear_ratio  
+   .. attribute:: gear_ratios         
+        
+
+
+.. class:: Axle        
+
+   .. attribute:: wheel1_node1
+   .. attribute:: wheel1_node2
+   .. attribute:: wheel2_node1
+   .. attribute:: wheel2_node2
+
+   .. attribute:: options
+
+   Vector of characters; each char is an option. Order matters. Options can repeat.
+
+        
+
+.. class:: Engoption
+        
+   .. attribute:: inertia                    
+   .. attribute:: type                       
+   .. attribute:: clutch_force               
+   .. attribute:: _clutch_force_use_default  
+   .. attribute:: shift_time                 
+   .. attribute:: clutch_time                
+   .. attribute:: post_shift_time            
+   .. attribute:: idle_rpm                   
+   .. attribute:: _idle_rpm_use_default      
+   .. attribute:: stall_rpm                  
+   .. attribute:: max_idle_mixture           
+   .. attribute:: min_idle_mixture           
+     
+        
+
+.. class:: TorqueCurveSample
+        
+   .. attribute:: power                 
+   .. attribute:: torque_percent        
+       
+        
+
+.. class:: TorqueCurve
+        
+   .. attribute:: samples               
+   .. attribute:: predefined_func_name  
+        
+
+Wheels
+------
+
+
+.. class:: Wheel
+
+   .. attribute:: node1
+   .. attribute:: node2
+   .. attribute:: width             
+   .. attribute:: num_rays          
+   .. attribute:: rigidity_node     
+   .. attribute:: braking           
+   .. attribute:: propulsion        
+   .. attribute:: reference_arm_node
+   .. attribute:: mass              
+   .. attribute:: node_preset       
+   .. attribute:: beam_preset       
+   .. attribute:: radius            
+   .. attribute:: springiness       
+   .. attribute:: damping           
+   .. attribute:: face_material_name
+
+
+
+.. class:: Wheel2
+
+   .. attribute:: node1
+   .. attribute:: node2
+   .. attribute:: rim_radius       
+   .. attribute:: tyre_radius      
+   .. attribute:: tyre_springiness 
+   .. attribute:: tyre_damping     
+   .. attribute:: face_material_name
+   .. attribute:: band_material_name
+   .. attribute:: rim_springiness   
+   .. attribute:: rim_damping       
+
+
+
+.. class:: MeshWheel
+
+   .. attribute:: node1
+   .. attribute:: node2
+   .. attribute:: width             
+   .. attribute:: num_rays          
+   .. attribute:: rigidity_node     
+   .. attribute:: braking           
+   .. attribute:: propulsion        
+   .. attribute:: reference_arm_node
+   .. attribute:: mass              
+   .. attribute:: node_preset       
+   .. attribute:: beam_preset       
+   .. attribute:: side           
+   .. attribute:: mesh_name      
+   .. attribute:: material_name  
+   .. attribute:: rim_radius     
+   .. attribute:: tyre_radius    
+   .. attribute:: spring         
+   .. attribute:: damping        
+
+
+
+.. class:: MeshWheel2
+
+   .. attribute:: node1
+   .. attribute:: node2
+   .. attribute:: rim_radius       
+   .. attribute:: tyre_radius      
+   .. attribute:: tyre_springiness 
+   .. attribute:: tyre_damping     
+   .. attribute:: side           
+   .. attribute:: mesh_name      
+   .. attribute:: material_name  
+
+
+
+.. class:: FlexBodyWheel
+
+   .. attribute:: node1
+   .. attribute:: node2
+   .. attribute:: rim_radius       
+   .. attribute:: tyre_radius      
+   .. attribute:: tyre_springiness 
+   .. attribute:: tyre_damping     
+   .. attribute:: side            
+   .. attribute:: rim_springiness 
+   .. attribute:: rim_damping     
+   .. attribute:: rim_mesh_name   
+   .. attribute:: tyre_mesh_name  
+
 
 Project status
 --------------
@@ -304,10 +617,10 @@ Project status
    through Python.
 
    * KEYWORD_ADD_ANIMATION
-   * KEYWORD_AIRBRAKES
+   * KEYWORD_AIRBRAKES                  ~ :class:`Airbrake`
    * KEYWORD_ANIMATORS
    * KEYWORD_ANTI_LOCK_BRAKES
-   * KEYWORD_AXLES
+   * KEYWORD_AXLES                      ~ :class:`Axle`
    * KEYWORD_AUTHOR
    * KEYWORD_BACKMESH
    * KEYWORD_BEAMS                      ~ :class:`Beam`
@@ -327,8 +640,8 @@ Project status
    * KEYWORD_ENABLE_ADVANCED_DEFORMATION
    * KEYWORD_END
    * KEYWORD_END_SECTION
-   * KEYWORD_ENGINE
-   * KEYWORD_ENGOPTION
+   * KEYWORD_ENGINE                      ~ :class:`Engine`
+   * KEYWORD_ENGOPTION                   ~ :class:`Engoption`
    * KEYWORD_ENVMAP
    * KEYWORD_EXHAUSTS
    * KEYWORD_EXTCAMERA
@@ -339,9 +652,9 @@ Project status
    * KEYWORD_FLARES2
    * KEYWORD_FLEXBODIES
    * KEYWORD_FLEXBODY_CAMERA_MODE
-   * KEYWORD_FLEXBODYWHEELS
+   * KEYWORD_FLEXBODYWHEELS               ~ :class:`FlexBodyWheel`
    * KEYWORD_FORWARDCOMMANDS
-   * KEYWORD_FUSEDRAG
+   * KEYWORD_FUSEDRAG                     ~ :class:`Fusedrag`
    * KEYWORD_GLOBALS
    * KEYWORD_GUID
    * KEYWORD_GUISETTINGS
@@ -355,14 +668,14 @@ Project status
    * KEYWORD_LOCKGROUP_DEFAULT_NOLOCK
    * KEYWORD_MANAGEDMATERIALS
    * KEYWORD_MATERIALFLAREBINDINGS
-   * KEYWORD_MESHWHEELS
-   * KEYWORD_MESHWHEELS2
+   * KEYWORD_MESHWHEELS                  ~ :class:`MeshWheel`
+   * KEYWORD_MESHWHEELS2                 ~ :class:`MeshWheel2`
    * KEYWORD_MINIMASS
    * KEYWORD_NODECOLLISION
    * KEYWORD_NODES
    * KEYWORD_NODES2
    * KEYWORD_PARTICLES
-   * KEYWORD_PISTONPROPS
+   * KEYWORD_PISTONPROPS                  ~ :class:`Pistonprop`
    * KEYWORD_PROP_CAMERA_MODE
    * KEYWORD_PROPS
    * KEYWORD_RAILGROUPS
@@ -379,7 +692,7 @@ Project status
    * KEYWORD_SET_BEAM_DEFAULTS            ~ :class:`BeamPreset`
    * KEYWORD_SET_BEAM_DEFAULTS_SCALE      ~ :class:`BeamPreset`
    * KEYWORD_SET_COLLISION_RANGE
-   * KEYWORD_SET_INERTIA_DEFAULTS
+   * KEYWORD_SET_INERTIA_DEFAULTS         ~ :class:`InertiaPreset`
    * KEYWORD_SET_MANAGEDMATERIALS_OPTIONS
    * KEYWORD_SET_NODE_DEFAULTS            ~ :class:`NodePreset`
    * KEYWORD_SET_SHADOWS
@@ -396,14 +709,14 @@ Project status
    * KEYWORD_SUBMESH_GROUNDMODEL
    * KEYWORD_TEXCOORDS
    * KEYWORD_TIES
-   * KEYWORD_TORQUECURVE
+   * KEYWORD_TORQUECURVE                  ~ :class:`TorqueCurve`
    * KEYWORD_TRACTION_CONTROL
    * KEYWORD_TRIGGERS
-   * KEYWORD_TURBOJETS
-   * KEYWORD_TURBOPROPS
-   * KEYWORD_TURBOPROPS2
+   * KEYWORD_TURBOJETS                    ~ :class:`Turbojet`
+   * KEYWORD_TURBOPROPS                   ~ :class:`Turboprop`
+   * KEYWORD_TURBOPROPS2                  ~ :class:`Turboprop`
    * KEYWORD_VIDEOCAMERA
-   * KEYWORD_WHEELS
-   * KEYWORD_WHEELS2
-   * KEYWORD_WINGS
+   * KEYWORD_WHEELS                       ~ :class:`Wheel`
+   * KEYWORD_WHEELS2                      ~ :class:`Wheel2`
+   * KEYWORD_WINGS                        ~ :class:`Wing`
 
