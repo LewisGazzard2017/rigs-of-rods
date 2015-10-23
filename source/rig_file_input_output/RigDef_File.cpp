@@ -602,19 +602,17 @@ std::string File::PY_GetDescription()
 
 void File::PerformPythonExportTransforms()
 {
-	this->root_module->GroupBeamsByPreset();
-	this->root_module->GroupCommandHydrosByPreset();
 	this->root_module->GroupNodesByPreset();
 	this->root_module->MatchMaterialBindingsToFlares();
 	this->root_module->ConvertSlideNodeRangesToNodeList();
+	this->root_module->GroupAllBeamTypesByPreset();
 
 	auto module_itor = this->modules.begin();
 	auto module_iend = this->modules.end();
 	for (; module_itor != module_iend; ++module_itor)
 	{
 		File::Module* module = (*module_itor).second.get();
-		module->GroupBeamsByPreset();
-		module->GroupCommandHydrosByPreset();
+		module->GroupAllBeamTypesByPreset();
 		module->GroupNodesByPreset();
 		module->MatchMaterialBindingsToFlares();
 		module->ConvertSlideNodeRangesToNodeList();
@@ -627,7 +625,7 @@ void File::Module::MatchMaterialBindingsToFlares()
 	auto iend = this->material_flare_bindings.end();
 	for (; itor != iend; ++itor)
 	{
-		int flare_index = itor->flare_number;
+		unsigned int flare_index = itor->flare_number;
 		if (flare_index <= this->flares_2.size())
 		{
 			this->flares_2[flare_index].material_bindings.push_back(itor->material_name);
@@ -653,6 +651,7 @@ void File::Module::ConvertSlideNodeRangesToNodeList()
 }
 
 #define GROUP_BEAM_ELEMENT_BY_PRESET(SRC_VAR, DST_VAR, GROUP_TYPE, GROUPS_VAR, BEAM_DEFAULTS_VAR) \
+{                                                                    \
 	if (this->SRC_VAR.empty())                                       \
 	{                                                                \
 		return;                                                      \
@@ -689,16 +688,17 @@ void File::Module::ConvertSlideNodeRangesToNodeList()
 	for (; group_itor != group_iend; ++group_itor)                   \
 	{                                                                \
 		this->GROUPS_VAR.emplace_back(group_itor->second);           \
-	}
-
-void File::Module::GroupBeamsByPreset()
-{
-	GROUP_BEAM_ELEMENT_BY_PRESET(beams, beams, BeamGroupWithPreset, beams_by_preset, defaults)
+	}                                                                \
 }
 
-void File::Module::GroupCommandHydrosByPreset()
+void File::Module::GroupAllBeamTypesByPreset()
 {
+	GROUP_BEAM_ELEMENT_BY_PRESET(beams,      beams,    BeamGroupWithPreset,     beams_by_preset,     defaults)
 	GROUP_BEAM_ELEMENT_BY_PRESET(commands_2, commands, Command2GroupWithPreset, commands2_by_preset, beam_defaults)
+	GROUP_BEAM_ELEMENT_BY_PRESET(hydros,     hydros,   HydroGroupWithPreset,    hydros_by_preset,    beam_defaults)
+	GROUP_BEAM_ELEMENT_BY_PRESET(shocks,     shocks,   ShockGroupWithPreset,    shocks_by_preset,    beam_defaults)
+	GROUP_BEAM_ELEMENT_BY_PRESET(shocks_2,   shocks_2, Shock2GroupWithPreset,   shocks2_by_preset,   beam_defaults)
+	GROUP_BEAM_ELEMENT_BY_PRESET(ropes,      ropes,    RopeGroupWithPreset,     ropes_by_preset,     beam_defaults)
 }
 
 void File::Module::GroupNodesByPreset()

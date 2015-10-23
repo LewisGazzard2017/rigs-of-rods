@@ -188,6 +188,8 @@ are put into "root module".
        
       Name of the module
       
+   .. attribute:: globals
+      
    .. attribute:: nodes_by_preset
    
       List of :class:`NodeGroupWithPreset` objects.
@@ -199,6 +201,12 @@ are put into "root module".
    .. attribute:: command_hydros_by_preset
    
       List of :class:`CommandHydroGroupWithPreset` objects.
+      
+   .. attribute:: shocks_by_preset
+   .. attribute:: shocks2_by_preset
+   .. attribute:: steering_hydros_by_preset
+   .. attribute:: ropes_by_preset
+
    
    
    

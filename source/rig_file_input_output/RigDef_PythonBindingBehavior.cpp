@@ -42,7 +42,7 @@
 using namespace boost::python;
 using namespace RigDef;
 
-void PythonBinding::ExportTrigger()
+void PythonBinding::ExportBehavior()
 {
     class_<RigDef::RailGroup>("RailGroup")
         .def_readwrite("id",        &RailGroup::id)

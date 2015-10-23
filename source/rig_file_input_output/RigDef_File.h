@@ -1127,6 +1127,18 @@ struct Shock: public NodeLink
 	int detacher_group;
 };
 
+struct ShockGroupWithPreset
+{
+	boost::shared_ptr<BeamDefaults> preset;
+	std::vector<Shock>              shocks;
+
+	// For boost::python::vector_indexing_suite to compile
+	bool operator==(ShockGroupWithPreset const & rhs)
+	{
+		return rhs.preset.get() == this->preset.get();
+	}
+};
+
 /* -------------------------------------------------------------------------- */
 /* Section SHOCKS_2
 /* -------------------------------------------------------------------------- */
@@ -1159,6 +1171,18 @@ struct Shock2: public NodeLink
 	unsigned int options;             ///< Bit flags.
 	boost::shared_ptr<BeamDefaults> beam_defaults;
 	int detacher_group;
+};
+
+struct Shock2GroupWithPreset
+{
+	boost::shared_ptr<BeamDefaults> preset;
+	std::vector<Shock2>             shocks_2;
+
+	// For boost::python::vector_indexing_suite to compile
+	bool operator==(Shock2GroupWithPreset const & rhs)
+	{
+		return rhs.preset.get() == this->preset.get();
+	}
 };
 
 /* -------------------------------------------------------------------------- */
@@ -1228,6 +1252,18 @@ struct Hydro: public NodeLink
 	boost::shared_ptr<DefaultInertia> inertia_defaults;
 	boost::shared_ptr<BeamDefaults> beam_defaults;
 	int detacher_group;
+};
+
+struct HydroGroupWithPreset
+{
+	boost::shared_ptr<BeamDefaults> preset;
+	std::vector<Hydro>              hydros;
+
+	// For boost::python::vector_indexing_suite to compile
+	bool operator==(HydroGroupWithPreset const & rhs)
+	{
+		return rhs.preset.get() == this->preset.get();
+	}
 };
 
 /* -------------------------------------------------------------------------- */
@@ -1803,6 +1839,18 @@ struct Rope
 	int detacher_group;
 };
 
+struct RopeGroupWithPreset
+{
+	boost::shared_ptr<BeamDefaults> preset;
+	std::vector<Rope>               ropes;
+
+	// For boost::python::vector_indexing_suite to compile
+	bool operator==(RopeGroupWithPreset const & rhs)
+	{
+		return rhs.preset.get() == this->preset.get();
+	}
+};
+
 /* -------------------------------------------------------------------------- */
 /* Section SCREWPROPS
 /* -------------------------------------------------------------------------- */
@@ -2199,85 +2247,86 @@ struct File
 
 		Ogre::String name;
 
-		Ogre::String                       help_panel_material_name;
-		std::vector<unsigned int>          contacter_nodes;
+		Ogre::String                         help_panel_material_name;
+		std::vector<unsigned int>            contacter_nodes;
 
 		/* Sections*/
-		std::vector<Airbrake>              airbrakes;
-		std::vector<Animator>              animators;
-		boost::shared_ptr<AntiLockBrakes>  anti_lock_brakes;
-		std::vector<Axle>                  axles;
-		std::vector<Beam>                  beams;
-		std::vector<BeamGroupWithPreset>   beams_by_preset;
-		boost::shared_ptr<Brakes>          brakes;
-		std::vector<Camera>                cameras;
-		std::vector<CameraRail>            camera_rails;
-		std::vector<CollisionBox>          collision_boxes;
-		std::vector<Cinecam>               cinecam;
+		std::vector<Airbrake>                airbrakes;
+		std::vector<Animator>                animators;
+		boost::shared_ptr<AntiLockBrakes>    anti_lock_brakes;
+		std::vector<Axle>                    axles;
+		std::vector<Beam>                    beams;
+		std::vector<BeamGroupWithPreset>     beams_by_preset;
+		boost::shared_ptr<Brakes>            brakes;
+		std::vector<Camera>                  cameras;
+		std::vector<CameraRail>              camera_rails;
+		std::vector<CollisionBox>            collision_boxes;
+		std::vector<Cinecam>                 cinecam;
 		std::vector<Command2>                commands_2; /* sections 'commands' & 'commands2' are unified */
-        std::vector<Command2GroupWithPreset> commands2_by_preset;
+		std::vector<Command2GroupWithPreset> commands2_by_preset;
 		boost::shared_ptr<CruiseControl>     cruise_control;
-		std::vector<Node::Ref>             contacters;
-		boost::shared_ptr<Engine>          engine;
-		boost::shared_ptr<Engoption>       engoption;
-		std::vector<Exhaust>               exhausts;
-		boost::shared_ptr<ExtCamera>       ext_camera;
-		std::vector<Node::Ref>             fixes;
-		std::vector<Flare2>                flares_2;
+		std::vector<Node::Ref>               contacters;
+		boost::shared_ptr<Engine>            engine;
+		boost::shared_ptr<Engoption>         engoption;
+		std::vector<Exhaust>                 exhausts;
+		boost::shared_ptr<ExtCamera>         ext_camera;
+		std::vector<Node::Ref>               fixes;
+		std::vector<Flare2>                  flares_2;
 		std::vector<
 			boost::shared_ptr<Flexbody>
-		>                                  flexbodies;
-		std::vector<FlexBodyWheel>         flex_body_wheels;
-		std::vector<Fusedrag>              fusedrag;
-		boost::shared_ptr<Globals>         globals;
-		boost::shared_ptr<GuiSettings>     gui_settings;
-		std::vector<Hook>                  hooks;
-		std::vector<Hydro>                 hydros;
-		std::vector<Lockgroup>             lockgroups;
-		std::vector<ManagedMaterial>       managed_materials;
-		std::vector<MaterialFlareBinding>  material_flare_bindings;
-		std::vector<MeshWheel>             mesh_wheels;
-		std::vector<MeshWheel2>            mesh_wheels_2;
-		std::vector<Node>                  nodes; /* Nodes and Nodes2 are unified in this parser */
-		std::vector<NodeGroupWithPreset>   nodes_by_preset;
-		std::vector<NodeCollision>         node_collisions;
-		std::vector<Particle>              particles;
-		std::vector<Pistonprop>            pistonprops;
-		std::vector<Prop>                  props;
-		std::vector<RailGroup>             railgroups; 
-		std::vector<Ropable>               ropables;
-		std::vector<Rope>                  ropes;
-		std::vector<Rotator>               rotators;
-		std::vector<Rotator2>              rotators_2;
-		std::vector<Screwprop>             screwprops;
-		std::vector<Shock>                 shocks;
-		std::vector<Shock2>                shocks_2;
-		boost::shared_ptr<
-			SkeletonSettings
-		>                                  skeleton_settings;
-		std::vector<SlideNode>             slidenodes;
-		boost::shared_ptr<SlopeBrake>      slope_brake;
-		std::vector<SoundSource>           soundsources;
-		std::vector<SoundSource2>          soundsources2;
-		boost::shared_ptr<SpeedLimiter>    speed_limiter;
-		Ogre::String                       submeshes_ground_model_name;
-		std::vector<Submesh>               submeshes;
-		std::vector<Tie>                   ties;
-		boost::shared_ptr<TorqueCurve>     torque_curve;
-		boost::shared_ptr<TractionControl> traction_control;
-		std::vector<Trigger>               triggers;
-		std::vector<Turbojet>              turbojets;
-		std::vector<Turboprop2>            turboprops_2;
-		std::vector<VideoCamera>           videocameras;
-		std::vector<Wheel>                 wheels;
-		std::vector<Wheel2>                wheels_2;
-		std::vector<Wing>                  wings;
+		>                                    flexbodies;
+		std::vector<FlexBodyWheel>           flex_body_wheels;
+		std::vector<Fusedrag>                fusedrag;
+		boost::shared_ptr<Globals>           globals;
+		boost::shared_ptr<GuiSettings>       gui_settings;
+		std::vector<Hook>                    hooks;
+		std::vector<Hydro>                   hydros;
+		std::vector<HydroGroupWithPreset>    hydros_by_preset;
+		std::vector<Lockgroup>               lockgroups;
+		std::vector<ManagedMaterial>         managed_materials;
+		std::vector<MaterialFlareBinding>    material_flare_bindings;
+		std::vector<MeshWheel>               mesh_wheels;
+		std::vector<MeshWheel2>              mesh_wheels_2;
+		std::vector<Node>                    nodes; /* Nodes and Nodes2 are unified in this parser */
+		std::vector<NodeGroupWithPreset>     nodes_by_preset;
+		std::vector<NodeCollision>           node_collisions;
+		std::vector<Particle>                particles;
+		std::vector<Pistonprop>              pistonprops;
+		std::vector<Prop>                    props;
+		std::vector<RailGroup>               railgroups; 
+		std::vector<Ropable>                 ropables;
+		std::vector<Rope>                    ropes;
+		std::vector<RopeGroupWithPreset>     ropes_by_preset;
+		std::vector<Rotator>                 rotators;
+		std::vector<Rotator2>                rotators_2;
+		std::vector<Screwprop>               screwprops;
+		std::vector<Shock>                   shocks;
+		std::vector<ShockGroupWithPreset>    shocks_by_preset;
+		std::vector<Shock2>                  shocks_2;
+		std::vector<Shock2GroupWithPreset>   shocks2_by_preset;
+		boost::shared_ptr<SkeletonSettings>  skeleton_settings;
+		std::vector<SlideNode>               slidenodes;
+		boost::shared_ptr<SlopeBrake>        slope_brake;
+		std::vector<SoundSource>             soundsources;
+		std::vector<SoundSource2>            soundsources2;
+		boost::shared_ptr<SpeedLimiter>      speed_limiter;
+		Ogre::String                         submeshes_ground_model_name;
+		std::vector<Submesh>                 submeshes;
+		std::vector<Tie>                     ties;
+		boost::shared_ptr<TorqueCurve>       torque_curve;
+		boost::shared_ptr<TractionControl>   traction_control;
+		std::vector<Trigger>                 triggers;
+		std::vector<Turbojet>                turbojets;
+		std::vector<Turboprop2>              turboprops_2;
+		std::vector<VideoCamera>             videocameras;
+		std::vector<Wheel>                   wheels;
+		std::vector<Wheel2>                  wheels_2;
+		std::vector<Wing>                    wings;
 
-		void GroupBeamsByPreset();
+		void GroupAllBeamTypesByPreset();
 		void GroupNodesByPreset();
-		void GroupCommandHydrosByPreset();
-		void MatchMaterialBindingsToFlares();
 		void ConvertSlideNodeRangesToNodeList();
+		void MatchMaterialBindingsToFlares();
 	};
 
 	File();

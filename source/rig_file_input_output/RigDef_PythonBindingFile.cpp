@@ -44,6 +44,7 @@ using namespace RigDef;
 
 void PythonBinding::ExportFile()
 {
+	PYTHON_REGISTER_SHARED_PTR(RigDef::File)
 	class_<RigDef::File>("File")
 		.def_readonly("description",                    &File::PY_GetDescription)
 
@@ -68,37 +69,41 @@ void PythonBinding::ExportFile()
 		.def_readwrite("root_module",                   &File::root_module)
 		;
 
+	PYTHON_REGISTER_SHARED_PTR(RigDef::File::Module)
 	class_<RigDef::File::Module>("Module")
-		.def_readwrite("name",                     &File::Module::name)
-		.def_readwrite("globals",                  &File::Module::globals)
+		.def_readwrite("name",                      &File::Module::name)
+		.def_readwrite("globals",                   &File::Module::globals)
+
 		// Structure
-		.def_readwrite("nodes_by_preset",          &File::Module::nodes_by_preset)
-		.def_readwrite("beams_by_preset",          &File::Module::beams_by_preset)
-		.def_readwrite("command_hydros_by_preset", &File::Module::commands2_by_preset)
+		.def_readwrite("nodes_by_preset",           &File::Module::nodes_by_preset)
+		.def_readwrite("beams_by_preset",           &File::Module::beams_by_preset)
+		.def_readwrite("shocks_by_preset",          &File::Module::shocks_by_preset)
+		.def_readwrite("shocks2_by_preset",         &File::Module::shocks2_by_preset)
+		.def_readwrite("command_hydros_by_preset",  &File::Module::commands2_by_preset)
+		.def_readwrite("steering_hydros_by_preset", &File::Module::hydros_by_preset)
+		.def_readwrite("ropes_by_preset",           &File::Module::ropes_by_preset)
+
 		// Powertrain
-		.def_readwrite("engine",                   &File::Module::engine)
-		.def_readwrite("engoption",                &File::Module::engoption)
-		.def_readwrite("torque_curve",             &File::Module::torque_curve)
-		.def_readwrite("axles",                    &File::Module::axles)
+		.def_readwrite("engine",                    &File::Module::engine)
+		.def_readwrite("engoption",                 &File::Module::engoption)
+		.def_readwrite("torque_curve",              &File::Module::torque_curve)
+		.def_readwrite("axles",                     &File::Module::axles)
 		// Aerial
-		.def_readwrite("turboprops",               &File::Module::turboprops_2)
-		.def_readwrite("turbojets",                &File::Module::turbojets)
-		.def_readwrite("pistonprops",              &File::Module::pistonprops)
-		.def_readwrite("wings",                    &File::Module::wings)
-		.def_readwrite("airbrakes",                &File::Module::airbrakes)
-		.def_readwrite("fusedrag",                 &File::Module::fusedrag)
+		.def_readwrite("turboprops",                &File::Module::turboprops_2)
+		.def_readwrite("turbojets",                 &File::Module::turbojets)
+		.def_readwrite("pistonprops",               &File::Module::pistonprops)
+		.def_readwrite("wings",                     &File::Module::wings)
+		.def_readwrite("airbrakes",                 &File::Module::airbrakes)
+		.def_readwrite("fusedrag",                  &File::Module::fusedrag)
 		// Wheels
-		.def_readwrite("wheels",                   &File::Module::wheels)
-		.def_readwrite("wheels_2",                 &File::Module::wheels_2)
-		.def_readwrite("mesh_wheels",              &File::Module::mesh_wheels)
-		.def_readwrite("mesh_wheels_2",            &File::Module::mesh_wheels_2)
-		.def_readwrite("flex_body_wheels",         &File::Module::flex_body_wheels)
+		.def_readwrite("wheels",                    &File::Module::wheels)
+		.def_readwrite("wheels_2",                  &File::Module::wheels_2)
+		.def_readwrite("mesh_wheels",               &File::Module::mesh_wheels)
+		.def_readwrite("mesh_wheels_2",             &File::Module::mesh_wheels_2)
+		.def_readwrite("flex_body_wheels",          &File::Module::flex_body_wheels)
 		;
 
-	register_ptr_to_python< boost::shared_ptr<RigDef::File::Module> >();
-
-	register_ptr_to_python< boost::shared_ptr<RigDef::File> >();
-
+	PYTHON_REGISTER_STD_VECTOR(RigDef::Author, "AuthorVector")
 	class_<RigDef::Author>("Author")
 		.def_readwrite("type",               &Author::type)
 		.def_readwrite("forum_account_id",   &Author::forum_account_id)
@@ -107,16 +112,13 @@ void PythonBinding::ExportFile()
 		.def_readwrite("_has_forum_account", &Author::_has_forum_account)
 		;
 
-	class_<std::vector<RigDef::Author> >("AuthorVector")
-			.def(vector_indexing_suite< std::vector<RigDef::Author> >())
-			;
-
-	class_<RigDef::Globals>("Globals")   
+	class_<RigDef::Globals>("Globals")
 		.def_readwrite("dry_mass",      &Globals::dry_mass)
 		.def_readwrite("cargo_mass",    &Globals::cargo_mass)
 		.def_readwrite("material_name", &Globals::material_name)
 		;
 
+	PYTHON_REGISTER_SHARED_PTR(RigDef::Fileinfo)
 	class_<RigDef::Fileinfo>("FileInfo")
 		.def_readwrite("unique_id",             &Fileinfo::unique_id)
 		.def_readwrite("category_id",           &Fileinfo::category_id)
@@ -125,7 +127,5 @@ void PythonBinding::ExportFile()
 		.def_readwrite("_has_category_id",      &Fileinfo::_has_category_id)
 		.def_readwrite("_has_file_version_set", &Fileinfo::_has_file_version_set)
 		;
-
-	register_ptr_to_python< boost::shared_ptr<RigDef::Fileinfo> >();
 
 };
