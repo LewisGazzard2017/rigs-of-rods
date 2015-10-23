@@ -44,32 +44,32 @@ using namespace RigDef;
 
 void PythonBinding::ExportTrigger()
 {
-    enum_<RigDef::EngineTrigger::Function>("EngineTriggerFunction")
-        .value("CLUTCH",      EngineTrigger::ENGINE_TRIGGER_FUNCTION_CLUTCH     )
-        .value("BRAKE",       EngineTrigger::ENGINE_TRIGGER_FUNCTION_BRAKE      )
-        .value("ACCELERATOR", EngineTrigger::ENGINE_TRIGGER_FUNCTION_ACCELERATOR)
-        .value("RPM_CONTROL", EngineTrigger::ENGINE_TRIGGER_FUNCTION_RPM_CONTROL)
-        .value("SHIFT_UP",    EngineTrigger::ENGINE_TRIGGER_FUNCTION_SHIFT_UP   )
-        .value("SHIFT_DOWN",  EngineTrigger::ENGINE_TRIGGER_FUNCTION_SHIFT_DOWN )
-        .value("INVALID",     EngineTrigger::ENGINE_TRIGGER_FUNCTION_INVALID    )
+    enum_<RigDef::Trigger::EngineTrigger::Function>("EngineTriggerFunction")
+        .value("CLUTCH",      Trigger::EngineTrigger::ENGINE_TRIGGER_FUNCTION_CLUTCH     )
+        .value("BRAKE",       Trigger::EngineTrigger::ENGINE_TRIGGER_FUNCTION_BRAKE      )
+        .value("ACCELERATOR", Trigger::EngineTrigger::ENGINE_TRIGGER_FUNCTION_ACCELERATOR)
+        .value("RPM_CONTROL", Trigger::EngineTrigger::ENGINE_TRIGGER_FUNCTION_RPM_CONTROL)
+        .value("SHIFT_UP",    Trigger::EngineTrigger::ENGINE_TRIGGER_FUNCTION_SHIFT_UP   )
+        .value("SHIFT_DOWN",  Trigger::EngineTrigger::ENGINE_TRIGGER_FUNCTION_SHIFT_DOWN )
+        .value("INVALID",     Trigger::EngineTrigger::ENGINE_TRIGGER_FUNCTION_INVALID    )
         ;
 
 
-    class_<RigDef::EngineTrigger>("EngineTrigger")   
-        .def_readwrite("function",    &EngineTrigger::function)
-        .def_readwrite("motor_index", &EngineTrigger::motor_index)
+    class_<RigDef::Trigger::EngineTrigger>("EngineTrigger")   
+        .def_readwrite("function",    &Trigger::EngineTrigger::function)
+        .def_readwrite("motor_index", &Trigger::EngineTrigger::motor_index)
         ;
 
 
-    class_<RigDef::CommandKeyTrigger>("CommandKeyTrigger")
-        .def_readwrite("contraction_trigger_key", &CommandKeyTrigger::contraction_trigger_key)
-        .def_readwrite("extension_trigger_key",   &CommandKeyTrigger::extension_trigger_key)
+    class_<RigDef::Trigger::CommandKeyTrigger>("CommandKeyTrigger")
+        .def_readwrite("contraction_trigger_key", &Trigger::CommandKeyTrigger::contraction_trigger_key)
+        .def_readwrite("extension_trigger_key",   &Trigger::CommandKeyTrigger::extension_trigger_key)
         ;
 
 
-    class_<RigDef::HookToggleTrigger>("HookToggleTrigger")   
-        .def_readwrite("contraction_trigger_hookgroup_id", &HookToggleTrigger::contraction_trigger_hookgroup_id)
-        .def_readwrite("extension_trigger_hookgroup_id",   &HookToggleTrigger::extension_trigger_hookgroup_id)
+    class_<RigDef::Trigger::HookToggleTrigger>("HookToggleTrigger")   
+        .def_readwrite("contraction_trigger_hookgroup_id", &Trigger::HookToggleTrigger::contraction_trigger_hookgroup_id)
+        .def_readwrite("extension_trigger_hookgroup_id",   &Trigger::HookToggleTrigger::extension_trigger_hookgroup_id)
         ;
 
 

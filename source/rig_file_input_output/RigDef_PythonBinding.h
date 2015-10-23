@@ -48,11 +48,17 @@ namespace RigDef
 		static void ExportNode();
 		static void ExportBeam();
 		static void ExportPowertrain();
-		static void ExportCommandHydro();
+		static void ExportHydraulics();
 		static void ExportAerial();
 		static void ExportFile();
 		static void ExportWheels();
-        static void ExportTrigger();
+		static void ExportTrigger();
+		static void ExportPropsAndAnimations();
+		static void ExportCamera();
+		static void ExportEffects();
+		static void ExportShockAbsorber();
+		static void ExportVisuals();
+		static void ExportBehavior();
 	};
 }
 

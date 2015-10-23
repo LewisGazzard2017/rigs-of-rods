@@ -2268,8 +2268,9 @@ void RigSpawner::ProcessProp(RigDef::Prop & def)
 			BITMASK_SET_1(prop.animFlags[anim_index], ANIM_FLAG_EVENT);
 		}
 		/* Motor-indexed sources */
-		std::list<RigDef::Animation::MotorSource>::iterator source_itor = anim_itor->motor_sources.begin();
-		for ( ; source_itor != anim_itor->motor_sources.end(); source_itor++)
+		auto source_itor = anim_itor->motor_sources.begin();
+		auto source_iend = anim_itor->motor_sources.end();
+		for ( ; source_itor != source_iend; source_itor++)
 		{
 			if (BITMASK_IS_1(source_itor->source, RigDef::Animation::MotorSource::SOURCE_AERO_THROTTLE)) {
 				BITMASK_SET_1(prop.animFlags[anim_index], ANIM_FLAG_THROTTLE);

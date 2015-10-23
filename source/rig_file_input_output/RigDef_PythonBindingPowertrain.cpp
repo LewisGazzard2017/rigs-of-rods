@@ -126,8 +126,8 @@ void PythonBinding::ExportPowertrain()
     PYTHON_REGISTER_SHARED_PTR(RigDef::TorqueCurve)
 
     class_<RigDef::CruiseControl>("CruiseControl")
-        .def_readwrite("min_speed", &TorqueCurve::min_speed)
-        .def_readwrite("autobrake", &TorqueCurve::autobrake)
+        .def_readwrite("min_speed", &CruiseControl::min_speed)
+        .def_readwrite("autobrake", &CruiseControl::autobrake)
         ;
 
     PYTHON_REGISTER_SHARED_PTR(RigDef::CruiseControl)

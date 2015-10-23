@@ -44,20 +44,20 @@ using namespace RigDef;
 
 void PythonBinding::ExportTrigger()
 {
-    class_<RigDef::RailGroup>("RailGroup")   
+    class_<RigDef::RailGroup>("RailGroup")
         .def_readwrite("id",        &RailGroup::id)
         .def_readwrite("node_list", &RailGroup::node_list)
         ;
 
-    class_<RigDef::Ropable>("Ropable")   
+    class_<RigDef::Ropable>("Ropable")
         .def_readwrite("node",               &Ropable::node)
-        .def_readwrite("int group",          &Ropable::int group)
+        .def_readwrite("int group",          &Ropable::group)
         .def_readwrite("_has_group_set",     &Ropable::_has_group_set)
         .def_readwrite("multilock",          &Ropable::multilock)
         .def_readwrite("_has_multilock_set", &Ropable::_has_multilock_set)
         ;
 
-    class_<RigDef::Rope>("Rope")   
+    class_<RigDef::Rope>("Rope")
         .def_readwrite("root_node",          &Rope::root_node)
         .def_readwrite("end_node",           &Rope::end_node)
         .def_readwrite("invisible",          &Rope::invisible)
@@ -66,7 +66,7 @@ void PythonBinding::ExportTrigger()
         .def_readwrite("detacher_group",     &Rope::detacher_group)
         ;
 
-    class_<RigDef::Screwprop>("Screwprop")   
+    class_<RigDef::Screwprop>("Screwprop")
         .def_readwrite("prop_node", &Screwprop::prop_node)
         .def_readwrite("back_node", &Screwprop::back_node)
         .def_readwrite("top_node",  &Screwprop::top_node)
@@ -74,7 +74,7 @@ void PythonBinding::ExportTrigger()
         ;
     
     PYTHON_REGISTER_STD_VECTOR(RigDef::NodeCollision, "NodeCollisionVector")
-        class_<RigDef::NodeCollision>("NodeCollision")   NodeCollision
+        class_<RigDef::NodeCollision>("NodeCollision")
         .def_readwrite("node",   &NodeCollision::node)
         .def_readwrite("radius", &NodeCollision::radius)
         ;

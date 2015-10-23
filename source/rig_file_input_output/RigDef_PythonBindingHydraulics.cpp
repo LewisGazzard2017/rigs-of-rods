@@ -76,10 +76,6 @@ void PythonBinding::ExportHydraulics()
 		.def_readwrite("preset",           &Command2GroupWithPreset::preset)
 		.def_readwrite("command_hydros",   &Command2GroupWithPreset::commands)
 		;
-
-	class_<std::vector<RigDef::Command2GroupWithPreset> >("CommandHydroGroupVector")
-		.def(vector_indexing_suite< std::vector<RigDef::Command2GroupWithPreset> >())
-		;
         
     PYTHON_REGISTER_STD_VECTOR(RigDef::Hydro, "SteeringHydroVector")    
     class_<RigDef::Hydro>("SteeringHydro")
@@ -101,7 +97,6 @@ void PythonBinding::ExportHydraulics()
         .def_readonly("OPTION_h_INPUT_InvELEVATOR_RUDDER",  &Hydro::OPTION_h_INPUT_InvELEVATOR_RUDDER )
         
         // Option read-only properties
-        .add_property("has_option_n_normal",                    &Hydro::HasFlag_n)
         .add_property("has_option_i_invisible",                 &Hydro::HasFlag_i)
         .add_property("has_option_s_disable_on_high_speed",     &Hydro::HasFlag_s)
         .add_property("has_option_a_input_aileron",             &Hydro::HasFlag_a)

@@ -87,8 +87,7 @@ public:
 	boost::shared_ptr<File> PY_GetParsedFile()
 	{
 		auto file = m_validator.GetFileOwnership();
-		file->GroupNodesByPreset();
-		file->GroupAllBeamTypesByPreset();
+		file->PerformPythonExportTransforms();
 		return file;
 	}
 
@@ -119,18 +118,18 @@ BOOST_PYTHON_MODULE(ror_truckfile)
 
 	PythonBinding::ExportAerial();
 	PythonBinding::ExportBeam();
-	PythonBinding::ExportCommandHydro();
+	PythonBinding::ExportHydraulics();
 	PythonBinding::ExportFile();
 	PythonBinding::ExportNode();
 	PythonBinding::ExportPowertrain();
 	PythonBinding::ExportWheels();
-    PythonBinding::ExportTrigger();
-    PythonBinding::ExportPropsAndAnimations();
-    PythonBinding::ExportCamera();
-    PythonBinding::ExportEffects();
-    PythonBinding::ExportShockAbsorber();
-    PythonBinding::ExportVisuals();
-    PythonBinding::ExportBehavior();
+	PythonBinding::ExportTrigger();
+	PythonBinding::ExportPropsAndAnimations();
+	PythonBinding::ExportCamera();
+	PythonBinding::ExportEffects();
+	PythonBinding::ExportShockAbsorber();
+	PythonBinding::ExportVisuals();
+	PythonBinding::ExportBehavior();
     
 	
 	class_<ParserWrapper>("Parser")

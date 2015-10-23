@@ -600,10 +600,13 @@ std::string File::PY_GetDescription()
 	return msg.str();
 }
 
-void File::GroupAllBeamTypesByPreset()
+void File::PerformPythonExportTransforms()
 {
 	this->root_module->GroupBeamsByPreset();
 	this->root_module->GroupCommandHydrosByPreset();
+	this->root_module->GroupNodesByPreset();
+	this->root_module->MatchMaterialBindingsToFlares();
+	this->root_module->ConvertSlideNodeRangesToNodeList();
 
 	auto module_itor = this->modules.begin();
 	auto module_iend = this->modules.end();
@@ -612,6 +615,40 @@ void File::GroupAllBeamTypesByPreset()
 		File::Module* module = (*module_itor).second.get();
 		module->GroupBeamsByPreset();
 		module->GroupCommandHydrosByPreset();
+		module->GroupNodesByPreset();
+		module->MatchMaterialBindingsToFlares();
+		module->ConvertSlideNodeRangesToNodeList();
+	}
+}
+
+void File::Module::MatchMaterialBindingsToFlares()
+{
+	auto itor = this->material_flare_bindings.begin();
+	auto iend = this->material_flare_bindings.end();
+	for (; itor != iend; ++itor)
+	{
+		int flare_index = itor->flare_number;
+		if (flare_index <= this->flares_2.size())
+		{
+			this->flares_2[flare_index].material_bindings.push_back(itor->material_name);
+		}
+	}
+}
+
+void File::Module::ConvertSlideNodeRangesToNodeList()
+{
+	auto itor = this->slidenodes.begin();
+	auto iend = this->slidenodes.end();
+	for (; itor != iend; ++itor)
+	{
+		auto range_itor = itor->rail_node_ranges.begin();
+		auto range_iend = itor->rail_node_ranges.end();
+		for (; range_itor != range_iend; ++range_itor)
+		{
+			// SequentialImporter already resolved all ranges to "single-node" ranges
+			// We just copy them to python-aware array
+			itor->rail_nodes.push_back(range_itor->start);
+		}
 	}
 }
 
@@ -662,19 +699,6 @@ void File::Module::GroupBeamsByPreset()
 void File::Module::GroupCommandHydrosByPreset()
 {
 	GROUP_BEAM_ELEMENT_BY_PRESET(commands_2, commands, Command2GroupWithPreset, commands2_by_preset, beam_defaults)
-}
-
-void File::GroupNodesByPreset()
-{
-	this->root_module->GroupNodesByPreset();
-
-	auto module_itor = this->modules.begin();
-	auto module_iend = this->modules.end();
-	for (; module_itor != module_iend; ++module_itor)
-	{
-		File::Module* module = (*module_itor).second.get();
-		module->GroupNodesByPreset();
-	}
 }
 
 void File::Module::GroupNodesByPreset()

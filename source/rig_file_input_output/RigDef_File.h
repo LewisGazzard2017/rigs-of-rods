@@ -336,19 +336,22 @@ struct Animation
 	struct MotorSource
 	{
 		MotorSource():
-			source(0),
+			source(SOURCE_AERO_INVALID),
 			motor(0)
 		{}
-        
-        enum WhichSource
-        {
-            SOURCE_AERO_INVALID
-            SOURCE_AERO_THROTTLE
-            SOURCE_AERO_RPM     
-            SOURCE_AERO_TORQUE  
-            SOURCE_AERO_PITCH   
-            SOURCE_AERO_STATUS  
-        }
+
+		enum WhichSource
+		{
+			SOURCE_AERO_INVALID ,
+
+			SOURCE_AERO_THROTTLE,
+			SOURCE_AERO_RPM     ,
+			SOURCE_AERO_TORQUE  ,
+			SOURCE_AERO_PITCH   ,
+			SOURCE_AERO_STATUS  
+		};
+
+		bool operator==(MotorSource const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 		WhichSource source;
 		unsigned int motor;
@@ -361,6 +364,8 @@ struct Animation
 		source(0),
 		mode(0)
 	{}
+
+	bool operator==(Animation const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	BITMASK_PROPERTY( source,  1, SOURCE_AIRSPEED          , HasSource_AirSpeed            , SetHasSource_AirSpeed )
 	BITMASK_PROPERTY( source,  2, SOURCE_VERTICAL_VELOCITY , HasSource_VerticalVelocity	   , SetHasSource_VerticalVelocity )
@@ -452,7 +457,17 @@ struct Axle
 /* Section BEAMS
 /* -------------------------------------------------------------------------- */
 
-struct Beam
+struct NodeLink
+{
+	Node::Ref nodes[2];
+
+	Node::Ref PY_GetNode1()              { return this->nodes[0]; }
+	Node::Ref PY_GetNode2()              { return this->nodes[1]; }
+	void      PY_SetNode1(Node::Ref ref) { this->nodes[0] = ref;  }
+	void      PY_SetNode2(Node::Ref ref) { this->nodes[1] = ref;  }
+};
+
+struct Beam: NodeLink
 {
 	Beam():
 		options(0),
@@ -465,14 +480,8 @@ struct Beam
 	BITMASK_PROPERTY(options, 2, OPTION_r_ROPE     , HasFlag_r_Rope     , SetFlag_r_Rope     );
 	BITMASK_PROPERTY(options, 3, OPTION_s_SUPPORT  , HasFlag_s_Support  , SetFlag_s_Support  );
 
-	Node::Ref PY_GetNode1()              { return this->nodes[0]; }
-	Node::Ref PY_GetNode2()              { return this->nodes[1]; }
-	void      PY_SetNode1(Node::Ref ref) { this->nodes[0] = ref;  }
-	void      PY_SetNode2(Node::Ref ref) { this->nodes[1] = ref;  }
-
 	bool operator==(Beam const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
-	Node::Ref nodes[2];
 	unsigned int options; ///< Bit flags
 	float extension_break_limit;
 	bool _has_extension_break_limit;
@@ -498,6 +507,8 @@ struct BeamGroupWithPreset
 
 struct Camera
 {
+	bool operator==(Camera const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
 	Node::Ref center_node;
 	Node::Ref back_node;
 	Node::Ref left_node;
@@ -528,6 +539,8 @@ struct Cinecam
 		spring(8000),
 		damping(800)
 	{}
+
+	bool operator==(Cinecam const & rhs) { return this == &rhs; } // Rely on pointer comparsion
     
     Node::Ref PY_GetNode(int index)
 	{
@@ -686,6 +699,8 @@ struct Engoption
 
 struct Exhaust
 {
+	bool operator==(Exhaust const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
 	Node::Ref reference_node;
 	Node::Ref direction_node;
 	Ogre::String material_name;
@@ -832,7 +847,7 @@ struct Wheels
 };
 
 /** Attributes common to all wheel definitions */
-struct BaseWheel
+struct BaseWheel: NodeLink
 {
 	BaseWheel():
 		width(0),
@@ -844,16 +859,10 @@ struct BaseWheel
 	virtual ~BaseWheel()
 	{}
 
-	Node::Ref PY_GetNode1()              { return this->nodes[0]; }
-	Node::Ref PY_GetNode2()              { return this->nodes[1]; }
-	void      PY_SetNode1(Node::Ref ref) { this->nodes[0] = ref;  }
-	void      PY_SetNode2(Node::Ref ref) { this->nodes[1] = ref;  }
-
 	bool operator==(BaseWheel const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	float width;
 	unsigned int num_rays;
-	Node::Ref nodes[2];
 	Node::Ref rigidity_node;
 	Wheels::Braking braking;
 	Wheels::Propulsion propulsion;
@@ -990,6 +999,8 @@ struct Flare2
 		TYPE_INVALID         = 0xFFFFFFFF
 	};
 
+	bool operator==(Flare2 const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
     Node::Ref      reference_node;
     Node::Ref      node_axis_x;
     Node::Ref      node_axis_y;
@@ -999,6 +1010,7 @@ struct Flare2
     int            blink_delay_milis;
     float          size;
     Ogre::String   material_name;
+	std::vector<std::string> material_bindings;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -1012,6 +1024,8 @@ struct Flexbody
 		rotation(Ogre::Vector3::ZERO)
 	{
 	}
+
+	bool operator==(Flexbody const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	Node::Ref reference_node;
 	Node::Ref x_axis_node;
@@ -1090,14 +1104,11 @@ struct Hook
 /* Section SHOCKS
 /* -------------------------------------------------------------------------- */
 
-struct Shock
+struct Shock: public NodeLink
 {
 	Shock();
-    
-    Node::Ref PY_GetNode1()              { return this->nodes[0]; }
-	Node::Ref PY_GetNode2()              { return this->nodes[1]; }
-	void      PY_SetNode1(Node::Ref ref) { this->nodes[0] = ref;  }
-	void      PY_SetNode2(Node::Ref ref) { this->nodes[1] = ref;  }
+
+	bool operator==(Shock const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	BITMASK_PROPERTY(options, 1, OPTION_i_INVISIBLE    , HasOption_i_Invisible,   SetOption_i_Invisible) 
 	// Stability active suspension can be made with "L" for suspension on the truck's left and "R" for suspension on the truck's right. 
@@ -1106,7 +1117,6 @@ struct Shock
 	BITMASK_PROPERTY(options, 3, OPTION_R_ACTIVE_RIGHT , HasOption_R_ActiveRight, SetOption_R_ActiveRight)
 	BITMASK_PROPERTY(options, 4, OPTION_m_METRIC       , HasOption_m_Metric,      SetOption_m_Metric) 
 
-	Node::Ref nodes[2];
 	float spring_rate;         ///< The 'stiffness' of the shock. The higher the value, the less the shock will move for a given bump. 
 	float damping;             ///< The 'resistance to motion' of the shock. The best value is given by this equation:  2 * sqrt(suspended mass * springness)
 	float short_bound;         ///< Maximum contraction. The shortest length the shock can be, as a proportion of its original length. "0" means the shock will not be able to contract at all, "1" will let it contract all the way to zero length. If the shock tries to shorten more than this value allows, it will become as rigid as a normal beam. 
@@ -1121,14 +1131,11 @@ struct Shock
 /* Section SHOCKS_2
 /* -------------------------------------------------------------------------- */
 
-struct Shock2
+struct Shock2: public NodeLink
 {
 	Shock2();
-    
-    Node::Ref PY_GetNode1()              { return this->nodes[0]; }
-	Node::Ref PY_GetNode2()              { return this->nodes[1]; }
-	void      PY_SetNode1(Node::Ref ref) { this->nodes[0] = ref;  }
-	void      PY_SetNode2(Node::Ref ref) { this->nodes[1] = ref;  }
+
+	bool operator==(Shock2 const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	BITMASK_PROPERTY(options, 1, OPTION_i_INVISIBLE       , HasOption_i_Invisible,      SetOption_i_Invisible) 
 	// soft bump boundaries, use when shocks reach limiters too often and "jumprebound" (default is hard bump boundaries)
@@ -1138,7 +1145,6 @@ struct Shock2
 	// Absolute metric values for shortbound/longbound, settings apply without regarding to the original length of the beam.(Use with caution, check ror.log for errors)
 	BITMASK_PROPERTY(options, 4, OPTION_M_ABSOLUTE_METRIC , HasOption_M_AbsoluteMetric, SetOption_M_AbsoluteMetric)  
 
-	Node::Ref nodes[2];
 	float spring_in;                  ///< Spring value applied when the shock is compressing.
 	float damp_in;                    ///< Damping value applied when the shock is compressing. 
 	float progress_factor_spring_in;  ///< Progression factor for springin. A value of 0 disables this option. 1...x as multipliers, example:maximum springrate == springrate + (factor*springrate)
@@ -1174,12 +1180,14 @@ struct SkeletonSettings
 /* Section HYDROS
 /* -------------------------------------------------------------------------- */
 
-struct Hydro
+struct Hydro: public NodeLink
 {
 	Hydro():
 		lenghtening_factor(0),
 		detacher_group(0)
 	{}
+
+	bool operator==(Hydro const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	static const char OPTION_n_NORMAL                    = 'n';
 	static const char OPTION_i_INVISIBLE                 = 'i';
@@ -1214,7 +1222,6 @@ struct Hydro
 
 	inline void AddFlag(char flag) { options += flag; }
 
-	Node::Ref nodes[2];
 	float lenghtening_factor;
 	std::string options;
 	OptionalInertia inertia;
@@ -1234,17 +1241,17 @@ struct AeroAnimator
 		motor(0)
 	{}
 
-    BITMASK_PROPERTY(flags, OPTION_THROTTLE, 1, HasOption_THROTTLE , SetOption_THROTTLE )
-    BITMASK_PROPERTY(flags, OPTION_RPM     , 2, HasOption_RPM      , SetOption_RPM      )
-    BITMASK_PROPERTY(flags, OPTION_TORQUE  , 3, HasOption_TORQUE   , SetOption_TORQUE   )
-    BITMASK_PROPERTY(flags, OPTION_PITCH   , 4, HasOption_PITCH    , SetOption_PITCH    )
-    BITMASK_PROPERTY(flags, OPTION_STATUS  , 5, HasOption_STATUS   , SetOption_STATUS   )
+    BITMASK_PROPERTY(flags, 1, OPTION_THROTTLE, HasOption_THROTTLE , SetOption_THROTTLE )
+    BITMASK_PROPERTY(flags, 2, OPTION_RPM     , HasOption_RPM      , SetOption_RPM      )
+    BITMASK_PROPERTY(flags, 3, OPTION_TORQUE  , HasOption_TORQUE   , SetOption_TORQUE   )
+    BITMASK_PROPERTY(flags, 4, OPTION_PITCH   , HasOption_PITCH    , SetOption_PITCH    )
+    BITMASK_PROPERTY(flags, 5, OPTION_STATUS  , HasOption_STATUS   , SetOption_STATUS   )
 
 	unsigned int flags;
 	unsigned int motor;
 };
 
-struct Animator
+struct Animator: public NodeLink
 {
 	Animator():
 		lenghtening_factor(0),
@@ -1254,37 +1261,38 @@ struct Animator
  		detacher_group(0)
 	{}
 
-    BITMASK_PROPERTY(flags,  1, , HasOption_VISIBLE          , SetOption_VISIBLE          )
-    BITMASK_PROPERTY(flags,  2, , HasOption_INVISIBLE        , SetOption_INVISIBLE        )
-    BITMASK_PROPERTY(flags,  3, , HasOption_AIRSPEED         , SetOption_AIRSPEED         )
-    BITMASK_PROPERTY(flags,  4, , HasOption_VERTICAL_VELOCITY, SetOption_VERTICAL_VELOCITY)
-    BITMASK_PROPERTY(flags,  5, , HasOption_ALTIMETER_100K   , SetOption_ALTIMETER_100K   )
-    BITMASK_PROPERTY(flags,  6, , HasOption_ALTIMETER_10K    , SetOption_ALTIMETER_10K    )
-    BITMASK_PROPERTY(flags,  7, , HasOption_ALTIMETER_1K     , SetOption_ALTIMETER_1K     )
-    BITMASK_PROPERTY(flags,  8, , HasOption_ANGLE_OF_ATTACK  , SetOption_ANGLE_OF_ATTACK  )
-    BITMASK_PROPERTY(flags,  9, , HasOption_FLAP             , SetOption_FLAP             )
-    BITMASK_PROPERTY(flags, 10, , HasOption_AIR_BRAKE        , SetOption_AIR_BRAKE        )
-    BITMASK_PROPERTY(flags, 11, , HasOption_ROLL             , SetOption_ROLL             )
-    BITMASK_PROPERTY(flags, 12, , HasOption_PITCH            , SetOption_PITCH            )
-    BITMASK_PROPERTY(flags, 13, , HasOption_BRAKES           , SetOption_BRAKES           )
-    BITMASK_PROPERTY(flags, 14, , HasOption_ACCEL            , SetOption_ACCEL            )
-    BITMASK_PROPERTY(flags, 15, , HasOption_CLUTCH           , SetOption_CLUTCH           )
-    BITMASK_PROPERTY(flags, 16, , HasOption_SPEEDO           , SetOption_SPEEDO           )
-    BITMASK_PROPERTY(flags, 17, , HasOption_TACHO            , SetOption_TACHO            )
-    BITMASK_PROPERTY(flags, 18, , HasOption_TURBO            , SetOption_TURBO            )
-    BITMASK_PROPERTY(flags, 19, , HasOption_PARKING          , SetOption_PARKING          )
-    BITMASK_PROPERTY(flags, 20, , HasOption_SHIFT_LEFT_RIGHT , SetOption_SHIFT_LEFT_RIGHT )
-    BITMASK_PROPERTY(flags, 21, , HasOption_SHIFT_BACK_FORTH , SetOption_SHIFT_BACK_FORTH )
-    BITMASK_PROPERTY(flags, 22, , HasOption_SEQUENTIAL_SHIFT , SetOption_SEQUENTIAL_SHIFT )
-    BITMASK_PROPERTY(flags, 23, , HasOption_GEAR_SELECT      , SetOption_GEAR_SELECT      )
-    BITMASK_PROPERTY(flags, 24, , HasOption_TORQUE           , SetOption_TORQUE           )
-    BITMASK_PROPERTY(flags, 25, , HasOption_DIFFLOCK         , SetOption_DIFFLOCK         )
-    BITMASK_PROPERTY(flags, 26, , HasOption_BOAT_RUDDER      , SetOption_BOAT_RUDDER      )
-    BITMASK_PROPERTY(flags, 27, , HasOption_BOAT_THROTTLE    , SetOption_BOAT_THROTTLE    )
-    BITMASK_PROPERTY(flags, 28, , HasOption_SHORT_LIMIT      , SetOption_SHORT_LIMIT      )
-    BITMASK_PROPERTY(flags, 29, , HasOption_LONG_LIMIT       , SetOption_LONG_LIMIT       )
+	bool operator==(Animator const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
-	Node::Ref nodes[2];
+    BITMASK_PROPERTY(flags,  1, OPTION_VISIBLE          , HasOption_VISIBLE          , SetOption_VISIBLE          )
+    BITMASK_PROPERTY(flags,  2, OPTION_INVISIBLE        , HasOption_INVISIBLE        , SetOption_INVISIBLE        )
+    BITMASK_PROPERTY(flags,  3, OPTION_AIRSPEED         , HasOption_AIRSPEED         , SetOption_AIRSPEED         )
+    BITMASK_PROPERTY(flags,  4, OPTION_VERTICAL_VELOCITY, HasOption_VERTICAL_VELOCITY, SetOption_VERTICAL_VELOCITY)
+    BITMASK_PROPERTY(flags,  5, OPTION_ALTIMETER_100K   , HasOption_ALTIMETER_100K   , SetOption_ALTIMETER_100K   )
+    BITMASK_PROPERTY(flags,  6, OPTION_ALTIMETER_10K    , HasOption_ALTIMETER_10K    , SetOption_ALTIMETER_10K    )
+    BITMASK_PROPERTY(flags,  7, OPTION_ALTIMETER_1K     , HasOption_ALTIMETER_1K     , SetOption_ALTIMETER_1K     )
+    BITMASK_PROPERTY(flags,  8, OPTION_ANGLE_OF_ATTACK  , HasOption_ANGLE_OF_ATTACK  , SetOption_ANGLE_OF_ATTACK  )
+    BITMASK_PROPERTY(flags,  9, OPTION_FLAP             , HasOption_FLAP             , SetOption_FLAP             )
+    BITMASK_PROPERTY(flags, 10, OPTION_AIR_BRAKE        , HasOption_AIR_BRAKE        , SetOption_AIR_BRAKE        )
+    BITMASK_PROPERTY(flags, 11, OPTION_ROLL             , HasOption_ROLL             , SetOption_ROLL             )
+    BITMASK_PROPERTY(flags, 12, OPTION_PITCH            , HasOption_PITCH            , SetOption_PITCH            )
+    BITMASK_PROPERTY(flags, 13, OPTION_BRAKES           , HasOption_BRAKES           , SetOption_BRAKES           )
+    BITMASK_PROPERTY(flags, 14, OPTION_ACCEL            , HasOption_ACCEL            , SetOption_ACCEL            )
+    BITMASK_PROPERTY(flags, 15, OPTION_CLUTCH           , HasOption_CLUTCH           , SetOption_CLUTCH           )
+    BITMASK_PROPERTY(flags, 16, OPTION_SPEEDO           , HasOption_SPEEDO           , SetOption_SPEEDO           )
+    BITMASK_PROPERTY(flags, 17, OPTION_TACHO            , HasOption_TACHO            , SetOption_TACHO            )
+    BITMASK_PROPERTY(flags, 18, OPTION_TURBO            , HasOption_TURBO            , SetOption_TURBO            )
+    BITMASK_PROPERTY(flags, 19, OPTION_PARKING          , HasOption_PARKING          , SetOption_PARKING          )
+    BITMASK_PROPERTY(flags, 20, OPTION_SHIFT_LEFT_RIGHT , HasOption_SHIFT_LEFT_RIGHT , SetOption_SHIFT_LEFT_RIGHT )
+    BITMASK_PROPERTY(flags, 21, OPTION_SHIFT_BACK_FORTH , HasOption_SHIFT_BACK_FORTH , SetOption_SHIFT_BACK_FORTH )
+    BITMASK_PROPERTY(flags, 22, OPTION_SEQUENTIAL_SHIFT , HasOption_SEQUENTIAL_SHIFT , SetOption_SEQUENTIAL_SHIFT )
+    BITMASK_PROPERTY(flags, 23, OPTION_GEAR_SELECT      , HasOption_GEAR_SELECT      , SetOption_GEAR_SELECT      )
+    BITMASK_PROPERTY(flags, 24, OPTION_TORQUE           , HasOption_TORQUE           , SetOption_TORQUE           )
+    BITMASK_PROPERTY(flags, 25, OPTION_DIFFLOCK         , HasOption_DIFFLOCK         , SetOption_DIFFLOCK         )
+    BITMASK_PROPERTY(flags, 26, OPTION_BOAT_RUDDER      , HasOption_BOAT_RUDDER      , SetOption_BOAT_RUDDER      )
+    BITMASK_PROPERTY(flags, 27, OPTION_BOAT_THROTTLE    , HasOption_BOAT_THROTTLE    , SetOption_BOAT_THROTTLE    )
+    BITMASK_PROPERTY(flags, 28, OPTION_SHORT_LIMIT      , HasOption_SHORT_LIMIT      , SetOption_SHORT_LIMIT      )
+    BITMASK_PROPERTY(flags, 29, OPTION_LONG_LIMIT       , HasOption_LONG_LIMIT       , SetOption_LONG_LIMIT       )
+
 	float lenghtening_factor;
 	unsigned int flags;
 	float short_limit;
@@ -1299,7 +1307,7 @@ struct Animator
 /* Section COMMANDS & COMMANDS_2 (unified)
 /* -------------------------------------------------------------------------- */
 
-struct Command2
+struct Command2: public NodeLink
 {
 	Command2();
 
@@ -1311,7 +1319,6 @@ struct Command2
 	BITMASK_PROPERTY(options, 6, OPTION_o_PRESS_ONCE_CENTER, HasOption_o_PressOnceCenter, SetOption_o_PressOnceCenter)
 
 	unsigned int _format_version;
-	Node::Ref nodes[2];
 	float shorten_rate;
 	float lengthen_rate;
 	float max_contraction;
@@ -1333,11 +1340,6 @@ struct Command2
 	{
 		return BITMASK_IS_1(options, option);
 	}
-
-	Node::Ref PY_GetNode1()              { return this->nodes[0]; }
-	Node::Ref PY_GetNode2()              { return this->nodes[1]; }
-	void      PY_SetNode1(Node::Ref ref) { this->nodes[0] = ref;  }
-	void      PY_SetNode2(Node::Ref ref) { this->nodes[1] = ref;  }
 };
 
 struct Command2GroupWithPreset
@@ -1421,7 +1423,7 @@ struct Rotator2: public Rotator
 /* Section TRIGGERS
 /* -------------------------------------------------------------------------- */
 
-struct Trigger
+struct Trigger: public NodeLink
 {
 	struct EngineTrigger
 	{
@@ -1454,11 +1456,6 @@ struct Trigger
 	};
 
 	Trigger();
-    
-    Node::Ref PY_GetNode1()              { return this->nodes[0]; }
-	Node::Ref PY_GetNode2()              { return this->nodes[1]; }
-	void      PY_SetNode1(Node::Ref ref) { this->nodes[0] = ref;  }
-	void      PY_SetNode2(Node::Ref ref) { this->nodes[1] = ref;  }
 
 	BITMASK_PROPERTY(options,  1, OPTION_i_INVISIBLE             , HasFlag_i_Invisible,         SetFlag_i_Invisible         )
 	BITMASK_PROPERTY(options,  2, OPTION_c_COMMAND_STYLE         , HasFlag_c_CommandStyle,      SetFlag_c_CommandStyle      )
@@ -1569,6 +1566,8 @@ struct ManagedMaterial
 		TYPE_INVALID = 0xFFFFFFFF
 	};
 
+	bool operator==(ManagedMaterial const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
 	Ogre::String name;
 	
 	/* Attributes */
@@ -1589,6 +1588,9 @@ struct ManagedMaterial
 	{
 		return specular_map.length() != 0;
 	}
+
+	bool HasOption_DoubleSided()         { return this->options.double_sided; }
+	void SetOption_DoubleSided(bool val) { this->options.double_sided = val;  }
 };
 
 /* -------------------------------------------------------------------------- */
@@ -1615,6 +1617,8 @@ struct NodeCollision
 		radius(0)
 	{}
 
+	bool operator==(NodeCollision const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
 	Node::Ref node;
 	float radius;
 };
@@ -1625,6 +1629,8 @@ struct NodeCollision
 
 struct Particle
 {
+	bool operator==(Particle const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
 	Node::Ref emitter_node;
 	Node::Ref reference_node;
 	Ogre::String particle_system_name;
@@ -1722,6 +1728,8 @@ struct Prop
 
 		SPECIAL_INVALID = 0xFFFFFFFF
 	};
+
+	bool operator==(Prop const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	Node::Ref reference_node;
 	Node::Ref x_axis_node;
@@ -1826,6 +1834,7 @@ struct SlideNode
 
 	Node::Ref slide_node;
 	std::vector<Node::Range> rail_node_ranges;
+	std::vector<Node::Range> rail_nodes;
 	float spring_rate;
 	float break_force;
 	float tolerance;
@@ -1843,6 +1852,8 @@ struct SlideNode
 
 struct SoundSource
 {
+	bool operator==(SoundSource const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
 	Node::Ref node;
 	Ogre::String sound_script_name;
 };
@@ -1867,6 +1878,8 @@ struct SoundSource2: SoundSource
 		cinecam_index(0)
 	{}
 
+	bool operator==(SoundSource2 const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
 	Mode mode;
 	unsigned int cinecam_index;
 };
@@ -1889,6 +1902,8 @@ struct Cab
 	Cab():
 		options(0)
 	{}
+
+	bool operator==(Cab const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	bool GetOption_D_ContactBuoyant()
 	{
@@ -1915,12 +1930,12 @@ struct Cab
 		return (index >= 0 && index <= 2) ? this->nodes[index] : Node::Ref(); // Defaults to "invalid"
 	}
 
-    BITMASK_PROPERTY( options, OPTION_c_CONTACT          , 1, HasOption_c_CONTACT          , SetOption_c_CONTACT          )
-    BITMASK_PROPERTY( options, OPTION_b_BUOYANT          , 2, HasOption_b_BUOYANT          , SetOption_b_BUOYANT          )
-    BITMASK_PROPERTY( options, OPTION_p_10xTOUGHER       , 3, HasOption_p_10xTOUGHER       , SetOption_p_10xTOUGHER       )
-    BITMASK_PROPERTY( options, OPTION_u_INVULNERABLE     , 4, HasOption_u_INVULNERABLE     , SetOption_u_INVULNERABLE     )
-    BITMASK_PROPERTY( options, OPTION_s_BUOYANT_NO_DRAG  , 5, HasOption_s_BUOYANT_NO_DRAG  , SetOption_s_BUOYANT_NO_DRAG  )
-    BITMASK_PROPERTY( options, OPTION_r_BUOYANT_ONLY_DRAG, 6, HasOption_r_BUOYANT_ONLY_DRAG, SetOption_r_BUOYANT_ONLY_DRAG)
+    BITMASK_PROPERTY( options, 1, OPTION_c_CONTACT          , HasOption_c_CONTACT          , SetOption_c_CONTACT          )
+    BITMASK_PROPERTY( options, 2, OPTION_b_BUOYANT          , HasOption_b_BUOYANT          , SetOption_b_BUOYANT          )
+    BITMASK_PROPERTY( options, 3, OPTION_p_10xTOUGHER       , HasOption_p_10xTOUGHER       , SetOption_p_10xTOUGHER       )
+    BITMASK_PROPERTY( options, 4, OPTION_u_INVULNERABLE     , HasOption_u_INVULNERABLE     , SetOption_u_INVULNERABLE     )
+    BITMASK_PROPERTY( options, 5, OPTION_s_BUOYANT_NO_DRAG  , HasOption_s_BUOYANT_NO_DRAG  , SetOption_s_BUOYANT_NO_DRAG  )
+    BITMASK_PROPERTY( options, 6, OPTION_r_BUOYANT_ONLY_DRAG, HasOption_r_BUOYANT_ONLY_DRAG, SetOption_r_BUOYANT_ONLY_DRAG)
 
 	Node::Ref nodes[3];
 	unsigned int options;
@@ -1933,6 +1948,8 @@ struct Texcoord
 		v(0)
 	{}
 
+	bool operator==(Texcoord const & rhs) { return this == &rhs; } // Rely on pointer comparsion
+
 	Node::Ref node;
 	float u;
 	float v;
@@ -1943,6 +1960,8 @@ struct Submesh
 	Submesh():
 		backmesh(false)
 	{}
+
+	bool operator==(Submesh const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	bool backmesh;
 	std::vector<Texcoord> texcoords;
@@ -1964,9 +1983,11 @@ struct Tie
 
 		OPTIONS_INVALID = 0xFFFFFFFF
 	};
+
+	bool operator==(Tie const & rhs) { return this == &rhs; } // Rely on pointer comparsion
     
-    bool PY_HasOptionInvisible()         { return this->options == Options::OPTIONS_INVISIBLE; }
-    void PY_SetOptionInvisible(bool inv) { this->options = (inv) ? Options::OPTIONS_INVISIBLE : Options::OPTIONS_VISIBLE; }
+    bool PY_HasOptionInvisible()         { return this->options == Tie::OPTIONS_INVISIBLE; }
+    void PY_SetOptionInvisible(bool inv) { this->options = (inv) ? Tie::OPTIONS_INVISIBLE : Tie::OPTIONS_VISIBLE; }
 
 	Node::Ref root_node;
 	float max_reach_length;
@@ -2077,6 +2098,8 @@ struct Turboprop2
 struct VideoCamera
 {
 	VideoCamera();
+
+	bool operator==(VideoCamera const & rhs) { return this == &rhs; } // Rely on pointer comparsion
 
 	Node::Ref reference_node;
 	Node::Ref left_node;
@@ -2253,6 +2276,8 @@ struct File
 		void GroupBeamsByPreset();
 		void GroupNodesByPreset();
 		void GroupCommandHydrosByPreset();
+		void MatchMaterialBindingsToFlares();
+		void ConvertSlideNodeRangesToNodeList();
 	};
 
 	File();
@@ -2461,8 +2486,7 @@ struct File
 
 	static const char * KeywordToString(Keyword keyword);
 
-	void GroupAllBeamTypesByPreset();
-	void GroupNodesByPreset();
+	void PerformPythonExportTransforms();
 
 	std::string PY_GetDescription();
 

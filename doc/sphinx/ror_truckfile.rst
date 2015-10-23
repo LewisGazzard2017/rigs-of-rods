@@ -32,7 +32,7 @@ brakes                            :class:`Brake`
 cab                               :class:`CabTriangle`
 camerarail                        :class:`CameraRail`
 cameras                           :class:`Camera`
-cinecam                           :class:`CineCam`
+cinecam                           :class:`Cinecam`
 collisionboxes                    :class:`CollisionBox`
 commands                          :class:`CommandHydro`
 commands2                         :class:`CommandHydro`
@@ -550,7 +550,6 @@ Hydraulics
 
    Option read-only properties
    
-   .. attribute:: has_option_n_normal
    .. attribute:: has_option_i_invisible
    .. attribute:: has_option_s_disable_on_high_speed
    .. attribute:: has_option_a_input_aileron
