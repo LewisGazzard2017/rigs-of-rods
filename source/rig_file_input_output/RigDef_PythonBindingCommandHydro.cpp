@@ -42,8 +42,9 @@
 using namespace boost::python;
 using namespace RigDef;
 
-void PythonBinding::ExportCommandHydro()
+void PythonBinding::ExportHydraulics()
 {
+    PYTHON_REGISTER_STD_VECTOR(RigDef::Command2, "CommandHydroVector")
 	class_<RigDef::Command2>("CommandHydro")
 		.add_property("node_1", &Command2::PY_GetNode1, &Command2::PY_SetNode1)
 		.add_property("node_2", &Command2::PY_GetNode2, &Command2::PY_SetNode2)
@@ -70,10 +71,7 @@ void PythonBinding::ExportCommandHydro()
 		.def_readwrite("inertia_preset"           , &Command2::inertia_defaults)
 		;
 
-	class_<std::vector<RigDef::Command2> >("CommandHydroVector")
-		.def(vector_indexing_suite< std::vector<RigDef::Command2> >())
-		;
-
+    PYTHON_REGISTER_STD_VECTOR(RigDef::Command2GroupWithPreset, "CommandHydroGroupVector")
 	class_<RigDef::Command2GroupWithPreset>("CommandHydroGroupWithPreset")
 		.def_readwrite("preset",           &Command2GroupWithPreset::preset)
 		.def_readwrite("command_hydros",   &Command2GroupWithPreset::commands)
@@ -82,4 +80,48 @@ void PythonBinding::ExportCommandHydro()
 	class_<std::vector<RigDef::Command2GroupWithPreset> >("CommandHydroGroupVector")
 		.def(vector_indexing_suite< std::vector<RigDef::Command2GroupWithPreset> >())
 		;
+        
+    PYTHON_REGISTER_STD_VECTOR(RigDef::Hydro, "SteeringHydroVector")    
+    class_<RigDef::Hydro>("SteeringHydro")
+        .add_property("node_1", &Hydro::PY_GetNode1, &Hydro::PY_SetNode1)
+        .add_property("node_2", &Hydro::PY_GetNode2, &Hydro::PY_SetNode2)
+        
+        // Option constants (for adding)
+        .def_readonly("OPTION_n_NORMAL",                    &Hydro::OPTION_n_NORMAL                   )
+        .def_readonly("OPTION_i_INVISIBLE",                 &Hydro::OPTION_i_INVISIBLE                )
+        .def_readonly("OPTION_s_DISABLE_ON_HIGH_SPEED",     &Hydro::OPTION_s_DISABLE_ON_HIGH_SPEED    )
+        .def_readonly("OPTION_a_INPUT_AILERON",             &Hydro::OPTION_a_INPUT_AILERON            )
+        .def_readonly("OPTION_r_INPUT_RUDDER",              &Hydro::OPTION_r_INPUT_RUDDER             )
+        .def_readonly("OPTION_e_INPUT_ELEVATOR",            &Hydro::OPTION_e_INPUT_ELEVATOR           )
+        .def_readonly("OPTION_u_INPUT_AILERON_ELEVATOR",    &Hydro::OPTION_u_INPUT_AILERON_ELEVATOR   )
+        .def_readonly("OPTION_v_INPUT_InvAILERON_ELEVATOR", &Hydro::OPTION_v_INPUT_InvAILERON_ELEVATOR)
+        .def_readonly("OPTION_x_INPUT_AILERON_RUDDER",      &Hydro::OPTION_x_INPUT_AILERON_RUDDER     )
+        .def_readonly("OPTION_y_INPUT_InvAILERON_RUDDER",   &Hydro::OPTION_y_INPUT_InvAILERON_RUDDER  )
+        .def_readonly("OPTION_g_INPUT_ELEVATOR_RUDDER",     &Hydro::OPTION_g_INPUT_ELEVATOR_RUDDER    )
+        .def_readonly("OPTION_h_INPUT_InvELEVATOR_RUDDER",  &Hydro::OPTION_h_INPUT_InvELEVATOR_RUDDER )
+        
+        // Option read-only properties
+        .add_property("has_option_n_normal",                    &Hydro::HasFlag_n)
+        .add_property("has_option_i_invisible",                 &Hydro::HasFlag_i)
+        .add_property("has_option_s_disable_on_high_speed",     &Hydro::HasFlag_s)
+        .add_property("has_option_a_input_aileron",             &Hydro::HasFlag_a)
+        .add_property("has_option_r_input_rudder",              &Hydro::HasFlag_r)
+        .add_property("has_option_e_input_elevator",            &Hydro::HasFlag_e)
+        .add_property("has_option_u_input_aileron_elevator",    &Hydro::HasFlag_u)
+        .add_property("has_option_v_input_invaileron_elevator", &Hydro::HasFlag_v)
+        .add_property("has_option_x_input_aileron_rudder",      &Hydro::HasFlag_x)
+        .add_property("has_option_y_input_invaileron_rudder",   &Hydro::HasFlag_y)
+        .add_property("has_option_g_input_elevator_rudder",     &Hydro::HasFlag_g)
+        .add_property("has_option_h_input_invelevator_rudder",  &Hydro::HasFlag_h)
+        
+        // Option setter
+        .def("add_option", &Hydro::AddFlag)
+        
+        // Attributes
+        .def_readwrite("lenghtening_factor", &Hydro::lenghtening_factor)
+        .def_readwrite("detacher_group",     &Hydro::detacher_group)
+        .def_readwrite("inertia",            &Hydro::inertia)
+        .def_readwrite("inertia_defaults",   &Hydro::inertia_defaults)
+        .def_readwrite("beam_defaults",      &Hydro::beam_defaults)
+        ;
 }

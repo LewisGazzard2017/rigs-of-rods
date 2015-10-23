@@ -124,6 +124,14 @@ BOOST_PYTHON_MODULE(ror_truckfile)
 	PythonBinding::ExportNode();
 	PythonBinding::ExportPowertrain();
 	PythonBinding::ExportWheels();
+    PythonBinding::ExportTrigger();
+    PythonBinding::ExportPropsAndAnimations();
+    PythonBinding::ExportCamera();
+    PythonBinding::ExportEffects();
+    PythonBinding::ExportShockAbsorber();
+    PythonBinding::ExportVisuals();
+    PythonBinding::ExportBehavior();
+    
 	
 	class_<ParserWrapper>("Parser")
 		.def("parse_file",      &ParserWrapper::PY_ParseFile)

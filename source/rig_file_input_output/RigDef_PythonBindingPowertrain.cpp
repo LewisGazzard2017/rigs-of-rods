@@ -175,4 +175,10 @@ void PythonBinding::ExportPowertrain()
         ;
 
     PYTHON_REGISTER_SHARED_PTR(RigDef::TractionControl)
+    
+    class_<RigDef::SpeedLimiter>("SpeedLimiter")   
+        .def_readwrite("max_speed", &SpeedLimiter::max_speed)
+        ;
+        
+    PYTHON_REGISTER_SHARED_PTR(SpeedLimiter)
 }

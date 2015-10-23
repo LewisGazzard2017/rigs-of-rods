@@ -339,14 +339,18 @@ struct Animation
 			source(0),
 			motor(0)
 		{}
+        
+        enum WhichSource
+        {
+            SOURCE_AERO_INVALID
+            SOURCE_AERO_THROTTLE
+            SOURCE_AERO_RPM     
+            SOURCE_AERO_TORQUE  
+            SOURCE_AERO_PITCH   
+            SOURCE_AERO_STATUS  
+        }
 
-		static const unsigned int SOURCE_AERO_THROTTLE = BITMASK(1);
-		static const unsigned int SOURCE_AERO_RPM      = BITMASK(2);
-		static const unsigned int SOURCE_AERO_TORQUE   = BITMASK(3);
-		static const unsigned int SOURCE_AERO_PITCH    = BITMASK(4);
-		static const unsigned int SOURCE_AERO_STATUS   = BITMASK(5);
-
-		unsigned int source;
+		WhichSource source;
 		unsigned int motor;
 	};
 
@@ -391,22 +395,22 @@ struct Animation
 	BITMASK_PROPERTY( source, 31, SOURCE_PERMANENT         , HasSource_Permanent           , SetHasSource_Permanent )
 	BITMASK_PROPERTY( source, 32, SOURCE_EVENT             , HasSource_Event               , SetHasSource_Event ) // Full house32
 
-	static const unsigned int MODE_ROTATION_X          = BITMASK(1);
-	static const unsigned int MODE_ROTATION_Y          = BITMASK(2);
-	static const unsigned int MODE_ROTATION_Z          = BITMASK(3);
-	static const unsigned int MODE_OFFSET_X            = BITMASK(4);
-	static const unsigned int MODE_OFFSET_Y            = BITMASK(5);	
-	static const unsigned int MODE_OFFSET_Z            = BITMASK(6);
-	static const unsigned int MODE_AUTO_ANIMATE        = BITMASK(7);
-	static const unsigned int MODE_NO_FLIP             = BITMASK(8);
-	static const unsigned int MODE_BOUNCE              = BITMASK(9);
-	static const unsigned int MODE_EVENT_LOCK          = BITMASK(10);
+    BITMASK_PROPERTY( mode,  1, MODE_ROTATION_X   , HasMode_ROTATION_X   , SetHasMode_ROTATION_X   )
+    BITMASK_PROPERTY( mode,  2, MODE_ROTATION_Y   , HasMode_ROTATION_Y   , SetHasMode_ROTATION_Y   )
+    BITMASK_PROPERTY( mode,  3, MODE_ROTATION_Z   , HasMode_ROTATION_Z   , SetHasMode_ROTATION_Z   )
+    BITMASK_PROPERTY( mode,  4, MODE_OFFSET_X     , HasMode_OFFSET_X     , SetHasMode_OFFSET_X     )
+    BITMASK_PROPERTY( mode,  5, MODE_OFFSET_Y     , HasMode_OFFSET_Y     , SetHasMode_OFFSET_Y     )
+    BITMASK_PROPERTY( mode,  6, MODE_OFFSET_Z     , HasMode_OFFSET_Z     , SetHasMode_OFFSET_Z     )
+    BITMASK_PROPERTY( mode,  7, MODE_AUTO_ANIMATE , HasMode_AUTO_ANIMATE , SetHasMode_AUTO_ANIMATE )
+    BITMASK_PROPERTY( mode,  8, MODE_NO_FLIP      , HasMode_NO_FLIP      , SetHasMode_NO_FLIP      )
+    BITMASK_PROPERTY( mode,  9, MODE_BOUNCE       , HasMode_BOUNCE       , SetHasMode_BOUNCE       )
+    BITMASK_PROPERTY( mode, 10, MODE_EVENT_LOCK   , HasMode_EVENT_LOCK   , SetHasMode_EVENT_LOCK   )
 
 	float ratio;
 	float lower_limit;
 	float upper_limit;
 	unsigned int source;
-	std::list<MotorSource> motor_sources;
+	std::vector<MotorSource> motor_sources;
 	unsigned int mode;
 
 	// NOTE: MSVC highlights 'event' as keyword: http://msdn.microsoft.com/en-us/library/4b612y2s%28v=vs.100%29.aspx
@@ -524,6 +528,21 @@ struct Cinecam
 		spring(8000),
 		damping(800)
 	{}
+    
+    Node::Ref PY_GetNode(int index)
+	{
+		if (index >= 0 && index <= 7)
+			return this->nodes[0];
+		else
+			return Node::Ref(); // Defaults to "INVALID"
+	}
+	void PY_SetNode(int index, Node::Ref ref)
+	{
+		if (index >= 0 && index <= 7)
+		{
+			this->nodes[index] = ref;
+		}
+	}
 
 	Ogre::Vector3 position;
 	Node::Ref nodes[8];
@@ -1074,6 +1093,11 @@ struct Hook
 struct Shock
 {
 	Shock();
+    
+    Node::Ref PY_GetNode1()              { return this->nodes[0]; }
+	Node::Ref PY_GetNode2()              { return this->nodes[1]; }
+	void      PY_SetNode1(Node::Ref ref) { this->nodes[0] = ref;  }
+	void      PY_SetNode2(Node::Ref ref) { this->nodes[1] = ref;  }
 
 	BITMASK_PROPERTY(options, 1, OPTION_i_INVISIBLE    , HasOption_i_Invisible,   SetOption_i_Invisible) 
 	// Stability active suspension can be made with "L" for suspension on the truck's left and "R" for suspension on the truck's right. 
@@ -1100,6 +1124,11 @@ struct Shock
 struct Shock2
 {
 	Shock2();
+    
+    Node::Ref PY_GetNode1()              { return this->nodes[0]; }
+	Node::Ref PY_GetNode2()              { return this->nodes[1]; }
+	void      PY_SetNode1(Node::Ref ref) { this->nodes[0] = ref;  }
+	void      PY_SetNode2(Node::Ref ref) { this->nodes[1] = ref;  }
 
 	BITMASK_PROPERTY(options, 1, OPTION_i_INVISIBLE       , HasOption_i_Invisible,      SetOption_i_Invisible) 
 	// soft bump boundaries, use when shocks reach limiters too often and "jumprebound" (default is hard bump boundaries)
@@ -1205,11 +1234,11 @@ struct AeroAnimator
 		motor(0)
 	{}
 
-	static const unsigned int OPTION_THROTTLE = BITMASK(1);
-	static const unsigned int OPTION_RPM      = BITMASK(2);
-	static const unsigned int OPTION_TORQUE   = BITMASK(3);
-	static const unsigned int OPTION_PITCH    = BITMASK(4);
-	static const unsigned int OPTION_STATUS   = BITMASK(5);
+    BITMASK_PROPERTY(flags, OPTION_THROTTLE, 1, HasOption_THROTTLE , SetOption_THROTTLE )
+    BITMASK_PROPERTY(flags, OPTION_RPM     , 2, HasOption_RPM      , SetOption_RPM      )
+    BITMASK_PROPERTY(flags, OPTION_TORQUE  , 3, HasOption_TORQUE   , SetOption_TORQUE   )
+    BITMASK_PROPERTY(flags, OPTION_PITCH   , 4, HasOption_PITCH    , SetOption_PITCH    )
+    BITMASK_PROPERTY(flags, OPTION_STATUS  , 5, HasOption_STATUS   , SetOption_STATUS   )
 
 	unsigned int flags;
 	unsigned int motor;
@@ -1225,35 +1254,35 @@ struct Animator
  		detacher_group(0)
 	{}
 
-	static const unsigned int OPTION_VISIBLE           = BITMASK(1);
-	static const unsigned int OPTION_INVISIBLE         = BITMASK(2);
-	static const unsigned int OPTION_AIRSPEED          = BITMASK(3);
-	static const unsigned int OPTION_VERTICAL_VELOCITY = BITMASK(4);
-	static const unsigned int OPTION_ALTIMETER_100K    = BITMASK(5);
-	static const unsigned int OPTION_ALTIMETER_10K     = BITMASK(6);
-	static const unsigned int OPTION_ALTIMETER_1K      = BITMASK(7);
-	static const unsigned int OPTION_ANGLE_OF_ATTACK   = BITMASK(8);
-	static const unsigned int OPTION_FLAP              = BITMASK(9);
-	static const unsigned int OPTION_AIR_BRAKE         = BITMASK(10);
-	static const unsigned int OPTION_ROLL              = BITMASK(11);
-	static const unsigned int OPTION_PITCH             = BITMASK(12);
-	static const unsigned int OPTION_BRAKES            = BITMASK(13);
-	static const unsigned int OPTION_ACCEL             = BITMASK(14);
-	static const unsigned int OPTION_CLUTCH            = BITMASK(15);
-	static const unsigned int OPTION_SPEEDO            = BITMASK(16);
-	static const unsigned int OPTION_TACHO             = BITMASK(17);
-	static const unsigned int OPTION_TURBO             = BITMASK(18);
-	static const unsigned int OPTION_PARKING           = BITMASK(19);
-	static const unsigned int OPTION_SHIFT_LEFT_RIGHT  = BITMASK(20);
-	static const unsigned int OPTION_SHIFT_BACK_FORTH  = BITMASK(21);
-	static const unsigned int OPTION_SEQUENTIAL_SHIFT  = BITMASK(22);
-	static const unsigned int OPTION_GEAR_SELECT       = BITMASK(23);
-	static const unsigned int OPTION_TORQUE            = BITMASK(24);
-	static const unsigned int OPTION_DIFFLOCK          = BITMASK(25);
-	static const unsigned int OPTION_BOAT_RUDDER       = BITMASK(26);
-	static const unsigned int OPTION_BOAT_THROTTLE     = BITMASK(27);
-	static const unsigned int OPTION_SHORT_LIMIT       = BITMASK(28);
-	static const unsigned int OPTION_LONG_LIMIT        = BITMASK(29);
+    BITMASK_PROPERTY(flags,  1, , HasOption_VISIBLE          , SetOption_VISIBLE          )
+    BITMASK_PROPERTY(flags,  2, , HasOption_INVISIBLE        , SetOption_INVISIBLE        )
+    BITMASK_PROPERTY(flags,  3, , HasOption_AIRSPEED         , SetOption_AIRSPEED         )
+    BITMASK_PROPERTY(flags,  4, , HasOption_VERTICAL_VELOCITY, SetOption_VERTICAL_VELOCITY)
+    BITMASK_PROPERTY(flags,  5, , HasOption_ALTIMETER_100K   , SetOption_ALTIMETER_100K   )
+    BITMASK_PROPERTY(flags,  6, , HasOption_ALTIMETER_10K    , SetOption_ALTIMETER_10K    )
+    BITMASK_PROPERTY(flags,  7, , HasOption_ALTIMETER_1K     , SetOption_ALTIMETER_1K     )
+    BITMASK_PROPERTY(flags,  8, , HasOption_ANGLE_OF_ATTACK  , SetOption_ANGLE_OF_ATTACK  )
+    BITMASK_PROPERTY(flags,  9, , HasOption_FLAP             , SetOption_FLAP             )
+    BITMASK_PROPERTY(flags, 10, , HasOption_AIR_BRAKE        , SetOption_AIR_BRAKE        )
+    BITMASK_PROPERTY(flags, 11, , HasOption_ROLL             , SetOption_ROLL             )
+    BITMASK_PROPERTY(flags, 12, , HasOption_PITCH            , SetOption_PITCH            )
+    BITMASK_PROPERTY(flags, 13, , HasOption_BRAKES           , SetOption_BRAKES           )
+    BITMASK_PROPERTY(flags, 14, , HasOption_ACCEL            , SetOption_ACCEL            )
+    BITMASK_PROPERTY(flags, 15, , HasOption_CLUTCH           , SetOption_CLUTCH           )
+    BITMASK_PROPERTY(flags, 16, , HasOption_SPEEDO           , SetOption_SPEEDO           )
+    BITMASK_PROPERTY(flags, 17, , HasOption_TACHO            , SetOption_TACHO            )
+    BITMASK_PROPERTY(flags, 18, , HasOption_TURBO            , SetOption_TURBO            )
+    BITMASK_PROPERTY(flags, 19, , HasOption_PARKING          , SetOption_PARKING          )
+    BITMASK_PROPERTY(flags, 20, , HasOption_SHIFT_LEFT_RIGHT , SetOption_SHIFT_LEFT_RIGHT )
+    BITMASK_PROPERTY(flags, 21, , HasOption_SHIFT_BACK_FORTH , SetOption_SHIFT_BACK_FORTH )
+    BITMASK_PROPERTY(flags, 22, , HasOption_SEQUENTIAL_SHIFT , SetOption_SEQUENTIAL_SHIFT )
+    BITMASK_PROPERTY(flags, 23, , HasOption_GEAR_SELECT      , SetOption_GEAR_SELECT      )
+    BITMASK_PROPERTY(flags, 24, , HasOption_TORQUE           , SetOption_TORQUE           )
+    BITMASK_PROPERTY(flags, 25, , HasOption_DIFFLOCK         , SetOption_DIFFLOCK         )
+    BITMASK_PROPERTY(flags, 26, , HasOption_BOAT_RUDDER      , SetOption_BOAT_RUDDER      )
+    BITMASK_PROPERTY(flags, 27, , HasOption_BOAT_THROTTLE    , SetOption_BOAT_THROTTLE    )
+    BITMASK_PROPERTY(flags, 28, , HasOption_SHORT_LIMIT      , SetOption_SHORT_LIMIT      )
+    BITMASK_PROPERTY(flags, 29, , HasOption_LONG_LIMIT       , SetOption_LONG_LIMIT       )
 
 	Node::Ref nodes[2];
 	float lenghtening_factor;
@@ -1336,8 +1365,29 @@ struct Rotator
 		engine_coupling(1), /* Default */
 		needs_engine(false) /* Default */
 	{}
-
-	Node::Ref axis_nodes[2];
+    
+    void PY_SetBasePlateNode(int index, Node::Ref ref)
+	{
+		if (index >= 0 && index <= 3) { this->base_plate_nodes[index] = ref;	}
+	}
+	Node::Ref PY_GetBasePlateNode(int index)
+	{
+		return (index >= 0 && index <= 3) ? this->base_plate_nodes[index] : Node::Ref(); // Defaults to "invalid"
+	}
+    void PY_SetRotPlateNode(int index, Node::Ref ref)
+	{
+		if (index >= 0 && index <= 3) { this->rotating_plate_nodes[index] = ref;	}
+	}
+	Node::Ref PY_GetRotPlateNode(int index)
+	{
+		return (index >= 0 && index <= 3) ? this->rotating_plate_nodes[index] : Node::Ref(); // Defaults to "invalid"
+	}
+    Node::Ref PY_GetNode1()              { return this->axis_nodes[0]; }
+	Node::Ref PY_GetNode2()              { return this->axis_nodes[1]; }
+	void      PY_SetNode1(Node::Ref ref) { this->axis_nodes[0] = ref;  }
+	void      PY_SetNode2(Node::Ref ref) { this->axis_nodes[1] = ref;  }
+    
+    Node::Ref axis_nodes[2];
 	Node::Ref base_plate_nodes[4];
 	Node::Ref rotating_plate_nodes[4];
 
@@ -1404,6 +1454,11 @@ struct Trigger
 	};
 
 	Trigger();
+    
+    Node::Ref PY_GetNode1()              { return this->nodes[0]; }
+	Node::Ref PY_GetNode2()              { return this->nodes[1]; }
+	void      PY_SetNode1(Node::Ref ref) { this->nodes[0] = ref;  }
+	void      PY_SetNode2(Node::Ref ref) { this->nodes[1] = ref;  }
 
 	BITMASK_PROPERTY(options,  1, OPTION_i_INVISIBLE             , HasFlag_i_Invisible,         SetFlag_i_Invisible         )
 	BITMASK_PROPERTY(options,  2, OPTION_c_COMMAND_STYLE         , HasFlag_c_CommandStyle,      SetFlag_c_CommandStyle      )
@@ -1849,13 +1904,23 @@ struct Cab
 	{
 		return BITMASK_IS_1(options, OPTION_b_BUOYANT) && BITMASK_IS_1(options, OPTION_u_INVULNERABLE);
 	}
+    
+    void PY_SetNode(int index, Node::Ref ref)
+	{
+		if (index >= 0 && index <= 2) {	this->nodes[index] = ref; }
+	}
 
-	static const unsigned int OPTION_c_CONTACT           = BITMASK(1);
-	static const unsigned int OPTION_b_BUOYANT           = BITMASK(2);
-	static const unsigned int OPTION_p_10xTOUGHER        = BITMASK(3);
-	static const unsigned int OPTION_u_INVULNERABLE      = BITMASK(4);
-	static const unsigned int OPTION_s_BUOYANT_NO_DRAG   = BITMASK(5);
-	static const unsigned int OPTION_r_BUOYANT_ONLY_DRAG = BITMASK(6);
+	Node::Ref PY_GetNode(int index)
+	{
+		return (index >= 0 && index <= 2) ? this->nodes[index] : Node::Ref(); // Defaults to "invalid"
+	}
+
+    BITMASK_PROPERTY( options, OPTION_c_CONTACT          , 1, HasOption_c_CONTACT          , SetOption_c_CONTACT          )
+    BITMASK_PROPERTY( options, OPTION_b_BUOYANT          , 2, HasOption_b_BUOYANT          , SetOption_b_BUOYANT          )
+    BITMASK_PROPERTY( options, OPTION_p_10xTOUGHER       , 3, HasOption_p_10xTOUGHER       , SetOption_p_10xTOUGHER       )
+    BITMASK_PROPERTY( options, OPTION_u_INVULNERABLE     , 4, HasOption_u_INVULNERABLE     , SetOption_u_INVULNERABLE     )
+    BITMASK_PROPERTY( options, OPTION_s_BUOYANT_NO_DRAG  , 5, HasOption_s_BUOYANT_NO_DRAG  , SetOption_s_BUOYANT_NO_DRAG  )
+    BITMASK_PROPERTY( options, OPTION_r_BUOYANT_ONLY_DRAG, 6, HasOption_r_BUOYANT_ONLY_DRAG, SetOption_r_BUOYANT_ONLY_DRAG)
 
 	Node::Ref nodes[3];
 	unsigned int options;
@@ -1899,6 +1964,9 @@ struct Tie
 
 		OPTIONS_INVALID = 0xFFFFFFFF
 	};
+    
+    bool PY_HasOptionInvisible()         { return this->options == Options::OPTIONS_INVISIBLE; }
+    void PY_SetOptionInvisible(bool inv) { this->options = (inv) ? Options::OPTIONS_INVISIBLE : Options::OPTIONS_VISIBLE; }
 
 	Node::Ref root_node;
 	float max_reach_length;

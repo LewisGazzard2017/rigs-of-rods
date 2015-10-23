@@ -52,6 +52,7 @@ namespace RigDef
 		static void ExportAerial();
 		static void ExportFile();
 		static void ExportWheels();
+        static void ExportTrigger();
 	};
 }
 
