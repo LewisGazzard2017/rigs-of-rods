@@ -159,6 +159,9 @@ void Main::PY_OnEnter_SetupCameraAndViewport()
 	viewport->setCamera(camera);
 
 	m_viewport = viewport;
+
+	// Setup GUI rendering
+	RoR::Application::GetGuiManager()->SetSceneManager(m_scene_manager);
 }
 
 void Main::PY_OnEnter_SetupInput()

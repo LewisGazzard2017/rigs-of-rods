@@ -82,7 +82,10 @@ class Application:
         self.was_exit_requested = False
         
         # Truckfile import test
-        Demo.test_truckfile_import("d:\Projects\Rigs of Rods\RigEditor-Python", "test-rig.truck")
+        #Demo.test_truckfile_import("d:\Projects\Rigs of Rods\RigEditor-Python", "test-rig.truck")
+        
+        # GUI display test
+        Demo.test_gui()
         
         while (not self.was_exit_requested):
             self.reset_events()

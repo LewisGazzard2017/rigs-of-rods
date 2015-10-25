@@ -312,7 +312,7 @@ class InputListener:
         if input_code in table:
             mapping = table[input_code]
             if (mapping.event is not None):
-                event.was_fired = True
+                mapping.event.was_fired = True
             if mapping.mode is not None:
                 if mapping.mode_operation is InputMapping.MODE_ACTIVATE:
                     mapping.mode.activate()

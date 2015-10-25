@@ -47,7 +47,7 @@ bool InputHandler::keyPressed( const OIS::KeyEvent &arg )
 	}
 
 	// Invoke python listener
-	m_listener.attr("key_pressed_callback")(arg.key, arg.text);
+	m_listener.attr("key_pressed_callback")(static_cast<int>(arg.key), arg.text);
 
 	return true;
 }
@@ -61,7 +61,7 @@ bool InputHandler::keyReleased( const OIS::KeyEvent &arg )
 	}
 
 	// Invoke python listener
-	m_listener.attr("key_released_callback")(arg.key, arg.text);
+	m_listener.attr("key_released_callback")(static_cast<int>(arg.key), arg.text);
 
 	return true;
 }

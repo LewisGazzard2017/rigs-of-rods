@@ -17,6 +17,10 @@ class Demo:
         mesh.end_update()
         mesh.attach_to_scene()
         
+    def test_gui():
+        import ror_gui
+        help_window = ror_gui.load_layout("rig_editor_help_window.layout", "", None)
+        
     def test_truckfile_import(directory, filename):
         import ror_truckfile
     

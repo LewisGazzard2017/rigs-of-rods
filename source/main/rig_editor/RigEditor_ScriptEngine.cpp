@@ -30,6 +30,7 @@
 #include "ContentManager.h"
 #include "InputEngine.h"
 #include "MainThread.h"
+#include "MyGUI_PythonExport.h"
 #include "OgreSubsystem.h"
 #include "PlatformUtils.h"
 #include "PythonHelper.h"
@@ -199,6 +200,7 @@ void ScriptEngine::Bootstrap()
 	PyImport_AppendInittab("ror_system",  PyInit_ror_system);
 	PyImport_AppendInittab("ror_drawing", PyInit_ror_drawing);
 	RigDef::PythonBinding::AppendInittab();
+	MyGUI_PythonExport::AppendInittab();
 
 	// start the interpreter and create the __main__ module. Source: http://www.boost.org/doc/libs/1_59_0/libs/python/doc/tutorial
 	Py_Initialize();

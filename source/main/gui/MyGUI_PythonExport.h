@@ -1,4 +1,3 @@
-
 /*
 	This source file is part of Rigs of Rods
 	Copyright 2005-2012 Pierre-Michel Ricordel
@@ -20,37 +19,25 @@
 	along with Rigs of Rods. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
+/** 
 	@file
-	@date   09/2015
+	@date   10/2015
 	@author Petr Ohlidal
 */
 
 #pragma once
 
-#include "PythonBindingUtils.h"
+#include "RoRPrerequisites.h"
 
-namespace RigDef
+namespace RoR
 {
-	class PythonBinding
-	{
-		public:
-		static void AppendInittab();
 
-		static void ExportNode();
-		static void ExportBeam();
-		static void ExportPowertrain();
-		static void ExportHydraulics();
-		static void ExportAerial();
-		static void ExportFile();
-		static void ExportWheels();
-		static void ExportTrigger();
-		static void ExportPropsAndAnimations();
-		static void ExportCamera();
-		static void ExportEffects();
-		static void ExportShockAbsorber();
-		static void ExportVisuals();
-		static void ExportBehavior();
-	};
-}
+class MyGUI_PythonExport
+{
+public:
+	/// To be called on Python init
+	/// Source: https://wiki.python.org/moin/boost.python/EmbeddingPython
+	static void AppendInittab();
+};
 
+} // namespace RoR
