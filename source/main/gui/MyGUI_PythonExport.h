@@ -38,6 +38,12 @@ public:
 	/// To be called on Python init
 	/// Source: https://wiki.python.org/moin/boost.python/EmbeddingPython
 	static void AppendInittab();
+
+	// Partial export functions (faster compilation)
+
+	static void ExportClassWidget();
+	static void ExportClassTextBox();
+	
 };
 
 } // namespace RoR

@@ -19,7 +19,34 @@ class Demo:
         
     def test_gui():
         import ror_gui
-        help_window = ror_gui.load_layout("rig_editor_help_window.layout", "", None)
+        root_widgets = ror_gui.load_layout("rig_editor_hydros_panel.layout", "", None)
+        print("num root widgets:", len(root_widgets))
+        window = root_widgets[0]
+        
+        x_checkbox = window.find_widget("flag_x_checkbox")
+        x_checkbox.set_caption("%test")
+        
+        v_checkbox = window.find_widget("flag_v_checkbox")
+        obj = {"hello":"RigEditor"}
+        def get_widget_name_safe(widget):
+            if widget is not None:
+                return str(widget.get_name())
+            else:
+                return "~None~"
+        
+        def func_set_focus(obj, widget_old, widget_new):
+            print("@GotFocus; new widget:", get_widget_name_safe(widget_old), "; old widget:" + get_widget_name_safe(widget_new) )
+        v_checkbox.event_mouse_set_focus.add_delegate(obj, func_set_focus)
+        
+        def func_lost_focus(obj, widget_old, widget_new):
+            print("@LostFocus; old widget:", get_widget_name_safe(widget_old), "; new widget:" + get_widget_name_safe(widget_new) )
+        v_checkbox.event_mouse_lost_focus.add_delegate(obj, func_lost_focus)
+        
+        def func_click(obj, widget):
+            print("@Click! widget: ", get_widget_name_safe(widget))
+        v_checkbox.event_mouse_button_click.add_delegate(obj, func_click)
+        
+        
         
     def test_truckfile_import(directory, filename):
         import ror_truckfile

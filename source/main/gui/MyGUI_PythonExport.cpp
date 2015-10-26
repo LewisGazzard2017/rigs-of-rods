@@ -144,13 +144,15 @@ public:
 
 	virtual void invoke(MyGUI::Widget* widget)
 	{
+		// Without "boost::ref", you receive "TypeError, no converter found"; see http://stackoverflow.com/a/5337551
 		if (m_object.is_none())
 		{
-			m_function(widget);
+			m_function(boost::ref(widget));
 		}
 		else
 		{
-			m_function(m_object, widget);
+			
+			m_function(m_object, boost::ref(widget));
 		}
 	}
 };
@@ -180,58 +182,99 @@ public:
 
 	virtual void invoke(MyGUI::Widget* widget_a, MyGUI::Widget* widget_b)
 	{
+		// Without "boost::ref", you receive "TypeError, no converter found"; see http://stackoverflow.com/a/5337551
 		if (m_object.is_none())
 		{
-			m_function(widget_a, widget_b);
+			m_function(boost::ref(widget_a), boost::ref(widget_b));
 		}
 		else
 		{
-			m_function(m_object, widget_a, widget_b);
+			
+			m_function(m_object, boost::ref(widget_a), boost::ref(widget_b));
 		}
 	}
 };
 
+// ================================================================================
+// Widget typecasting extension methods
+// ================================================================================
 
-// Extension method
-// Adds Python callback to MyGUI::EventHandle* container
+/// Extension method
+/// Adds Python callback to MyGUI::EventHandle* container
 static void PY_EventHandleWidgetWidget_AddDelegate(
 		MyGUI::EventHandle_WidgetWidget* _this, 
 		boost::python::object object, 
 		boost::python::object function)
 {
-	*_this += new PY_MyGUI_Delegate_WidgetWidget(function, object);
+	*_this += new PY_MyGUI_Delegate_WidgetWidget(object, function);
 }
 
 
-// Extension method
-// Adds Python callback to MyGUI::EventHandle* container
+/// Extension method
+/// Adds Python callback to MyGUI::EventHandle* container
 static void PY_EventHandleWidgetVoid_AddDelegate(
 		MyGUI::EventHandle_WidgetVoid* _this, 
 		boost::python::object object, 
 		boost::python::object function)
 {
-	*_this += new PY_MyGUI_Delegate_WidgetVoid(function, object);
+	*_this += new PY_MyGUI_Delegate_WidgetVoid(object, function);
 }
+
+
 
 
 BOOST_PYTHON_MODULE(ror_gui)
 {
-	// boost::noncopyable is necessary because MyGUI::Widget has protected destructor.
-	class_<MyGUI::Widget, boost::noncopyable>("MyGUI_Widget", no_init)
-		.def_readonly("eventMouseSetFocus",    &MyGUI::Widget::eventMouseSetFocus)
-		.def_readonly("eventMouseLostFocus",   &MyGUI::Widget::eventMouseLostFocus)
-		.def_readonly("eventMouseButtonClick", &MyGUI::Widget::eventMouseButtonClick)
+    // WIDGETS
+	MyGUI_PythonExport::ExportClassWidget();
+	MyGUI_PythonExport::ExportClassTextBox();
+
+
+	class_<MyGUI::MenuControl, bases<MyGUI::Widget>, boost::noncopyable>("MyGUI_MenuControl", no_init)
+		.def("get_item_count", &MyGUI::MenuControl::getItemCount)
+		//.def("get_item_at", &MyGUI::MenuControl::getItemAt)
+		;
+
+	// Ready
+	class_<MyGUI::Button, bases<MyGUI::TextBox>, boost::noncopyable>("MyGUI_Button", no_init)
+		;
+
+	// Ready
+	class_<MyGUI::EditBox, bases<MyGUI::TextBox>, boost::noncopyable>("MyGUI_EditBox", no_init)
+		;
+
+	// Ready
+	class_<MyGUI::MenuBar, bases<MyGUI::MenuControl>, boost::noncopyable>("MyGUI_MenuBar", no_init)
+		;
+
+	// Ready
+	class_<MyGUI::ComboBox, bases<MyGUI::EditBox>, boost::noncopyable>("MyGUI_ComboBox", no_init)
+		;
+
+	class_<MyGUI::PopupMenu, bases<MyGUI::MenuControl>, boost::noncopyable>("MyGUI_PopupMenu", no_init)
+		;
+
+	class_<MyGUI::Window, bases<MyGUI::TextBox>, boost::noncopyable>("MyGUI_Window", no_init)
 		;
 
 	class_<MyGUI::EventHandle_WidgetVoid>("MyGUI_EventHandle_WidgetVoid")
-		.def("AddDelegate", &PY_EventHandleWidgetVoid_AddDelegate) // Static extension method
+		.def("add_delegate", &PY_EventHandleWidgetVoid_AddDelegate) // Static extension method
 		;
 
 	class_<MyGUI::EventHandle_WidgetWidget>("MyGUI_EventHandle_WidgetWidget")
-		.def("AddDelegate", &PY_EventHandleWidgetWidget_AddDelegate) // Static extension method
+		.def("add_delegate", &PY_EventHandleWidgetWidget_AddDelegate) // Static extension method
 		;
 
 	def("load_layout", PY_MyGUI_LayoutManager_LoadLayout);
+
+    // UTILITY CLASSES
+
+    class_<MyGUI::Colour>("MyGUI_Colour")
+        .def_readwrite("red",   &MyGUI::Colour::red)
+        .def_readwrite("green", &MyGUI::Colour::green)
+        .def_readwrite("blue",  &MyGUI::Colour::blue)
+        .def_readwrite("alpha", &MyGUI::Colour::alpha)
+        ;
 
 	PYTHON_REGISTER_VECTOR_SUITE(MyGUI::VectorWidgetPtr, "MyGUI_VectorWidgetPtr")
 //	PYTHON_REGISTER_STD_VECTOR(MyGUI::Widget, "StdVector_MyGUI_WidgetPtr")
