@@ -24,3 +24,7 @@ RigEditor uses Sphinx (www.sphinx-doc.org) to generate documentation.
 
 The source text is located in doc/sphinx. 
 Build scripts (Makefile + make.bat) are included.
+
+#### TODO
+
+Add /main/scripting/python to CMakeFiles

@@ -7,6 +7,22 @@ You need to manually build boost::python with Python 3.4. See file "tools/boost_
 
 The CMake scripts are not updated to accompany boost::python and Python. You'll need to update the generated project files manually.
 
+## HOWTO update MSVC project (statically linked boost::python):
++ Include directories:
+  + [Python directory]\include
+  + [Boost directory]
+  
++ Additonal library directories
+  + [Python directory]\libs
+  
++ Additional dependencies
+  + Full path to libboost_python*.lib
+  
+NOTE: To link boost::python statically, you must define these macros in the project:
++ Preprocessor definitions
+  + BOOST_ALL_NO_LIB
+  + BOOST_PYTHON_STATIC_LIB  
+
 ## CMake options
 ##### Rigs of Rods core:  
 | option                         | effect                                               |
