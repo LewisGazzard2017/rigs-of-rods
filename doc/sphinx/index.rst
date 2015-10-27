@@ -69,8 +69,8 @@ Built-in modules
    
    ror_truckfile
    ror_drawing
+   ror_gui
    ror_system
-   
 
 
 
