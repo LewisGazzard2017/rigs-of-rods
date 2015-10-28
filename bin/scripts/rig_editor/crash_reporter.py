@@ -40,8 +40,6 @@ class CrashReporter():
         
         import sys, traceback
         
-        #text = "Traceback (most recent call last:):\n" + exc_traceback.format_exc()
-        #text += "\n\n" + str(exc_type) + ": " + str(exc_value)
         text = traceback.format_exc()
         separator = "========================================"
         separator += separator
