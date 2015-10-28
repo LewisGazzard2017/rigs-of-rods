@@ -72,5 +72,10 @@ void MyGUI_PythonExport::ExportDatatypes()
 		.def_readwrite("alpha", &MyGUI::Colour::alpha)
 		;
 
+	class_<MyGUI::IntSize>("MyGUI_IntSize", init<>())
+		.def_readwrite("width",   &MyGUI::IntSize::width)
+		.def_readwrite("height",  &MyGUI::IntSize::height)
+		;
+
 	PYTHON_REGISTER_VECTOR_SUITE(MyGUI::VectorWidgetPtr, "MyGUI_VectorWidgetPtr")
 }

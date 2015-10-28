@@ -43,6 +43,8 @@ class Application:
         print('Application initialized')
         self.was_exit_requested = False
         self.camera_controller = None
+        import gui_manager
+        self.gui_manager = gui_manager.GuiManager() 
         self.input_handler = inputs.InputListener()
         ror_system.register_input_listener(self.input_handler)
         self.events = {}
@@ -79,13 +81,14 @@ class Application:
         Demo.draw_demo_mesh()
         self.camera_controller = camera.CameraOrbitController(
             ror_system.get_camera(), ortho_zoom_ratio=1.7)
+        self.gui_manager.init_or_restore_gui()
         self.was_exit_requested = False
         
         # Truckfile import test
         #Demo.test_truckfile_import("d:\Projects\Rigs of Rods\RigEditor-Python", "test-rig.truck")
         
         # GUI display test
-        Demo.test_gui()
+        # Demo.test_gui()
         
         while (not self.was_exit_requested):
             self.reset_events()
@@ -104,4 +107,5 @@ class Application:
             ror_system.render_frame_and_update_window()
             
         self.was_exit_requested = False
+        self.gui_manager.temporarily_hide_gui()
         

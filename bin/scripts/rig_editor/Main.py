@@ -10,6 +10,14 @@
 
 print('Hello, Rig editor here!')
 
-import application
-app = application.Application()
-app.go()
+try:
+
+    import application
+    app = application.Application()
+    app.go()
+
+except:
+    
+    import crash_reporter
+    reporter = crash_reporter.CrashReporter()
+    reporter.report_current_exception()

@@ -62,8 +62,10 @@ static MyGUI::Window*     PY_Widget_CastType_Window   (MyGUI::Widget* _this) { r
 // static
 void MyGUI_PythonExport::ExportClassWidget()
 {
-	// boost::noncopyable is necessary because MyGUI::Widget has protected destructor.
+	// Function pointers to export overloaded functions
+	void (MyGUI::Widget::*mygui_widget_set_position_int_int) (int, int) = &MyGUI::Widget::setPosition;
 
+	// boost::noncopyable is necessary because MyGUI::Widget has protected destructor.
 	class_<MyGUI::Widget, boost::noncopyable>("MyGUI_Widget", no_init)
 		// Event handles
 		.def_readonly("event_mouse_set_focus",    &MyGUI::Widget::eventMouseSetFocus)
@@ -86,5 +88,8 @@ void MyGUI_PythonExport::ExportClassWidget()
 		.def("get_name",         &MyGUI::Widget::getName,      return_value_policy<copy_const_reference>())
 		.def("is_enabled",       &MyGUI::Widget::getEnabled)
 		.def("set_enabled",      &MyGUI::Widget::setEnabled)
+		.def("get_size",         &MyGUI::Widget::getSize)
+		.def("get_parent_size",  &MyGUI::Widget::getParentSize)
+		.def("set_position",     mygui_widget_set_position_int_int) // Bind via function pointer
 		;
 }

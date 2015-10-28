@@ -1,55 +1,58 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <MyGUI type="Layout" version="3.2.0">
     <Widget type="MenuBar" skin="MenuBar" position="0 0 370 25" layer="Main" name="rig_editor_menubar">
-        <Widget type="MenuItem" skin="" position="0 0 41 21" name="menubar_item_file">
-            <Property key="Caption" value="File"/>
+        <Widget type="MenuItem" skin="" position="0 0 91 21" name="menubar_item_main_menu">
+            <Property key="Caption" value="Main menu"/>
             <Property key="MenuItemType" value="Popup"/>
-            <Widget type="PopupMenu" skin="PopupMenu" position="2 25 124 115" style="Popup" layer="Popup" name="file_popup">
-                <Widget type="MenuItem" skin="" position="0 0 116 19" name="file_popup_item_create_empty">
+            <Widget type="PopupMenu" skin="PopupMenu" position="2 25 159 163" style="Popup" layer="Popup" name="main_menu_popup">
+                <Widget type="MenuItem" skin="" position="0 0 151 19" name="mainmenu_popup_item_create_empty_project">
                     <Property key="Caption" value="Create new"/>
+                    <Property key="Enabled" value="true"/>
                 </Widget>
-                <Widget type="MenuItem" skin="" position="0 19 116 19" name="file_popup_item_open">
-                    <Property key="Caption" value="Open"/>
+                <Widget type="MenuItem" skin="" position="0 19 151 19" name="mainmenu_popup_item_load_project">
+                    <Property key="Caption" value="Load"/>
                 </Widget>
-                <Widget type="MenuItem" skin="" position="0 38 116 19" name="file_popup_item_save_as">
+                <Widget type="MenuItem" skin="" position="0 38 151 19" name="mainmenu_popup_item_save_project_as">
                     <Property key="Caption" value="Save as..."/>
                 </Widget>
-                <Widget type="MenuItem" skin="" position="0 57 116 19" name="file_popup_item_close">
+                <Widget type="MenuItem" skin="" position="0 57 151 19" name="mainmenu_popup_item_close_project">
                     <Property key="Caption" value="Close"/>
                 </Widget>
-                <Widget type="MenuItem" skin="" position="0 76 116 10">
+                <Widget type="MenuItem" skin="" position="0 76 151 10">
                     <Property key="MenuItemType" value="Separator"/>
                 </Widget>
-                <Widget type="MenuItem" skin="" position="0 86 116 19" name="file_popup_item_quit">
+                <Widget type="MenuItem" skin="" position="0 86 151 19" name="mainmenu_popup_item_import_truckfile">
+                    <Property key="Caption" value="Import TRUCKfile"/>
+                </Widget>
+                <Widget type="MenuItem" skin="" position="0 105 151 19" name="mainmenu_popup_item_export_truckfile">
+                    <Property key="Caption" value="Export TRUCKfile"/>
+                </Widget>
+                <Widget type="MenuItem" skin="" position="0 124 151 10">
+                    <Property key="MenuItemType" value="Separator"/>
+                </Widget>
+                <Widget type="MenuItem" skin="" position="0 134 151 19" name="mainmenu_popup_item_quit_editor">
                     <Property key="Caption" value="Quit"/>
                 </Widget>
             </Widget>
         </Widget>
-        <Widget type="MenuItem" skin="" position="47 0 68 21" name="menubar_item_project">
+        <Widget type="MenuItem" skin="" position="97 0 68 21" name="menubar_item_project">
             <Property key="Caption" value="Project"/>
             <Property key="MenuItemType" value="Popup"/>
-            <Widget type="PopupMenu" skin="PopupMenu" position="165 105 201 96" style="Popup" layer="Popup" name="project_popup">
+            <Property key="Enabled" value="false"/>
+            <Widget type="PopupMenu" skin="PopupMenu" position="99 25 201 48" style="Popup" layer="Popup" name="project_popup">
                 <Widget type="MenuItem" skin="" position="0 0 193 19" name="project_popup_item_properties">
                     <Property key="Caption" value="General properties"/>
                 </Widget>
                 <Widget type="MenuItem" skin="" position="0 19 193 19" name="project_popup_item_land_properties">
                     <Property key="Caption" value="Land vehicle properties"/>
                 </Widget>
-                <Widget type="MenuItem" skin="" position="0 38 193 10">
-                    <Property key="MenuItemType" value="Separator"/>
-                </Widget>
-                <Widget type="MenuItem" skin="" position="0 48 193 19" name="project_popup_item_wheels">
-                    <Property key="Caption" value="Wheels"/>
-                </Widget>
-                <Widget type="MenuItem" skin="" position="0 67 193 19" name="project_popup_item_flares">
-                    <Property key="Caption" value="Flares"/>
-                </Widget>
             </Widget>
         </Widget>
-        <Widget type="MenuItem" skin="" position="121 0 58 21" name="menubar_item_editor">
+        <Widget type="MenuItem" skin="" position="171 0 58 21" name="menubar_item_editor">
             <Property key="Caption" value="Editor"/>
             <Property key="MenuItemType" value="Popup"/>
-            <Widget type="PopupMenu" skin="PopupMenu" position="90 330 174 77" style="Popup" layer="Popup" name="editor_popup">
+            <Property key="Enabled" value="false"/>
+            <Widget type="PopupMenu" skin="PopupMenu" position="173 25 174 77" style="Popup" layer="Popup" name="editor_popup">
                 <Widget type="MenuItem" skin="" position="0 0 166 19" name="editor_popup_item_background_images">
                     <Property key="Caption" value="Background images"/>
                 </Widget>
@@ -64,27 +67,9 @@
                 </Widget>
             </Widget>
         </Widget>
-        <Widget type="MenuItem" skin="" position="185 0 48 21" name="menubar_item_help">
+        <Widget type="MenuItem" skin="" position="235 0 48 21" name="menubar_item_help">
             <Property key="Caption" value="Help"/>
-        </Widget>
-        <Widget type="MenuItem" skin="" position="239 0 10 21">
-            <Property key="Caption" value="Separator1"/>
-            <Property key="MenuItemType" value="Separator"/>
-        </Widget>
-        <Widget type="MenuItem" skin="" position="255 0 67 21" name="menubar_item_wheels">
-            <Property key="Caption" value="Wheels"/>
-            <Property key="MenuItemType" value="Popup"/>
-            <Widget type="PopupMenu" skin="PopupMenu" position="119 25 149 58" style="Popup" layer="Popup" name="wheels_popup">
-                <Widget type="MenuItem" skin="" position="0 0 141 19" name="wheels_popup_item_select_all">
-                    <Property key="Caption" value="[/+] Select all"/>
-                </Widget>
-                <Widget type="MenuItem" skin="" position="0 19 141 19" name="wheels_popup_item_deselect_all">
-                    <Property key="Caption" value="[/-] Deselect all"/>
-                </Widget>
-                <Widget type="MenuItem" skin="" position="0 38 141 10">
-                    <Property key="MenuItemType" value="Separator"/>
-                </Widget>
-            </Widget>
+            <Property key="Enabled" value="false"/>
         </Widget>
     </Widget>
     <CodeGeneratorSettings>

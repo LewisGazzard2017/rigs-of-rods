@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="Layout" version="3.2.0">
+    <Widget type="Window" skin="WindowCX" position="0 0 720 480" layer="Info" name="rig_editor_crash_reporter">
+        <Property key="Caption" value="RigEditor crash report"/>
+        <Widget type="EditBox" skin="EditBoxStretch" position="5 65 705 375" name="error_info_editbox">
+            <Property key="Static" value="true"/>
+            <Property key="ReadOnly" value="true"/>
+        </Widget>
+        <Widget type="TextBox" skin="TextBox" position="5 5 700 55" name="info_text_label">
+            <Property key="Caption" value="RigEditor has crashed :-(\nPlease report this to developers and attach file &quot;RigEditorPythonStderr.log&quot;\nUnder MS Windows, it&apos;s located at [Documents/Rigs of Rods 0.4/logs/]"/>
+        </Widget>
+    </Widget>
+</MyGUI>
