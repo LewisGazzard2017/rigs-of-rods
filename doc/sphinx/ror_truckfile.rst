@@ -239,13 +239,28 @@ Physics body: nodes and beams
 
    .. method:: to_str()
    
-   Converts the ID to str in format "{id} {flags: NUMBERED/NAMED...}"
+      Converts the ID to str in format "{id} {flags: NUMBERED/NAMED...}"
+      
+   .. attribute:: id_str
+   
+      The full name of the node. Value is always valid.
+   
+   .. attribute:: id_num
+   
+      Node number. Only valid if the node is specified with numeric name.
+   
    
    
 
 .. class:: NodeRef()
 
-   TODO
+   .. method:: get_id_str()
+   
+      :returns: alphanumeric ID of the referenced node. Value is always valid.
+   
+   .. method:: get_id_num()
+   
+      :returns: Numeric ID of the referenced node. Only valid if the referenced node was specified as numbered.  
 
    
    
@@ -348,8 +363,34 @@ Physics body: nodes and beams
 
 
 .. class:: Beam()
+      
+   .. attribute:: node_1
+   
+      :class:`NodeRef`
+   
+   .. attribute:: node_2
+   
+      :class:`NodeRef`
 
-   TODO
+   .. attribute:: option_i_invisible
+   
+   .. attribute:: option_r_rope
+   
+   .. attribute:: option_s_support
+
+   .. attribute:: extension_break_limit
+        
+   .. attribute:: _has_extension_break_limit
+   
+      bool; was "extension_break_limit" defined?
+   
+   .. attribute:: detacher_group
+   
+      int. 0 = no detacher group.
+            
+   .. attribute:: preset
+   
+      :class:`BeamPreset`  
    
    
 .. class:: BeamPreset()

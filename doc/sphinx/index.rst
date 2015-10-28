@@ -46,8 +46,7 @@ It was only recently the author realized the only way to ever make
 RigEditor a compelling tool is to open it to wider developer base and ease
 the dev. process by making it script-driven. The language of choice
 was Python because of it's popularity and also a very strong
-success-story: `Blender <http://www.blender.org>`_
- 
+success-story: `Blender <http://www.blender.org>`_  
  
 Python modules
 --------------
@@ -59,6 +58,8 @@ Python modules
    inputs
    camera
    euclid3
+   rig
+
 
 
 Built-in modules

@@ -88,6 +88,7 @@ void PythonBinding::ExportFile()
 		.def_readwrite("engoption",                 &File::Module::engoption)
 		.def_readwrite("torque_curve",              &File::Module::torque_curve)
 		.def_readwrite("axles",                     &File::Module::axles)
+
 		// Aerial
 		.def_readwrite("turboprops",                &File::Module::turboprops_2)
 		.def_readwrite("turbojets",                 &File::Module::turbojets)
@@ -95,12 +96,16 @@ void PythonBinding::ExportFile()
 		.def_readwrite("wings",                     &File::Module::wings)
 		.def_readwrite("airbrakes",                 &File::Module::airbrakes)
 		.def_readwrite("fusedrag",                  &File::Module::fusedrag)
+
 		// Wheels
 		.def_readwrite("wheels",                    &File::Module::wheels)
 		.def_readwrite("wheels_2",                  &File::Module::wheels_2)
 		.def_readwrite("mesh_wheels",               &File::Module::mesh_wheels)
 		.def_readwrite("mesh_wheels_2",             &File::Module::mesh_wheels_2)
 		.def_readwrite("flex_body_wheels",          &File::Module::flex_body_wheels)
+
+		// Visuals
+		.def_readwrite("flares",                    &File::Module::flares_2)
 		;
 
 	PYTHON_REGISTER_STD_VECTOR(RigDef::Author, "AuthorVector")
