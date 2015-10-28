@@ -43,6 +43,7 @@ public:
 
 	static void ExportClassWidget();
 	static void ExportClassTextBox();
+	static void ExportDatatypes();
 	
 };
 

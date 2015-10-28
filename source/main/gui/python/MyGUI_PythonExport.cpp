@@ -267,17 +267,9 @@ BOOST_PYTHON_MODULE(ror_gui)
 
 	def("load_layout", PY_MyGUI_LayoutManager_LoadLayout);
 
-    // UTILITY CLASSES
+	// MISC
+	MyGUI_PythonExport::ExportDatatypes();
 
-    class_<MyGUI::Colour>("MyGUI_Colour")
-        .def_readwrite("red",   &MyGUI::Colour::red)
-        .def_readwrite("green", &MyGUI::Colour::green)
-        .def_readwrite("blue",  &MyGUI::Colour::blue)
-        .def_readwrite("alpha", &MyGUI::Colour::alpha)
-        ;
-
-	PYTHON_REGISTER_VECTOR_SUITE(MyGUI::VectorWidgetPtr, "MyGUI_VectorWidgetPtr")
-//	PYTHON_REGISTER_STD_VECTOR(MyGUI::Widget, "StdVector_MyGUI_WidgetPtr")
 }
 
 // static

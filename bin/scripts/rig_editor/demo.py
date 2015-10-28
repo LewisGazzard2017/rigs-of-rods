@@ -23,10 +23,27 @@ class Demo:
         print("num root widgets:", len(root_widgets))
         window = root_widgets[0]
         
-        x_checkbox = window.find_widget("flag_x_checkbox")
-        x_checkbox.set_caption("%test")
         
-        v_checkbox = window.find_widget("flag_v_checkbox")
+        label = window.find_widget("start_delay_label")
+        unicode_str = "%říšěžťčň"
+        print("UNICODE:", unicode_str)
+        
+        # Unicode test
+        # IMPORTANT: Make sure MyGUI uses a font with international characters.
+        # Review /bin/resources/mygui/MyGUI_FontsEnglish.xml
+        label.set_caption(unicode_str)
+        out_unicode = label.get_caption()
+        print("UNICODE OUTPUT:", out_unicode)
+        col = ror_gui.MyGUI_Colour(1.0, 0.0, 1.0, 1.0)
+        print("RGBA Colour created")
+        col_default = ror_gui.MyGUI_Colour()
+        print("default colour created")
+        label.set_text_colour(col)
+        
+        v_checkbox_widget = window.find_widget("flag_v_checkbox")
+        #v_checkbox = v_checkbox_widget
+        v_checkbox = v_checkbox_widget.cast_type_Button() # Checkbox is not exported yet
+        print ("cast done OK")
         obj = {"hello":"RigEditor"}
         def get_widget_name_safe(widget):
             if widget is not None:
