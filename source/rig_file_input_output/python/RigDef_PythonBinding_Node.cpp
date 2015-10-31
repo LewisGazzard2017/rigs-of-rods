@@ -56,6 +56,7 @@ void PythonBinding::ExportNode()
 		.def("get_id_num", &Node::Ref::Num)
 		;
 
+	PYTHON_REGISTER_SHARED_PTR(RigDef::NodeDefaults)
 	class_<RigDef::NodeDefaults>("NodePreset")
 		.def_readwrite("load_weight", &NodeDefaults::load_weight)
 		.def_readwrite("friction",    &NodeDefaults::friction)
@@ -76,6 +77,7 @@ void PythonBinding::ExportNode()
 		.add_property("option_l", &NodeDefaults::HasFlag_l, &NodeDefaults::SetFlag_l)
 		;
 
+	PYTHON_REGISTER_STD_VECTOR(RigDef::Node, "NodeVector")
 	class_<RigDef::Node>("Node")
 		.def_readwrite("id",                        &Node::id)
 		.def_readwrite("position",                  &Node::position)
@@ -99,17 +101,9 @@ void PythonBinding::ExportNode()
 		.add_property("option_l", &Node::HasFlag_l, &Node::SetFlag_l)
 		;
 
-	class_<std::vector<RigDef::Node> >("NodeVector")
-		.def(vector_indexing_suite< std::vector<RigDef::Node> >())
-		;
-
+	PYTHON_REGISTER_STD_VECTOR(RigDef::NodeGroupWithPreset, "NodeGroupVector")
 	class_<RigDef::NodeGroupWithPreset>("NodeGroupWithPreset")
 		.def_readwrite("preset",  &NodeGroupWithPreset::preset)
 		.def_readwrite("nodes",   &NodeGroupWithPreset::nodes)
 		;
-
-	class_<std::vector<RigDef::NodeGroupWithPreset> >("NodeGroupVector")
-		.def(vector_indexing_suite< std::vector<RigDef::NodeGroupWithPreset> >())
-		;
-
 }

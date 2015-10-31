@@ -3,21 +3,25 @@
 
 class Color:
     'RGBA color'
-    r = 0;
-    g = 0;
-    b = 0;
-    a = 1;
-    
-    def __init__(self, r, g, b, a):
-        self.r = r;
-        self.g = g;
-        self.b = b;
-        self.a = a;
-        
-    def __init__(self, r, g, b):
-        self.r = r;
-        self.g = g;
-        self.b = b;
+    def __init__(self):
+        self.r = 0;
+        self.g = 0;
+        self.b = 0;
         self.a = 1;
+        
+    def from_rgba(r, g, b, a):
+        c = Color()
+        c.r = r
+        c.g = g
+        c.b = b
+        c.a = a
+        return c
+        
+    def from_rgb(r, g, b):
+        c = Color()
+        c.r = r
+        c.g = g
+        c.b = b
+        return c
 
 # ------------------------------------------------------------------------------ 

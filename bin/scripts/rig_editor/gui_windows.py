@@ -66,6 +66,28 @@ def load_single_root_layout(filename, widget_types):
     
         
 
+def widget_bind_event_click(app, widget, ev_name):
+    def fire_event(event_obj, sender_widget):
+        event_obj.was_fired = True
+    
+    ev = app.events[ev_name]
+    widget.event_mouse_button_click.add_delegate(ev, fire_event)
+    
+def widgets_bind_click_event(app, widgets_spec, widgets_obj):
+    for widget_tup in widgets_spec.items():
+        print("widgets_bind_click_event(): TUP: ", widget_tup)
+        if len(widget_tup[1]) >= 2:
+            widget_name = widget_tup[0]
+            widget_params = widget_tup[1]
+            print("widgets_bind_click_event(): PARAMS TUP: ", widget_params, ", ev_name:", widget_params[1])
+            ev_name = widget_params[1]
+            if ev_name not in app.events:
+                raise Exception("gui_windows.widgets_bind_click_event():"
+                    + " Attempt to bind non-existent event:", ev_name)
+            widget_bind_event_click(app, widgets_obj[widget_name], ev_name)    
+        
+        
+
 class WindowBase:
 
     def __init__(self, root_widget):
@@ -96,23 +118,27 @@ class WindowBase:
         this_size = self.root_widget.get_size()
         target_x = (parent_size.width  - this_size.width)  / 2
         target_y = (parent_size.height - this_size.height) / 2
-        self.set_position(int(target_x), int(target_y))
+        self.set_position(int(target_x), int(target_y))            
         
         
 
 class Menubar(WindowBase):
     
-    def __init__(self):
+    def __init__(self, app):
+        # Load layout and widgets
+        # dict {widget_name: (MyGUI widget type, on_click_event)}
         widgets = {
-            "rig_editor_menubar": "MenuBar",
+            "rig_editor_menubar": ("MenuBar", ), # Tuple!
             
-            "mainmenu_popup_item_load_project"    : "MenuItem",
-            "mainmenu_popup_item_save_project_as" : "MenuItem",
-            "mainmenu_popup_item_close_project"   : "MenuItem",
-            "mainmenu_popup_item_import_truckfile": "MenuItem",
-            "mainmenu_popup_item_export_truckfile": "MenuItem",
-            "mainmenu_popup_item_quit_editor"     : "MenuItem"
+            "mainmenu_item_load_project"    : ("MenuItem",                   ),
+            "mainmenu_item_save_project_as" : ("MenuItem", "save_project_as" ),
+            "mainmenu_item_close_project"   : ("MenuItem",                   ),
+            "mainmenu_item_import_truckfile": ("MenuItem", "import_truckfile"),
+            "mainmenu_item_export_truckfile": ("MenuItem",                   ),
+            "mainmenu_item_quit_editor"     : ("MenuItem", "exit_rig_editor" )
         }
         self.widgets = load_single_root_layout("rig_editor_menubar.layout", widgets)
         WindowBase.__init__(self, self.widgets["rig_editor_menubar"])
+        # Setup events
+        widgets_bind_click_event(app, widgets, self.widgets)
 

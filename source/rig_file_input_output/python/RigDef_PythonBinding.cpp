@@ -102,7 +102,7 @@ using namespace boost::python;
 
 BOOST_PYTHON_MODULE(ror_truckfile)
 {
-	class_<Ogre::Vector3>("Vector3")
+	class_<Ogre::Vector3>("TruckfileVector3") // Redundant prefix to avoid clashes with other "Vector3" classes
 		.def_readwrite("x", &Ogre::Vector3::x)
 		.def_readwrite("y", &Ogre::Vector3::y)
 		.def_readwrite("z", &Ogre::Vector3::z)

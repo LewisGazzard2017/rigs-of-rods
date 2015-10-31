@@ -673,6 +673,7 @@ void File::Module::ConvertSlideNodeRangesToNodeList()
 			GROUP_TYPE group;                                        \
 			group.DST_VAR.reserve(100);                              \
 			group.DST_VAR.push_back(beam);                           \
+			group.preset = beam.BEAM_DEFAULTS_VAR;                   \
 			beams_by_preset.insert(std::make_pair(preset, group));   \
 		}                                                            \
 		else                                                         \
@@ -724,6 +725,7 @@ void File::Module::GroupNodesByPreset()
 			NodeGroupWithPreset group;
 			group.nodes.reserve(100);
 			group.nodes.push_back(node);
+			group.preset = node.node_defaults;
 			nodes_by_preset.insert(std::make_pair(preset, group));
 		}
 		else

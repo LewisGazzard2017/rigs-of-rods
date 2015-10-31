@@ -44,22 +44,39 @@ class Application:
         self.was_exit_requested = False
         self.camera_controller = None
         import gui_manager
-        self.gui_manager = gui_manager.GuiManager() 
+        self.gui_manager = gui_manager.GuiManager(self) 
         self.input_handler = inputs.InputListener()
         ror_system.register_input_listener(self.input_handler)
         self.events = {}
         self.modes = {}
-        self.__init_events()
-        self.__init_event_mappings()
+        self.project_rig = None
+        
+        # Init events
+        self.add_events([
+            "exit_rig_editor",
+            "create_empty_project",
+            "close_project",
+            "save_project_as",
+            "load_project",
+            "import_truckfile",
+            "export_truckfile"
+        ])
+        
+        # Init event mappings
+        self.input_handler.add_key_down_event_mapping(inputs.KeyCodes.ESCAPE, self.events["exit_rig_editor"])        
         
     def add_event(self, name):
-        self.events[name] = Event(name)
+        ''' Defines a single event
+            :returns: The :class:`Event` 
+        '''
+        e = Event(name)
+        self.events[name] = e 
+        return e
         
-    def __init_events(self):
-        self.add_event("exit_rig_editor")
-        
-    def __init_event_mappings(self):
-        self.input_handler.add_key_down_event_mapping(inputs.KeyCodes.ESCAPE, self.events["exit_rig_editor"])
+    def add_events(self, event_list):
+        ''' Bulk-defines multiple events '''
+        for e in event_list:
+            self.add_event(e)
         
     def reset_events(self):
         for tup in self.events.items():
@@ -75,6 +92,33 @@ class Application:
         do_orbit = mouse_state.is_right_button_pressed()
         self.camera_controller.inject_mouse_move(
             do_orbit, mouse_state.relative_x, mouse_state.relative_y, mouse_state.relative_z)
+            
+    def _on_event_import_truckfile(self):
+        # TODO: Display open-file dialog
+        
+        # TEST
+        import truckfile
+        print("app: Importing truckfile")
+        self.project_rig = truckfile.load("d:/Projects/RoR/rig_editor_python", "import-test-rig.truck")
+        print("app: Truckfile import done")
+        
+    def _on_event_save_project(self):
+        # TODO: Display save-file dialog
+        
+        # TEST
+        print("app: saving JSON project")
+        import project_file
+        project_file.save(self.project_rig, "d:/Projects/RoR/rig_editor_python", "rig-project-test.json.txt")
+        print("app: JSON project saved")
+        
+    def _on_event_load_project(self):
+        # TODO: Display open-file dialog
+        
+        # TEST
+        print("app: ^loading JSON project")
+        import project_file
+        project_file.save(self.project_rig, "d:/Projects/RoR/rig_editor_python", "rig-project-test.json.txt")
+        print("app: JSON project loaded")
     
     def go(self):
         ror_system.enter_rig_editor()
@@ -84,12 +128,6 @@ class Application:
         self.gui_manager.init_or_restore_gui()
         self.was_exit_requested = False
         
-        # Truckfile import test
-        #Demo.test_truckfile_import("d:\Projects\Rigs of Rods\RigEditor-Python", "test-rig.truck")
-        
-        # GUI display test
-        # Demo.test_gui()
-        
         while (not self.was_exit_requested):
             self.reset_events()
             self.input_handler.reset_inputs()
@@ -97,8 +135,24 @@ class Application:
             
             self._update_camera()
             
+            # ------ TEST -------
+            self.events["import_truckfile"].was_fired = True
+            self.events["save_project_as"].was_fired = True
+            self.events["load_project"].was_fired = True
+            self.was_exit_requested = True
+            # ------ END TEST -------
+            
             if (self.events["exit_rig_editor"].was_fired):
                 self.was_exit_requested = True
+                
+            if (self.events["import_truckfile"].was_fired):
+                self._on_event_import_truckfile()
+                
+            if (self.events["save_project_as"].was_fired):
+                self._on_event_save_project()
+                
+            if (self.events["load_project"].was_fired):
+                self._on_event_load_project()
         
             if (ror_system.is_application_window_closed()):
                 ror_system.request_application_shutdown()

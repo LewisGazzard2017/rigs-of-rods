@@ -1,36 +1,36 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <MyGUI type="Layout" version="3.2.0">
     <Widget type="MenuBar" skin="MenuBar" position="0 0 370 25" layer="Main" name="rig_editor_menubar">
         <Widget type="MenuItem" skin="" position="0 0 91 21" name="menubar_item_main_menu">
             <Property key="Caption" value="Main menu"/>
             <Property key="MenuItemType" value="Popup"/>
             <Widget type="PopupMenu" skin="PopupMenu" position="2 25 159 163" style="Popup" layer="Popup" name="main_menu_popup">
-                <Widget type="MenuItem" skin="" position="0 0 151 19" name="mainmenu_popup_item_create_empty_project">
+                <Widget type="MenuItem" skin="" position="0 0 151 19" name="mainmenu_item_create_empty_project">
                     <Property key="Caption" value="Create new"/>
                     <Property key="Enabled" value="true"/>
                 </Widget>
-                <Widget type="MenuItem" skin="" position="0 19 151 19" name="mainmenu_popup_item_load_project">
+                <Widget type="MenuItem" skin="" position="0 19 151 19" name="mainmenu_item_load_project">
                     <Property key="Caption" value="Load"/>
                 </Widget>
-                <Widget type="MenuItem" skin="" position="0 38 151 19" name="mainmenu_popup_item_save_project_as">
+                <Widget type="MenuItem" skin="" position="0 38 151 19" name="mainmenu_item_save_project_as">
                     <Property key="Caption" value="Save as..."/>
                 </Widget>
-                <Widget type="MenuItem" skin="" position="0 57 151 19" name="mainmenu_popup_item_close_project">
+                <Widget type="MenuItem" skin="" position="0 57 151 19" name="mainmenu_item_close_project">
                     <Property key="Caption" value="Close"/>
                 </Widget>
                 <Widget type="MenuItem" skin="" position="0 76 151 10">
                     <Property key="MenuItemType" value="Separator"/>
                 </Widget>
-                <Widget type="MenuItem" skin="" position="0 86 151 19" name="mainmenu_popup_item_import_truckfile">
+                <Widget type="MenuItem" skin="" position="0 86 151 19" name="mainmenu_item_import_truckfile">
                     <Property key="Caption" value="Import TRUCKfile"/>
                 </Widget>
-                <Widget type="MenuItem" skin="" position="0 105 151 19" name="mainmenu_popup_item_export_truckfile">
+                <Widget type="MenuItem" skin="" position="0 105 151 19" name="mainmenu_item_export_truckfile">
                     <Property key="Caption" value="Export TRUCKfile"/>
                 </Widget>
                 <Widget type="MenuItem" skin="" position="0 124 151 10">
                     <Property key="MenuItemType" value="Separator"/>
                 </Widget>
-                <Widget type="MenuItem" skin="" position="0 134 151 19" name="mainmenu_popup_item_quit_editor">
+                <Widget type="MenuItem" skin="" position="0 134 151 19" name="mainmenu_item_quit_editor">
                     <Property key="Caption" value="Quit"/>
                 </Widget>
             </Widget>

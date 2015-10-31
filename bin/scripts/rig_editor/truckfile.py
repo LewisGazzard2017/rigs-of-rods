@@ -2,11 +2,6 @@
 # Module "truckfile"
 # Truckfile loading and serialization
 
-class Importer:
-    
-    def __init__(self, truck):
-        self.truck = truck
-
 def load(directory, filename):
     import ror_truckfile
     parser = ror_truckfile.Parser()
@@ -16,9 +11,14 @@ def load(directory, filename):
         return None
     
     from rig import Rig, BeamType
-    r = Rig()
+    rig = Rig()
     
-    from euclid3 import Vector3
+    import euclid3
+    
+    # ******** Functions ******** #
+    
+    def import_vector3(v3): # Transform any Vector3 type to euclid3.Vector3
+        return euclid3.Vector3(v3.x, v3.y, v3.z)
     
     def fetch_node(rig, node_ref):
         return rig.find_node(node_ref.get_id_str())
@@ -28,7 +28,8 @@ def load(directory, filename):
         for node_group in module.nodes_by_preset:
             # Setup buffer
             preset = node_group.preset
-            buff = rig.create_node_buffer("NodeBuffer_" + id(node_group))
+            buff = rig.create_node_buffer()
+            
             buff.default_weight = preset.load_weight
             buff.friction       = preset.friction
             buff.volume         = preset.volume
@@ -42,9 +43,9 @@ def load(directory, filename):
             buff.option_b_extra_buoyancy    = preset.option_b
             buff.option_p_no_particles      = preset.option_p
             # Insert nodes
-            for truck_node in node_group:
+            for truck_node in node_group.nodes:
                 name = truck_node.id.id_str
-                position = Vector3(truck_node.position)
+                position = import_vector3(truck_node.position)
                 node = buff.create_node(name, position)
                 if truck_node._has_load_weight_override:
                     node.weight = truck_node.load_weight_override
@@ -62,8 +63,7 @@ def load(directory, filename):
         def process_beam_list(rig, beam_list, beam_type):
             if len(beam_list) is 0:
                 return
-            buff_name = "BeamBuffer_" + id(beam_list)
-            buff = rig.create_beam_buffer(buff_name, beam_type)
+            buff = rig.create_beam_buffer(None, beam_type)
             for truck_beam in beam_list:
                 node1 = rig.find_node(truck_beam.node_1.get_id_str())
                 node2 = rig.find_node(truck_beam.node_2.get_id_str())
@@ -82,28 +82,26 @@ def load(directory, filename):
                 else:
                     plain_beams.append(truck_beam)
             # Process by type
+            #print("DBG beamlist plain")
             process_beam_list(rig, plain_beams,   BeamType.PLAIN)
+            #print("DBG beamlist support")
             process_beam_list(rig, support_beams, BeamType.SUPPORT)
+            #print("DBG beamlist rope")
             process_beam_list(rig, rope_beams,    BeamType.ROPE)
             
         # === Flares (lights) ===
+        #print("DBG ---- truckfile: processing flares ----")
         for truck_flare in module.flares:
             ref_node = fetch_node(rig, truck_flare.reference_node)
             x_node   = fetch_node(rig, truck_flare.node_axis_x)
             y_node   = fetch_node(rig, truck_flare.node_axis_y)
             flare = rig.create_flare(ref_node, x_node, y_node)
             
-                            
-                
-                
-            
+    # ******** Processing ******** #
+    
+    rig.name = truck.name
+    process_module(truck.root_module, rig)
         
-    
-    # Nodes
-    
-    
-    
-    
+    return rig
 
-    rig = rig.Rig()
 

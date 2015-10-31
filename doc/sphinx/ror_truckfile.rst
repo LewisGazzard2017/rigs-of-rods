@@ -1651,3 +1651,14 @@ Look and feel
    .. attribute:: particle_system_name
                
 
+Utility
+-------
+
+.. class:: TruckfileVector3
+
+   Exported Ogre::Vector3 for simplicity of conversion.
+   Should be always replaced with :class:`euclid3.Vector3`
+
+   .. attribute:: x
+   .. attribute:: y
+   .. attribute:: z

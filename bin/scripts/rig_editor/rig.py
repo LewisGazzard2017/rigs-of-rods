@@ -3,7 +3,8 @@
 # Physics structure classes
 
 from datatypes import Color
-from euclid3 import Vector3
+from euclid3 import Vector3, Vector2
+import util
 
 # ------------------------------------------------------------------------------
 # Nodes
@@ -36,7 +37,7 @@ class NodeBuffer:
 
     def __init__(self, name, parent_rig):
         self.name = name
-        self.editor_color = Color(1,1,1,1)
+        self.editor_color = Color.from_rgb(1,1,1)
         self.parent_rig = parent_rig
         
         # "set_node_defaults"
@@ -110,7 +111,7 @@ class Node:
             # Current position;
             # represents intermediate position during transformations.
         self.curr_screen_pos = Vector2(0,0)
-        self.curr_screen_color = Color(1,1,1,1)                                      
+        self.curr_screen_color = Color.from_rgb(1,1,1)                                      
         self.linked_beams = []
         self.weight = None # None = Inherit from nodebuffer
         self.detacher_group = None
@@ -155,7 +156,7 @@ class BeamBuffer:
         self.visual_material_name = None
         self.plastic_deform_coef = 0
         self.enable_advanced_deformation = True
-        self.editor_color = Color(1,1,1,1)
+        self.editor_color = Color.from_rgb(1,1,1)
 
     def create_beam(self, node1, node2):
         if   self.beam_type == BeamType.ROPE:
@@ -183,7 +184,7 @@ class BeamBase:
         self.beam_buffer = beam_buffer
         self.node1 = node1
         self.node2 = node2
-        self.curr_color = Color(1, 1, 1, 1)
+        self.curr_color = Color.from_rgb(1,1,1)
         self.detacher_group = 0
         
 
@@ -436,6 +437,9 @@ class Flare:
 # The big Rig 
 
 class Rig:
+    '''
+    .. attribute:: name 
+    '''
 
     def __init__(self):
         self.name = None
@@ -447,24 +451,36 @@ class Rig:
         self._wheels = []
         self._flares = {}
         
-    def create_node_buffer(self, name):
-        ''' '''
+    def create_node_buffer(self, name=None):
+        '''
+        :param str|None name: If none, a random ID {NodeBuffer_######} will be generated.
+        '''
+        if name is None: 
+            name = util.generate_random_unique_id(self._node_buffers, "NodeBuffer_")
         if name in self._node_buffers:
             raise Exception("Duplicate name of 'NodeBuffer': ", name)
         buff = NodeBuffer(name, self)
         self._node_buffers[name] = buff
         return buff
         
-    def create_beam_buffer(self, name, beam_type=BeamType.PLAIN):
-        ''' '''
+    def create_beam_buffer(self, name=None, beam_type=BeamType.PLAIN):
+        '''
+        :param str|None name: If none, a random ID {BeamBuffer_######} will be generated.
+        '''
+        if name is None:
+            name = util.generate_random_unique_id(self._beam_buffers, "BeamBuffer_")
         if name in self._beam_buffers:
             raise Exception("Duplicate name of 'BeamBuffer': ", name)
         buff = BeamBuffer(self, name, beam_type)
         self._beam_buffers[name] = buff
         return buff             
         
-    def create_inertia_preset(self, name):
-        ''' '''
+    def create_inertia_preset(self, name=None):
+        '''
+        :param str|None name: If none, a random ID {InertiaPreset_######} will be generated.
+        '''
+        if name is None:
+            name = util.generate_random_unique_id(self._inertia_presets, "InertiaPreset_")
         if name in self._inertia_presets:
             raise Exception("Duplicate name of 'InertiaPreset': ", name)
         inertia = InertiaPreset(name)
@@ -496,11 +512,20 @@ class Rig:
         self.remove_flare_by_name(flare.name)
         
     def insert_flare(self, flare):
+        ''' '''
         self._flares[flare.name] = flare
         
     def loop_flare_values(self):
         ''' '''
         return self._flares.values()
+        
+    def loop_node_objects(self):
+        ''' '''
+        return self._nodes.values()
+        
+    def loop_node_buffer_objects(self):
+        ''' '''
+        return self._node_buffers.values()
         
     def find_node(self, name):
         ''' '''
@@ -508,6 +533,10 @@ class Rig:
             raise Exception("Failed to find node [" + name + "]")
         else:
             return self._nodes[name]
+            
+    def get_node_buffer(self, name):
+        ''' '''
+        return self._node_buffers[name]
                 
         
         

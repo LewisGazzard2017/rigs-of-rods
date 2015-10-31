@@ -51,6 +51,7 @@ void PythonBinding::ExportBeam()
 		.def_readwrite("breaking_threshold_constant"   , &BeamDefaultsScale::breaking_threshold_constant   )
 		;
 
+	PYTHON_REGISTER_SHARED_PTR(RigDef::BeamDefaults)
 	class_<RigDef::BeamDefaults>("BeamPreset")
 		.def_readwrite("springiness"                   ,  &BeamDefaults::springiness                   )
 		.def_readwrite("damping_constant"              ,  &BeamDefaults::damping_constant              )
@@ -68,8 +69,7 @@ void PythonBinding::ExportBeam()
 		.def("get_scaled_deform_threshold",   &BeamDefaults::GetScaledDeformThreshold)
 		;
 
-	register_ptr_to_python< boost::shared_ptr<RigDef::BeamDefaults> >();
-
+	PYTHON_REGISTER_STD_VECTOR(RigDef::Beam, "BeamVector")
 	class_<RigDef::Beam>("Beam")
 		.add_property("node_1", &Beam::PY_GetNode1, &Beam::PY_SetNode1)
 		.add_property("node_2", &Beam::PY_GetNode2, &Beam::PY_SetNode2)
@@ -78,22 +78,15 @@ void PythonBinding::ExportBeam()
 		.add_property("option_r_rope",      &Beam::HasFlag_r_Rope,      &Beam::SetFlag_r_Rope)
 		.add_property("option_s_support",   &Beam::HasFlag_s_Support,   &Beam::SetFlag_s_Support)
 
-		.def_readwrite("extension_break_limit"     , &Beam::extension_break_limit)     
+		.def_readwrite("extension_break_limit"     , &Beam::extension_break_limit)
 		.def_readwrite("_has_extension_break_limit", &Beam::_has_extension_break_limit)
-		.def_readwrite("detacher_group"            , &Beam::detacher_group)            
-		.def_readwrite("preset"                    , &Beam::defaults)                  
+		.def_readwrite("detacher_group"            , &Beam::detacher_group)
+		.def_readwrite("preset"                    , &Beam::defaults)
 		;
 
-	class_<std::vector<RigDef::Beam> >("BeamVector")
-		.def(vector_indexing_suite< std::vector<RigDef::Beam> >())
-		;
-
+	PYTHON_REGISTER_STD_VECTOR(RigDef::BeamGroupWithPreset, "BeamGroupVector")
 	class_<RigDef::BeamGroupWithPreset>("BeamGroupWithPreset")
 		.def_readwrite("preset",  &BeamGroupWithPreset::preset)
 		.def_readwrite("beams",   &BeamGroupWithPreset::beams)
-		;
-
-	class_<std::vector<RigDef::BeamGroupWithPreset> >("BeamGroupVector")
-		.def(vector_indexing_suite< std::vector<RigDef::BeamGroupWithPreset> >())
 		;
 }
