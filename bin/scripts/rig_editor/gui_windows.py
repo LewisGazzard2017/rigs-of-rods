@@ -75,11 +75,11 @@ def widget_bind_event_click(app, widget, ev_name):
     
 def widgets_bind_click_event(app, widgets_spec, widgets_obj):
     for widget_tup in widgets_spec.items():
-        print("widgets_bind_click_event(): TUP: ", widget_tup)
+        #print("widgets_bind_click_event(): TUP: ", widget_tup)
         if len(widget_tup[1]) >= 2:
             widget_name = widget_tup[0]
             widget_params = widget_tup[1]
-            print("widgets_bind_click_event(): PARAMS TUP: ", widget_params, ", ev_name:", widget_params[1])
+            #print("widgets_bind_click_event(): PARAMS TUP: ", widget_params, ", ev_name:", widget_params[1])
             ev_name = widget_params[1]
             if ev_name not in app.events:
                 raise Exception("gui_windows.widgets_bind_click_event():"

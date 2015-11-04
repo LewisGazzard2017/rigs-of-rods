@@ -23,5 +23,10 @@ class Color:
         c.g = g
         c.b = b
         return c
+        
+    def __str__(self):
+        text = "Color(" + str(self.r) + ", " + str(self.g)
+        text += ", " + str(self.b) + ", " + str(self.a) + ")"
+        return text
 
 # ------------------------------------------------------------------------------ 

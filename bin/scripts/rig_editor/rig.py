@@ -641,10 +641,13 @@ class Rig:
         '''
         Updates screen visuals. Doesn't change beam object data.
         '''
+        self.beams_mesh.set_position(Vector3(0, 0, 0))
         self.beams_mesh.begin_update()
         for beam in self.loop_beam_objects():
             pos1 = beam.node1.curr_pos
-            pos2 = beam.node1.curr_pos
-            print("@beam", pos1, pos2)
-            self.beams_mesh.add_line(pos1, beam.curr_color, pos2, beam.curr_color)
+            pos2 = beam.node2.curr_pos
+            #print("@add_line() Positions:", pos1, pos2, "color:", beam.curr_color)
+            self.beams_mesh.add_line(pos1, beam.curr_color, pos2, beam.curr_color)           
+            
         self.beams_mesh.end_update()
+        self.beams_mesh.attach_to_scene()

@@ -47,7 +47,6 @@ class ConfigFile:
             for key in section:
                 entry = section[key]
                 # Fill default 
-                print("entry type:", type(entry))
                 if "value" not in entry: 
                     entry["value"] = entry["default_value"]
                 if entry["value"] == None:
@@ -79,8 +78,7 @@ class Application:
         self.project_rig = None
         
         # TODO: obtain path from RoR
-        file_path = "d:/Projects/Git/RoR-editor-python-dirty/"
-        file_path += "bin/resources/skeleton/config/rig_editor_conf.json"
+        file_path = "d:\\Projects\\Git\\rigs-of-rods\\bin\\resources\\skeleton\\config\\rig_editor_conf.json"
         self.config = ConfigFile.load(file_path)
         
         # Init events
@@ -131,7 +129,7 @@ class Application:
         # TEST
         import truckfile
         print("app: Importing truckfile")
-        self.project_rig = truckfile.load(self.config, "d:/Projects/RoR/rig_editor_python", "import-test-rig.truck")
+        self.project_rig = truckfile.load(self.config, "d:\\Projects\\Rigs of Rods\\RigEditor-Python", "test-rig.truck")
         print("app: Truckfile import done")
         self.project_rig.colorize_beams_default_scheme()
         self.project_rig.colorize_nodes_default_scheme()
@@ -158,7 +156,7 @@ class Application:
     
     def go(self):
         ror_system.enter_rig_editor()
-        Demo.draw_demo_mesh()
+        #Demo.draw_demo_mesh()
         self.camera_controller = camera.CameraOrbitController(
             ror_system.get_camera(), ortho_zoom_ratio=1.7)
         self.gui_manager.init_or_restore_gui()
