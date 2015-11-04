@@ -2,7 +2,7 @@
 # Module "truckfile"
 # Truckfile loading and serialization
 
-def load(directory, filename):
+def load(config, directory, filename):
     import ror_truckfile
     parser = ror_truckfile.Parser()
     parser.parse_file(directory, filename)
@@ -11,7 +11,7 @@ def load(directory, filename):
         return None
     
     from rig import Rig, BeamType
-    rig = Rig()
+    rig = Rig(config)
     
     import euclid3
     

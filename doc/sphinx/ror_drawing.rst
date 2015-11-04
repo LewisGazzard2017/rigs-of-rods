@@ -29,10 +29,18 @@ Procedure:
 Lines and points
 ----------------
 
+.. function:: create_lines_mesh()
+
+   Creates instance of :class:`LinesMesh`
+   
+   
+
 .. class:: LinesMesh()
 
    Draws pixel-wide lines (not configurable). Colors are specified for each
    end separately, automatically creating gradients.
+   
+   Non-instantiable, use function :func:`create_lines_mesh` instead.
    
    .. method:: begin_update()
       
@@ -61,19 +69,29 @@ Lines and points
    
       Detaches the mesh from scene graph, which effectively hides it.      
       
-.. class:: PointsMesh(point_size)
+      
+
+.. function:: create_points_mesh(point_size)
+
+   Creates instance of :class:`PointsMesh`
+      
+
+
+.. class:: PointsMesh()
 
    Draws points with configurable size. Color is specified per-point.
+   
+   Non-instantiable, use function :func:`create_points_mesh` instead.
    
    .. method:: begin_update()
       
       Clears all mesh content. Must be called before add_point() otherwise
       results are undefined.
       
-   .. method:: add_line(position, color)
+   .. method:: add_point(position, color)
    
-      Adds a line. "position" object must have {x, y, z} attributes,
-      "color" object must have {r, g, b} attributes.
+      :attr position: :class:`euclid3.Vector3` object must have {x, y, z} attributes
+      :attr color: :class:`datatypes.Color` object must have {r, g, b} attributes.
       
       .. note:: 
          You must call begin_update() prior to this function,

@@ -5,6 +5,7 @@
 from datatypes import Color
 from euclid3 import Vector3, Vector2
 import util
+import ror_drawing
 
 # ------------------------------------------------------------------------------
 # Nodes
@@ -64,6 +65,7 @@ class NodeBuffer:
         n = Node(name, self)
         self.parent_rig._nodes[name] = n
         n.position = position
+        n.curr_pos = position
         return n
         
         
@@ -441,8 +443,10 @@ class Rig:
     .. attribute:: name 
     '''
 
-    def __init__(self):
+    def __init__(self, config):
+        # Meta
         self.name = None
+        # Structure
         self._nodes = {}
         self._node_buffers = {}
         self._beams = []
@@ -450,6 +454,25 @@ class Rig:
         self._inertia_presets = {}
         self._wheels = []
         self._flares = {}
+        
+        # Visuals
+        self._config = config
+        node_conf = config["nodes_display"]
+        
+        idle_point_size = node_conf["node_idle_point_size"]["value"]
+        self.idle_nodes_mesh = ror_drawing.create_points_mesh(idle_point_size)
+        self.idle_nodes_mesh.attach_to_scene()
+        
+        hover_point_size = node_conf["node_hovered_point_size"]["value"]
+        self.hovered_nodes_mesh = ror_drawing.create_points_mesh(hover_point_size)
+        self.hovered_nodes_mesh.attach_to_scene()
+        
+        select_point_size = node_conf["node_selected_point_size"]["value"]
+        self.selected_nodes_mesh = ror_drawing.create_points_mesh(select_point_size)
+        self.selected_nodes_mesh.attach_to_scene()
+        
+        self.beams_mesh = ror_drawing.create_lines_mesh()
+        self.beams_mesh.attach_to_scene()
         
     def create_node_buffer(self, name=None):
         '''
@@ -523,6 +546,10 @@ class Rig:
         ''' '''
         return self._nodes.values()
         
+    def loop_beam_objects(self):
+        ''' '''
+        return self._beams
+        
     def loop_node_buffer_objects(self):
         ''' '''
         return self._node_buffers.values()
@@ -538,5 +565,86 @@ class Rig:
         ''' '''
         return self._node_buffers[name]
                 
+    def colorize_nodes_default_scheme(self):                                 
+        '''
+        Updates color value in :class:`Node` objects. Doesn't repaint screen.
+        '''
+        node_conf = self._config["nodes_display"]
+        node_idle_color   = node_conf["node_idle_color"]["value"]                  
+         
+        for node in self.loop_node_objects():
+            node.curr_screen_color = node_idle_color
+            
+    def colorize_beams_default_scheme(self):                                 
+        '''
+        Updates color value in :class:`Beam` objects. Doesn't repaint screen.
+        '''
+        beam_conf = self._config["beams_display"]
         
+        colors = {
+            "plain":   beam_conf["beam_generic_color"]["value"],
+            "support": beam_conf["beam_support_color"]["value"],
+            "rope":    beam_conf["beam_rope_color"]["value"],
+            "support": beam_conf["beam_support_color"]["value"],
+            "command": beam_conf["command_hydro_beam_color"]["value"],
+            "steering":beam_conf["steering_hydro_beam_color"]["value"],
+            "shock_1": beam_conf["shock_absorber_beam_color"]["value"],
+            "shock_2": beam_conf["shock_absorber_2_beam_color"]["value"]
+        }                  
         
+        for beam in self.loop_beam_objects():
+            t = type(beam)
+            if   t is PlainBeam:
+                beam.curr_color = colors["plain"]
+            elif t is RopeBeam:
+                beam.curr_color = colors["rope"]
+            elif t is SupportBeam:
+                beam.curr_color = colors["support"]
+            elif t is ShockAbsorber:
+                beam.curr_color = colors["shock_1"]
+            elif t is ShockAbsorber2:
+                beam.curr_color = colors["shock_2"]
+            elif t is SteeringHydroBeam:
+                beam.curr_color = colors["steering"]
+            elif t is CommandHydroBeam:
+                beam.curr_color = colors["command"]
+            elif t is PlainBeam:
+                beam.curr_color = colors["plain"]
+         
+        
+    
+    def update_node_meshes(self):
+        '''
+        Updates screen visuals. Doesn't change node object data.
+        '''
+        node_conf = self._config["nodes_display"]
+        node_hover_color  = node_conf["node_hovered_color"]["value"]
+        node_select_color = node_conf["node_selected_color"]["value"]
+        
+        self.idle_nodes_mesh.begin_update()
+        self.hovered_nodes_mesh.begin_update()
+        self.selected_nodes_mesh.begin_update()
+        
+        for node in self.loop_node_objects():
+            if node.is_hovered is True:
+                self.hovered_nodes_mesh.add_point(node.curr_pos, node_hover_color)
+            elif node.is_selected is True:
+                self.selected_nodes_mesh.add_point(node.curr_pos, node_select_color)
+            else:
+                self.idle_nodes_mesh.add_point(node.curr_pos, node.curr_screen_color)
+                
+        self.idle_nodes_mesh.end_update()
+        self.hovered_nodes_mesh.end_update()
+        self.selected_nodes_mesh.end_update()
+        
+    def update_beams_mesh(self):
+        '''
+        Updates screen visuals. Doesn't change beam object data.
+        '''
+        self.beams_mesh.begin_update()
+        for beam in self.loop_beam_objects():
+            pos1 = beam.node1.curr_pos
+            pos2 = beam.node1.curr_pos
+            print("@beam", pos1, pos2)
+            self.beams_mesh.add_line(pos1, beam.curr_color, pos2, beam.curr_color)
+        self.beams_mesh.end_update()

@@ -36,6 +36,33 @@ class Mode:
 
 
 
+class ConfigFile:
+
+    def load(file_path):
+        import json
+        stream = open(file_path, "r")
+        json_dict = json.load(stream)
+        for section_name in json_dict:
+            section = json_dict[section_name]
+            for key in section:
+                entry = section[key]
+                # Fill default 
+                print("entry type:", type(entry))
+                if "value" not in entry: 
+                    entry["value"] = entry["default_value"]
+                if entry["value"] == None:
+                    entry["value"] = entry["default_value"]
+                # Convert
+                datatype = entry["data_type"]
+                if datatype == "RGB_Color":
+                    entry["value"] = ConfigFile.convert_rgb(entry["value"])
+        return json_dict
+                
+    def convert_rgb(rgb_list):
+        return Color.from_rgb(rgb_list[0], rgb_list[1], rgb_list[2])               
+                    
+                
+
 class Application:
     'RigEditor core'
     
@@ -50,6 +77,11 @@ class Application:
         self.events = {}
         self.modes = {}
         self.project_rig = None
+        
+        # TODO: obtain path from RoR
+        file_path = "d:/Projects/Git/RoR-editor-python-dirty/"
+        file_path += "bin/resources/skeleton/config/rig_editor_conf.json"
+        self.config = ConfigFile.load(file_path)
         
         # Init events
         self.add_events([
@@ -99,8 +131,12 @@ class Application:
         # TEST
         import truckfile
         print("app: Importing truckfile")
-        self.project_rig = truckfile.load("d:/Projects/RoR/rig_editor_python", "import-test-rig.truck")
+        self.project_rig = truckfile.load(self.config, "d:/Projects/RoR/rig_editor_python", "import-test-rig.truck")
         print("app: Truckfile import done")
+        self.project_rig.colorize_beams_default_scheme()
+        self.project_rig.colorize_nodes_default_scheme()
+        self.project_rig.update_beams_mesh()
+        self.project_rig.update_node_meshes()
         
     def _on_event_save_project(self):
         # TODO: Display save-file dialog
@@ -128,19 +164,18 @@ class Application:
         self.gui_manager.init_or_restore_gui()
         self.was_exit_requested = False
         
+        # TEST
+        
+        self._on_event_import_truckfile()
+        
+        # END TEST
+        
         while (not self.was_exit_requested):
             self.reset_events()
             self.input_handler.reset_inputs()
             ror_system.capture_input_and_update_gui()
             
             self._update_camera()
-            
-            # ------ TEST -------
-            self.events["import_truckfile"].was_fired = True
-            self.events["save_project_as"].was_fired = True
-            self.events["load_project"].was_fired = True
-            self.was_exit_requested = True
-            # ------ END TEST -------
             
             if (self.events["exit_rig_editor"].was_fired):
                 self.was_exit_requested = True
