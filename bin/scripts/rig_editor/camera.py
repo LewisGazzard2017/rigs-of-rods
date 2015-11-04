@@ -38,7 +38,7 @@ class CameraOrbitController:
             self.camera.move_relative(Vector3(0, 0, self.camera_distance))
         elif (wheel_rel != 0): 
             # move the camera toward or away from the target
-            self.camera_distance += (wheel_rel * 0.0008 * self.camera_distance)
+            self.camera_distance -= (wheel_rel * 0.0008 * self.camera_distance)
             self.camera.set_position(self.orbit_target)
             self.camera.move_relative(Vector3(0, 0, self.camera_distance))
             if (self.camera.is_mode_ortho()):
