@@ -99,7 +99,12 @@ Camera control
    .. method:: set_far_clip_distance(distance)           
    .. method:: set_near_clip_distance(distance)          
    .. method:: set_ortho_window_width(width)          
-   .. method:: convert_world_to_screen_position
+   
+   .. method:: convert_world_to_screen_position(world_pos)
+   
+      :param world_pos: Any object with params { x, y, z }
+      :returns: Dictionary { x, y, resolved }. X/Y are float pixel positions. Resolved is false if input position is behind camera.
+   
    .. method:: convert_screen_to_world_position
 
 Output handling

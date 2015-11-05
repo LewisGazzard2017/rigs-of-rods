@@ -81,6 +81,14 @@ class Node:
     .. attribute:: curr_pos
     
        Vector3; Represents intermediate position during transformations.
+       
+    .. attribute:: curr_screen_pos
+    
+       :class:`euclid3.Vector2`
+    
+    .. attribute:: curr_screen_color
+    
+       :class:`datatypes.Color`
     
     **Directive "set_node_defaults" in truckfile:**
     
@@ -440,12 +448,36 @@ class Flare:
 
 class Rig:
     '''
-    .. attribute:: name 
+    .. attribute:: name
+    
+       Str.
+    
+    .. attribute:: hovered_nodes
+    
+       List of :class:`Node` objects.
+     
+    .. attribute:: idle_nodes_mesh
+    
+       Visualization: :class:`ror_drawing.PointsMesh`
+     
+    .. attribute:: hovered_nodes_mesh
+    
+       Visualization: :class:`ror_drawing.PointsMesh`
+        
+    .. attribute:: selected_nodes_mesh
+    
+       Visualization: :class:`ror_drawing.PointsMesh`
+        
+    .. attribute:: beams_mesh
+    
+       Visualization: :class:`ror_drawing.LinesMesh` 
+       
     '''
 
     def __init__(self, config):
         # Meta
         self.name = None
+        
         # Structure
         self._nodes = {}
         self._node_buffers = {}
@@ -454,6 +486,9 @@ class Rig:
         self._inertia_presets = {}
         self._wheels = []
         self._flares = {}
+        
+        # Editing
+        self.hovered_nodes = []
         
         # Visuals
         self._config = config
@@ -542,7 +577,7 @@ class Rig:
         ''' '''
         return self._flares.values()
         
-    def loop_node_objects(self):
+    def get_node_objects(self):
         ''' '''
         return self._nodes.values()
         
@@ -572,7 +607,7 @@ class Rig:
         node_conf = self._config["nodes_display"]
         node_idle_color   = node_conf["node_idle_color"]["value"]                  
          
-        for node in self.loop_node_objects():
+        for node in self.get_node_objects():
             node.curr_screen_color = node_idle_color
             
     def colorize_beams_default_scheme(self):                                 
@@ -625,7 +660,7 @@ class Rig:
         self.hovered_nodes_mesh.begin_update()
         self.selected_nodes_mesh.begin_update()
         
-        for node in self.loop_node_objects():
+        for node in self.get_node_objects():
             if node.is_hovered is True:
                 self.hovered_nodes_mesh.add_point(node.curr_pos, node_hover_color)
             elif node.is_selected is True:
@@ -651,3 +686,64 @@ class Rig:
             
         self.beams_mesh.end_update()
         self.beams_mesh.attach_to_scene()
+        
+    def update_nodes_screen_positions(self, camera):
+        '''
+        Updates screen positions of all nodes.
+        :param camera: :class:`ror_system.Camera`
+        '''
+        for node in self.get_node_objects():
+            node.curr_screen_pos = camera.convert_world_to_screen_position(node.position)
+            
+    def _get_node_mouse_distance(self, node, mouse_pos):
+        x = abs(node.curr_screen_pos.x - mouse_pos.x)
+        y = abs(node.curr_screen_pos.y - mouse_pos.y)
+        return max(x, y)
+        
+            
+    def refresh_hovered_node(self, mouse_screen_pos):
+    	'''
+        :param mouse_screen_pos: {x, y} pixels.
+        :returns: True if hover changed
+        '''
+    	#Lookup method: for each node
+    	#	- Compute mouse offset
+    	#	- Convert it's components to abs()
+    	#	- Pick the larger component as 'distance'
+    	#	- Compare 'distance' to previous node
+    	#Finally, compare result node's 'distance' to configured box.
+        
+        was_hover_changed = False
+        old_hovered_node = None
+        if len(self.hovered_nodes) > 1:
+            was_hover_changed = True # This function selects max 1 node -> any result is change.
+        elif len(self.hovered_nodes) is 1:
+            old_hovered_node = self.hovered_nodes[0]
+            
+        del self.hovered_nodes[:] # Purge list
+        
+        # Find closest node
+        closest_node = None
+        closest_distance = 0
+        for node in self.get_node_objects():
+            if closest_node is None:
+                closest_node = node
+                closest_distance = self._get_node_mouse_distance(node, mouse_screen_pos)
+            else:
+                new_distance = self._get_node_mouse_distance(node, mouse_screen_pos)
+                if (new_distance < closest_distance):
+                    closest_node = node
+                    closest_distance = new_distance
+                    
+        new_hovered_node = None
+        if closest_distance <= self._config["user_interface"]["mouse_node_select_box_half_size"]["value"]:
+            new_hovered_node = closest_node                    
+                    
+        if new_hovered_node is not old_hovered_node:
+            was_hover_changed = True
+            
+        self.hovered_nodes.append(new_hovered_node)
+        return was_hover_changed
+                
+            
+        

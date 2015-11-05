@@ -1,4 +1,13 @@
 {
+    "user_interface:"
+    {
+        "mouse_node_select_box_half_size" : {
+            "value": null,
+            "default_value": 30,
+            "comment": "Size (pixels) of mouse-selection box for selecting nodes",
+            "data_type": "float"
+        }
+    }
     "nodes_display": {
         "node_idle_point_size": {
             "value": null,
