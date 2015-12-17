@@ -13,6 +13,12 @@
 
 #include <OgrePrerequisites.h>
 
+// Forward decl.
+namespace Diluculum
+{
+	class LuaState;
+}
+
 /**
 * SIM-CORE; Represents a vehicle.
 */
@@ -305,6 +311,8 @@ struct rig_t
 
 	float odometerTotal;
 	float odometerUser;
+
+	Diluculum::LuaState* lua_state_machine;
 
 	std::vector<std::pair<Ogre::String, bool> > dashBoardLayouts;
 	Ogre::String beamHash; //!< Unused

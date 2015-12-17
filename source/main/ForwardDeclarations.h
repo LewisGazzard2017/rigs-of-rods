@@ -94,6 +94,11 @@ namespace Ogre
 	class ConfigFile;
 }
 
+namespace Diluculum
+{
+	class LuaState;
+}
+
 class AeroEngine;
 class Airbrake;
 class Airfoil;

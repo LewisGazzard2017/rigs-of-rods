@@ -339,8 +339,13 @@ rig_t *RigSpawner::SpawnRig()
 
 	m_rig->loading_finished = true;
 
-	// POST-PROCESSING
-	FinalizeRig();
+    // POST-PROCESSING
+    if(!this->SetupLuaScripting())
+    {
+        m_rig = nullptr; 
+        return nullptr;
+    }
+	this->FinalizeRig();
 
 	// Pass ownership
 	rig_t *rig = m_rig;

@@ -206,7 +206,9 @@ Beam *BeamFactory::CreateLocalRigInstance(
 		return 0;
 	}
 
+    bool out_spawned_successfuly = false;
 	Beam *b = new Beam(
+        out_spawned_successfuly,
 		truck_num,
 		pos,
 		rot,
@@ -222,6 +224,11 @@ Beam *BeamFactory::CreateLocalRigInstance(
 		preloaded_with_terrain,
         cache_entry_number
 		);
+    if (!out_spawned_successfuly)
+    {
+        delete b;
+        return nullptr;
+    }
 	trucks[truck_num] = b;
 
 	// lock slide nodes after spawning the truck?
@@ -321,7 +328,9 @@ Beam *BeamFactory::createRemoteInstance(stream_reg_t *reg)
 		return 0;
 	}
     RigLoadingProfiler p; // TODO: Placeholder. Use it
+    bool out_rig_spawned_ok = false;
 	Beam *b = new Beam(
+        out_rig_spawned_ok,
 		truck_num,
 		pos,
 		Quaternion::ZERO,
@@ -334,6 +343,12 @@ Beam *BeamFactory::createRemoteInstance(stream_reg_t *reg)
 		&truckconfig,
 		nullptr // skin
 		);
+
+    if (!out_rig_spawned_ok)
+    {
+        delete b;
+        return nullptr;
+    }
 
 	trucks[truck_num] = b;
 

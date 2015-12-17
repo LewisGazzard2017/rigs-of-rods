@@ -78,6 +78,8 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 #include "Water.h"
 #include "GUIManager.h"
 
+#include "Diluculum/LuaState.hpp"
+
 // DEBUG UTILITY
 //#include "d:\Projects\Git\rigs-of-rods\tools\rig_inspector\RoR_RigInspector.h"
 
@@ -296,6 +298,18 @@ Beam::~Beam()
 		(*it)->cleanUp();
 		delete (*it);
 	}
+
+    // Delete land vehicle powertrain
+    if (engine != nullptr)
+    {
+        delete engine;
+    }
+
+    // Delete Lua state machine
+    if (lua_state_machine != nullptr)
+    {
+        delete lua_state_machine;
+    }
 
 	if (netMT)
 	{
@@ -1439,6 +1453,9 @@ void Beam::SyncReset()
 // this is called by the beamfactory worker thread
 void Beam::threadentry()
 {
+    try // Temporary utility for debugging LuaPowertrain
+    {
+
 	Beam **trucks = ttrucks;
 	dtperstep = global_dt / (Real)tsteps;
 
@@ -1519,6 +1536,16 @@ void Beam::threadentry()
 			BES_STOP(BES_CORE_Contacters);
 		}
 	}
+
+    }
+    catch (std::exception ex)
+    {
+        const char* h_line = "================================================================================";
+        LOG(h_line);
+        LOG("BeamEngine: exception occurred, message:");
+        LOG(ex.what());
+        LOG(h_line);
+    }
 }
 
 //integration loop
@@ -1535,7 +1562,7 @@ bool Beam::frameStep(Real dt)
 	if (mTimeUntilNextToggle > -1)
 		mTimeUntilNextToggle -= dt;
 	
-	// Divide deltatime into constant-size steps;
+	// Divide deltatime into steps of equal size.
 	// Step size: 1 second / 2000 = 0.5 miliseconds = 500 microseconds
 	// Examples:
 	// 2000 * [ 25ms] 0.025 = 50;
@@ -3791,26 +3818,38 @@ void Beam::updateVisualPrepare(float dt)
 	// update exhausts
 	if (!disable_smoke && engine && exhausts.size() > 0)
 	{
-		std::vector < exhaust_t >::iterator it;
-		for (it=exhausts.begin(); it!=exhausts.end(); it++)
+		auto iend = this->exhausts.end();
+		auto itor = this->exhausts.begin();
+		for ( ; itor != iend; ++itor)
 		{
-			if (!it->smoker)
+			if (itor->smoker == nullptr)
+			{
 				continue;
-			Vector3 dir=nodes[it->emitterNode].smoothpos-nodes[it->directionNode].smoothpos;
-			//			dir.normalise();
-			ParticleEmitter *emit = it->smoker->getEmitter(0);
-			it->smokeNode->setPosition(nodes[it->emitterNode].smoothpos);
+			}
+			Vector3 const emitter_node_pos = this->nodes[itor->emitterNode].smoothpos;
+			Vector3 const direction_node_pos = this->nodes[itor->directionNode].smoothpos;
+			Vector3 const dir = emitter_node_pos - direction_node_pos;
+
+			ParticleEmitter* const emit = itor->smoker->getEmitter(0);
+			itor->smokeNode->setPosition(emitter_node_pos);
 			emit->setDirection(dir);
-			if (engine->getSmoke()!=-1.0)
+
+			float const smoke_ratio = engine->getSmoke();
+
+			if (smoke_ratio != -1.0)
 			{
 				emit->setEnabled(true);
-				emit->setColour(ColourValue(0.0,0.0,0.0,0.02+engine->getSmoke()*0.06));
-				emit->setTimeToLive((0.02+engine->getSmoke()*0.06)/0.04);
-			} else
+				float const color_alpha = 0.02 + (smoke_ratio * 0.06);
+				emit->setColour(ColourValue(0.0,0.0,0.0,color_alpha));
+				emit->setTimeToLive(color_alpha/0.04);
+			} 
+			else
 			{
 				emit->setEnabled(false);
 			}
-			emit->setParticleVelocity(1.0+engine->getSmoke()*2.0, 2.0+engine->getSmoke()*3.0);
+			float const particle_velocity_min = 1.0 + smoke_ratio * 2.0;
+			float const particle_velocity_max = 2.0 + smoke_ratio * 3.0;
+			emit->setParticleVelocity(particle_velocity_min, particle_velocity_max);
 		}
 	}
 
@@ -6021,6 +6060,7 @@ void Beam::onComplete()
 }
 
 Beam::Beam(
+    bool& out_rig_spawned_successfuly,
 	int truck_number, 
 	Ogre::Vector3 pos, 
 	Ogre::Quaternion rot, 
@@ -6135,6 +6175,8 @@ Beam::Beam(
 	, watercontact(false)
 	, watercontactold(false)
 {
+    out_rig_spawned_successfuly = false;
+
 	useSkidmarks = BSETTING("Skidmarks", false);
 	LOG(" ===== LOADING VEHICLE: " + Ogre::String(fname));
 
@@ -6194,7 +6236,7 @@ Beam::Beam(
 	{
 		if(! LoadTruck(rig_loading_profiler, fname, beams_parent, pos, rot, spawnbox, preloaded_with_terrain, cache_entry_number))
 		{
-			return;
+            return;
 		}
 	}
 
@@ -6291,6 +6333,7 @@ Beam::Beam(
 	// DEBUG UTILITY
 	// RigInspector::InspectRig(this, "d:\\Projects\\Rigs of Rods\\rig-inspection\\NextStable.log"); 
 
+    out_rig_spawned_successfuly = true;
 	LOG(" ===== DONE LOADING VEHICLE");
 }
 
@@ -6445,7 +6488,9 @@ bool Beam::LoadTruck(
 		}
 	}
     LOAD_RIG_PROFILE_CHECKPOINT(ENTRY_BEAM_LOADTRUCK_SPAWNER_ADDMODULES);
-	spawner.SpawnRig();
+    
+    bool spawn_failed = (spawner.SpawnRig() == nullptr);
+    
     LOAD_RIG_PROFILE_CHECKPOINT(ENTRY_BEAM_LOADTRUCK_SPAWNER_RUN);
     report_num_errors   += spawner.GetMessagesNumErrors();
     report_num_warnings += spawner.GetMessagesNumWarnings();
@@ -6466,14 +6511,16 @@ bool Beam::LoadTruck(
         }
     }
 
-	RoR::Application::GetGuiManagerInterface()->AddRigLoadingReport(parser.GetFile()->name, report_text, report_num_errors, report_num_warnings, report_num_other);
-	if (report_num_errors != 0)
-	{
-		if (BSETTING("AutoRigSpawnerReport", false))
-		{
-			RoR::Application::GetGuiManagerInterface()->ShowRigSpawnerReportWindow();
-		}
-	}
+    RoR::Application::GetGuiManagerInterface()->AddRigLoadingReport(parser.GetFile()->name, report_text, report_num_errors, report_num_warnings, report_num_other);
+    if ((report_num_errors != 0 && BSETTING("AutoRigSpawnerReport", false)) || spawn_failed)
+    {
+        RoR::Application::GetGuiManagerInterface()->ShowRigSpawnerReportWindow();
+    }
+    if (spawn_failed)
+    {
+        return false;
+    }
+
     LOAD_RIG_PROFILE_CHECKPOINT(ENTRY_BEAM_LOADTRUCK_SPAWNER_LOG);
 	/* POST-PROCESSING (Old-spawn code from Beam::loadTruck2) */
 
@@ -6519,12 +6566,11 @@ bool Beam::LoadTruck(
 	//compute final mass
 	calc_masses2(truckmass);
     LOAD_RIG_PROFILE_CHECKPOINT(ENTRY_BEAM_LOADTRUCK_CALC_MASSES);
-	//setup default sounds
-	if (!disable_default_sounds)
-	{
-		//setupDefaultSoundSources();
-		RigSpawner::SetupDefaultSoundSources(this);
-	}
+    //setup default sounds
+    if (!disable_default_sounds)
+    {
+        RigSpawner::SetupDefaultSoundSources(this);
+    }
     LOAD_RIG_PROFILE_CHECKPOINT(ENTRY_BEAM_LOADTRUCK_SET_DEFAULT_SND_SOURCES);
 
 	//compute node connectivity graph

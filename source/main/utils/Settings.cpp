@@ -401,7 +401,7 @@ bool Settings::setupPaths()
 {
 	char program_path[1024] = {};
 	char resources_path[1024] = {};
-	//char streams_path[1024] = {};
+	char scripts_path[1024] = {};
 	char user_path[1024] = {};
 	char config_root[1024] = {};
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
@@ -444,6 +444,29 @@ bool Settings::setupPaths()
 			}
 		}
 	}
+    strcpy(scripts_path, program_path);
+    path_add(scripts_path, "scripts");
+    if (! FolderExists(scripts_path))
+    {
+        // if not existing: check one dir up (dev version)
+        strcpy(scripts_path, program_path);
+        path_descend(scripts_path);
+        path_add(scripts_path, "scripts");
+        if (! FolderExists(scripts_path))
+        {
+            // 3rd fallback: check the installation path
+#ifndef _WIN32
+            // linux fallback
+            strcpy(resources_path, "/usr/share/rigsofrods/scripts/");
+#endif // !_WIN32
+
+            if (! FolderExists(resources_path))
+            {
+                ErrorUtils::ShowError(_L("Startup error"), _L("Scripts folder not found. Check if correctly installed."));
+                exit(1);
+            }
+        }
+    }
 
 	// change working directory to executable path
 #ifdef _WIN32
@@ -502,6 +525,13 @@ bool Settings::setupPaths()
 	char ogrelog_path[1024] = {};
 	strcpy(ogrelog_path, ogrelog_fname);
 	strcat(ogrelog_fname, "RoR.log");
+
+	{
+		char simulation_scripts_path[1024] = {};
+		strcpy(simulation_scripts_path, scripts_path);
+		path_add(simulation_scripts_path, "simulation");
+		settings["Simulation Scripts Path"] = String(simulation_scripts_path);
+	}
 
 	// now update our settings with the results:
 
@@ -619,11 +649,11 @@ int Settings::GetGearBoxMode(int default_value /*=0*/)
 		}
 		else
 		{
-			if (itor->second == "Automatic shift")	{ m_gearbox_mode = 0; }
-			else if (itor->second == "Manual shift - Auto clutch")	{ m_gearbox_mode = 1; }
-			else if (itor->second == "Fully Manual: sequential shift")	{ m_gearbox_mode = 2; }
-			else if (itor->second == "Fully manual: stick shift")	{ m_gearbox_mode = 3; }
-			else if (itor->second == "Fully Manual: stick shift with ranges")	{ m_gearbox_mode = 4; }
+			     if (itor->second == "Automatic shift")                       { m_gearbox_mode = 0; } // BeamEngine::AUTOMATIC
+			else if (itor->second == "Manual shift - Auto clutch")            { m_gearbox_mode = 1; } // BeamEngine::SEMIAUTO
+			else if (itor->second == "Fully Manual: sequential shift")        { m_gearbox_mode = 2; } // BeamEngine::MANUAL
+			else if (itor->second == "Fully manual: stick shift")             { m_gearbox_mode = 3; } // BeamEngine::MANUAL_STICK
+			else if (itor->second == "Fully Manual: stick shift with ranges") { m_gearbox_mode = 4; } // BeamEngine::MANUAL_RANGES
 
 			else { m_gearbox_mode = -2; }
 		}

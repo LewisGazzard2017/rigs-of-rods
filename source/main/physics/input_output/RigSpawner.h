@@ -139,10 +139,10 @@ public:
 
 	static void RecalculateBoundingBoxes(rig_t *rig);
 
-	static void SetupDefaultSoundSources(Beam *vehicle);
+    static void SetupDefaultSoundSources(Beam *vehicle);
 
     std::string ProcessMessagesToString();
-	std::list<Message> & GetMessages() { return m_messages; }
+    std::list<Message> & GetMessages() { return m_messages; }
     int GetMessagesNumErrors()   const { return m_messages_num_errors;   }
     int GetMessagesNumWarnings() const { return m_messages_num_warnings; }
     int GetMessagesNumOther()    const { return m_messages_num_other;    }
@@ -982,6 +982,8 @@ protected:
 	* For generated nodes
 	*/
 	void AdjustNodeBuoyancy(node_t & node, boost::shared_ptr<RigDef::NodeDefaults> defaults);
+
+	bool SetupLuaScripting();
 
 	/**
 	* Ported from SerializedRig::loadTruck() [v0.4.0.7]

@@ -55,6 +55,7 @@
 #include "FlexMeshWheel.h"
 #include "FlexObj.h"
 #include "InputEngine.h"
+#include "LuaSubsystem.h"
 #include "MaterialFunctionMapper.h"
 #include "MaterialReplacer.h"
 #include "MeshObject.h"
@@ -5854,19 +5855,7 @@ void RigSpawner::ProcessEngturbo(RigDef::Engturbo & def)
 		return;
 	}
 	
-		/* Find it */
-	boost::shared_ptr<RigDef::Engturbo> engturbo;
-	std::list<boost::shared_ptr<RigDef::File::Module>>::iterator module_itor = m_selected_modules.begin();
-	for (; module_itor != m_selected_modules.end(); module_itor++)
-	{
-		if (module_itor->get()->engturbo != nullptr)
-		{
-			engturbo = module_itor->get()->engturbo;
-		}
-	}
-	
-		/* Process it */
-	m_rig->engine->setTurboOptions(engturbo->version, engturbo->tinertiaFactor, engturbo->nturbos, engturbo->param1, engturbo->param2, engturbo->param3, engturbo->param4, engturbo->param5, engturbo->param6, engturbo->param7, engturbo->param8, engturbo->param9, engturbo->param10, engturbo->param11);
+	// Processed by LuaSubsystem
 };
 
 void RigSpawner::ProcessEngoption(RigDef::Engoption & def)
@@ -5880,70 +5869,18 @@ void RigSpawner::ProcessEngoption(RigDef::Engoption & def)
 		return;
 	}
 
-	/* Find it */
-	boost::shared_ptr<RigDef::Engoption> engoption;
-	std::list<boost::shared_ptr<RigDef::File::Module>>::iterator module_itor = m_selected_modules.begin();
-	for (; module_itor != m_selected_modules.end(); module_itor++)
-	{
-		if (module_itor->get()->engoption != nullptr)
-		{
-			engoption = module_itor->get()->engoption;
-		}
-	}
-
-	/* Process it */
-	m_rig->engine->setOptions(
-		engoption->inertia,
-		engoption->type,
-		(engoption->_clutch_force_use_default) ? -1.f : engoption->clutch_force,
-		engoption->shift_time,
-		engoption->clutch_time,
-		engoption->post_shift_time,
-		engoption->idle_rpm,
-		engoption->stall_rpm,
-		engoption->max_idle_mixture,
-		engoption->min_idle_mixture
-	);
+	// Processed by LuaSubsystem
 };
 
 void RigSpawner::ProcessEngine(RigDef::Engine & def)
 {
-	SPAWNER_PROFILE_SCOPED();
+    SPAWNER_PROFILE_SCOPED();
 
-    /* Process it */
-	m_rig->driveable = TRUCK;
+    m_rig->driveable = TRUCK;
 
-	/* Process gear list to BeamEngine-compatible format */
-	/* TODO: Move this to BeamEngine::BeamEngine() */
-	std::vector<float> gears_compat;
-	gears_compat.reserve(2 + def.gear_ratios.size());
-	gears_compat.push_back(def.reverse_gear_ratio);
-	gears_compat.push_back(def.neutral_gear_ratio);
-	std::vector<float>::iterator itor = def.gear_ratios.begin();
-	for (; itor < def.gear_ratios.end(); itor++)
-	{
-		gears_compat.push_back(*itor);
-	}
-
-	m_rig->engine = new BeamEngine(
-		def.shift_down_rpm,
-		def.shift_up_rpm,
-		def.torque,
-		gears_compat,
-		def.global_gear_ratio,
-		m_rig->trucknum
-	);
-
-	/* Are there any startup shifter settings? */
-	Ogre::String gearbox_mode = SSETTING("gearbox_mode", "Automatic shift");
-	if (gearbox_mode == "Manual shift - Auto clutch")
-		m_rig->engine->setAutoMode(BeamEngine::SEMIAUTO);
-	else if (gearbox_mode == "Fully Manual: sequential shift")
-		m_rig->engine->setAutoMode(BeamEngine::MANUAL);
-	else if (gearbox_mode == "Fully Manual: stick shift")
-		m_rig->engine->setAutoMode(BeamEngine::MANUAL_STICK);
-	else if (gearbox_mode == "Fully Manual: stick shift with ranges")
-		m_rig->engine->setAutoMode(BeamEngine::MANUAL_RANGES);
+    // Just an empty shell for Lua-scripted powertrain
+    // Processed by LuaSubsystem
+    m_rig->engine = new BeamEngine();
 };
 
 void RigSpawner::ProcessHelp()
@@ -7279,18 +7216,23 @@ void RigSpawner::SetupDefaultSoundSources(Beam *vehicle)
 	}
 
 	//engine
-	if (vehicle->engine != nullptr) /* Land vehicle */
+	if (vehicle->engine != nullptr) // Land vehicle
 	{
-		if (vehicle->engine->getType() =='t')
+		bool vehicle_is_truck = vehicle->engine->getType() == 't';
+		if (vehicle_is_truck)
 		{
 			AddSoundSourceInstance(vehicle, "tracks/default_diesel", smokeId);
 			AddSoundSourceInstance(vehicle, "tracks/default_force", smokeId);
 			AddSoundSourceInstance(vehicle, "tracks/default_brakes", 0);
 			AddSoundSourceInstance(vehicle, "tracks/default_parkbrakes", 0);
 			AddSoundSourceInstance(vehicle, "tracks/default_reverse_beep", 0);
+			AddSoundSourceInstance(vehicle, "tracks/default_air_purge", 0);
 		}
-		if (vehicle->engine->getType() =='c')
+		else if (vehicle->engine->getType() == 'c')
+		{
 			AddSoundSourceInstance(vehicle, "tracks/default_car", smokeId);
+		}
+
 		if (vehicle->engine->hasTurbo())
 		{
 			if (vehicle->engine->GetTurboInertiaFactor() >= 3)
@@ -7304,8 +7246,6 @@ void RigSpawner::SetupDefaultSoundSources(Beam *vehicle)
 			AddSoundSourceInstance(vehicle, "tracks/default_wastegate_flutter", smokeId);
 		}
 			
-		if (vehicle->engine->HasAir())
-			AddSoundSourceInstance(vehicle, "tracks/default_air_purge", 0);
 		//starter
 		AddSoundSourceInstance(vehicle, "tracks/default_starter", 0);
 		// turn signals
@@ -7438,6 +7378,46 @@ void RigSpawner::UpdateCollcabContacterNodes()
 		m_rig->nodes[m_rig->cabs[tmpv+1]].contacter = true;
 		m_rig->nodes[m_rig->cabs[tmpv+2]].contacter = true;
 	}
+}
+
+bool RigSpawner::SetupLuaScripting()
+{
+    try
+    {
+        LuaSubsystem::BeginRigSetup(this->m_rig);
+    }
+    catch (std::exception std_ex)
+    {
+        this->AddMessage(Message::TYPE_ERROR, 
+            std::string("Lua scripting setup failed. Details: function LuaSubsystem::BeginRigSetup() threw std::exception; message: ") + std_ex.what());
+        return false;
+    }
+
+    try
+    {
+        m_rig->engine->SetLuaState(m_rig->lua_state_machine);
+        auto root_module = this->m_file->root_module;
+        LuaSubsystem::SetupRigClassicPowertrain(
+            this->m_rig, root_module->engine, root_module->engoption, root_module->engturbo, m_rig->trucknum, m_rig->engine->getTorqueCurve());
+    }
+    catch (std::exception std_ex)
+    {
+        this->AddMessage(Message::TYPE_ERROR, 
+            std::string("Lua scripting setup failed. Details: function LuaSubsystem::SetupRigClassicPowertrain() threw std::exception; message: ") + std_ex.what());
+        return false;
+    }
+
+    try
+    {
+        LuaSubsystem::FinishRigSetup(this->m_rig);
+    }
+    catch (std::exception std_ex)
+    {
+        this->AddMessage(Message::TYPE_ERROR, 
+            std::string("Lua scripting setup failed. Details: function LuaSubsystem::FinishRigSetup() threw std::exception; message: ") + std_ex.what());
+        return false;
+    }
+    return true;
 }
 
 std::string RigSpawner::ProcessMessagesToString()
