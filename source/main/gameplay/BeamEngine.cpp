@@ -46,21 +46,7 @@ private:
     pthread_mutex_t* m_mtx;
 };
 
-#define SCOPED_LOCK() BeamEngineScopedLock beamengine_lock(&m_mutex);
-
-const char* h_line = "================================================================================";
-
-#define BEAMENGINE_TRY(_BODY_) {                         \
-    BeamEngineScopedLock beamengine_lock(&m_mutex);      \
-    try { _BODY_ }                                       \
-    catch (std::exception ex) {                          \
-        LOG(h_line);                                     \
-        LOG("BeamEngine: exception occurred, message:"); \
-        LOG(ex.what());                                  \
-        LOG(h_line);                                     \
-    }                                                    \
-}
-
+#define SCOPED_LOCK() BeamEngineScopedLock beamengine_lock(m_lua_state_mutex);
 /*
 ENGINE UPDATE TRACE (static):
 bool RoRFrameListener::frame Started(const FrameEvent& evt)
@@ -84,13 +70,11 @@ BeamEngine::BeamEngine():
     m_legacy_torque_curve(nullptr)
 {
     m_legacy_torque_curve = new TorqueCurve();
-    pthread_mutex_init(&m_mutex, NULL);
 }
 
 BeamEngine::~BeamEngine()
 {
     delete m_legacy_torque_curve;
-    pthread_mutex_destroy(&m_mutex);
 }
 
 float BeamEngine::getAcc()
@@ -469,8 +453,8 @@ void BeamEngine::UpdateBeamEngine(float deltatime_seconds, bool do_update)
     params.push_back(LuaValue(vehicle_brake_force));
     params.push_back(LuaValue(vehicle_brake_ratio));
 
-    LOG("C++ ENTER update_beam_engine()");
+    //LOG("C++ ENTER update_beam_engine()");
     (*m_lua_state)["powertrain"].CallMethod("update_beam_engine", params);
-    LOG("C++ EXIT  update_beam_engine()");
+    //LOG("C++ EXIT  update_beam_engine()");
 }
 

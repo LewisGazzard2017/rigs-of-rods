@@ -40,7 +40,11 @@ public:
 
     // Wrapper interface
 
-    inline void SetLuaState(Diluculum::LuaState* lua_state) { m_lua_state = lua_state; }
+    inline void SetLuaState(Diluculum::LuaState* lua_state, pthread_mutex_t* lua_state_mutex)
+    {
+        m_lua_state = lua_state;
+        m_lua_state_mutex = lua_state_mutex;
+    }
 
     // Lua script interface
 
@@ -129,7 +133,7 @@ public:
 private:
     Diluculum::LuaState* m_lua_state;
     TorqueCurve*         m_legacy_torque_curve;
-    pthread_mutex_t      m_mutex; // Temporary solution before refactor
+    pthread_mutex_t*     m_lua_state_mutex;
 
 };
 

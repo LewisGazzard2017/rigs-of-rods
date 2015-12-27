@@ -10,6 +10,7 @@
 #include "RoRPrerequisites.h"
 #include "BeamData.h"
 #include <vector>
+#include "pthread.h"
 
 #include <OgrePrerequisites.h>
 
@@ -312,7 +313,8 @@ struct rig_t
 	float odometerTotal;
 	float odometerUser;
 
-	Diluculum::LuaState* lua_state_machine;
+    Diluculum::LuaState* lua_state;
+    pthread_mutex_t      lua_state_mutex; // Temporary solution until refactor
 
 	std::vector<std::pair<Ogre::String, bool> > dashBoardLayouts;
 	Ogre::String beamHash; //!< Unused

@@ -306,9 +306,10 @@ Beam::~Beam()
     }
 
     // Delete Lua state machine
-    if (lua_state_machine != nullptr)
+    if (lua_state != nullptr)
     {
-        delete lua_state_machine;
+        delete lua_state;
+        pthread_mutex_destroy(&lua_state_mutex);
     }
 
 	if (netMT)

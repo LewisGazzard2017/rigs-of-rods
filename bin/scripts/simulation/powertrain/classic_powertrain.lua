@@ -55,6 +55,8 @@ ClassicPowertrain.AutoSwitch = {
 
 ClassicPowertrain.RAD_PER_SEC_TO_RPM = 9.5492965855137 -- Convert radian/second to RPM (60/2*PI)
 
+local DBG_log_message = function() end
+
 
 -- Creates an engine state object.
 -- Equals legacy C++ class BeamEngine with it's defaults
@@ -137,7 +139,6 @@ function ClassicPowertrain.new(engine_min_rpm, engine_max_rpm, eng_torque, gear_
     self.prime                        = 0
     self.curr_engine_rpm              = 0.0
 	self.is_shifting                  = false
-	self.curr_gear_change_relative    = 0
 	self.conf_turbo_inertia_factor    = 1
 
     -- Auto transmission --
@@ -145,7 +146,8 @@ function ClassicPowertrain.new(engine_min_rpm, engine_max_rpm, eng_torque, gear_
 
     self.autotrans_curr_shift_behavior    = 0.0
     self.autotrans_up_shift_delay_counter = 0
-    self.conf_autotrans_full_rpm_range    = 0
+	-- m_conf_autotrans_full_rpm_range = (m_conf_engine_max_rpm - m_conf_engine_min_rpm);
+    self.conf_autotrans_full_rpm_range    = self.conf_engine_max_rpm - self.conf_engine_min_rpm
 	self.autotrans_rpm_buffer             = Deque.new()
 	self.autotrans_acc_buffer             = Deque.new()
 	self.autotrans_brake_buffer           = Deque.new()
@@ -286,9 +288,9 @@ function ClassicPowertrain.set_turbo_version2_options(self, engturbo_def)
 
 	local i
 	local i_max = (engturbo_def.num_turbos - 1)
-	RoR.log_message("Lua: turbo setup: i_max="..tostring(i_max))
+	DBG_log_message("Lua: turbo setup: i_max="..tostring(i_max))
 	for i = 0, i_max, 1 do
-		RoR.log_message("Lua: TURBO SETUP LOOP: [i]="..tostring(i))
+		DBG_log_message("Lua: TURBO SETUP LOOP: [i]="..tostring(i))
 		self.turbo_curr_rpm[i] = 0
 		self.turbo_cur_bov_rpm[i] = 0
 	end
@@ -360,16 +362,17 @@ end
 
 --void BeamEngine::UpdateBeamEngineShifts()
 function ClassicPowertrain.update_shifts(self)
-RoR.log_message("Lua: ENTER update_shifts()")
+DBG_log_message("Lua: ENTER update_shifts()")
 --{
 	--if (m_autoselect == MANUALMODE) return;
 	if (self.autoselect == ClassicPowertrain.AutoSwitch.MANUALMODE) then
-		RoR.log_message("Lua: EXIT  update_shifts()")
+		DBG_log_message("Lua: EXIT  update_shifts()")
 		return
 	end
 
 --#ifdef USE_OPENAL
 	--SoundScriptManager::getSingleton().trigOnce(m_vehicle_index, SS_TRIG_SHIFT);
+	DBG_log_message("Lua: SND trigOnce SHIFT")
 	self:sound_script_trigger_once(RoR.SoundTriggerSources.SHIFT)
 --#endif // USE_OPENAL
 
@@ -402,7 +405,7 @@ RoR.log_message("Lua: ENTER update_shifts()")
 		local new_gear = 1
 
 		--while (newGear < m_conf_num_gears && m_cur_wheel_revolutions > 0.0f && m_cur_wheel_revolutions * m_conf_gear_ratios[newGear + 1] > m_conf_engine_max_rpm - 100.0f)
-		RoR.log_message("Lua: +while loop")
+		DBG_log_message("Lua: +while loop")
 		while (new_gear < self.conf_num_gears and self.cur_wheel_revolutions > 0.0 and self.cur_wheel_revolutions * m_conf_gear_ratios[new_gear + 1] > self.conf_engine_max_rpm - 100.0)
 		--{
 		do
@@ -410,7 +413,7 @@ RoR.log_message("Lua: ENTER update_shifts()")
 			new_gear = new_gear + 1
 		--}
 		end
-		RoR.log_message("Lua: -while loop")
+		DBG_log_message("Lua: -while loop")
 
 		--m_curr_gear = newGear;
 		self.curr_gear = new_gear
@@ -424,13 +427,13 @@ RoR.log_message("Lua: ENTER update_shifts()")
 		end
 	--}
 	end
-RoR.log_message("Lua: EXIT  update_shifts()")
+DBG_log_message("Lua: EXIT  update_shifts()")
 end
 
 --void BeamEngine::autoSetAcc(float val)
 -- !!! called externally
 function ClassicPowertrain.auto_set_acc(self, val)
-RoR.log_message("Lua: ENTER auto_set_acc()")
+DBG_log_message("Lua: ENTER auto_set_acc()")
 --{
 	--m_auto_curr_acc = val;-
 	self.auto_curr_acc = val
@@ -443,14 +446,14 @@ RoR.log_message("Lua: ENTER auto_set_acc()")
 	if not self.is_shifting then
 		self.curr_acc = val
 	end
-RoR.log_message("Lua: EXIT  auto_set_acc()")
+DBG_log_message("Lua: EXIT  auto_set_acc()")
 end
 
 
 -- float BeamEngine::getTurboPSI()
 -- !!! called externally
 function ClassicPowertrain.update_and_get_turbo_psi(self)
-	RoR.log_message("Lua: ENTER update_and_get_turbo_psi()")
+	DBG_log_message("Lua: ENTER update_and_get_turbo_psi()")
 
     local i
 
@@ -462,13 +465,13 @@ function ClassicPowertrain.update_and_get_turbo_psi(self)
     if self.conf_turbo_has_bov then
 
 		--for (int i = 0; i < m_conf_num_turbos; i++)
-		RoR.log_message("Lua: update_and_get_turbo_psi +for loop")
+		DBG_log_message("Lua: update_and_get_turbo_psi +for loop")
         for i = 0, (self.conf_num_turbos - 1), 1 do
 
 			--m_turbo_psi += m_turbo_cur_bov_rpm[i] / 10000.0f;
             self.turbo_psi = self.turbo_psi + self.turbo_cur_bov_rpm[i] / 10000.0
         end
-		RoR.log_message("Lua: update_and_get_turbo_psi -for loop")
+		DBG_log_message("Lua: update_and_get_turbo_psi -for loop")
 	--}
 	--else
 	--{
@@ -476,21 +479,20 @@ function ClassicPowertrain.update_and_get_turbo_psi(self)
 
 		--for (int i = 0; i < m_conf_num_turbos; i++)
 		local i
-		RoR.log_message("Lua: update_and_get_turbo_psi +for loop")
+		DBG_log_message("Lua: update_and_get_turbo_psi +for loop")
         for  i = 0, (self.conf_num_turbos - 1), 1 do
 
 			--m_turbo_psi += m_turbo_curr_rpm[i] / 10000.0f;
-			RoR.log_message("Lua 483 | turbo_psi:"..tostring(self.turbo_psi)..", turbo_curr_rpm:"
+			DBG_log_message("Lua | turbo_psi:"..tostring(self.turbo_psi)..", turbo_curr_rpm:"
 				..tostring(self.turbo_curr_rpm[i])..", [i]:"..tostring(i)..", num_turbos:"..tostring(self.conf_num_turbos))
 
             self.turbo_psi = self.turbo_psi + self.turbo_curr_rpm[i] / 10000.0
-			RoR.log_message("Lua 487")
         end
-		RoR.log_message("Lua: update_and_get_turbo_psi -for loop")
+		DBG_log_message("Lua: update_and_get_turbo_psi -for loop")
 	--}
     end
 
-	RoR.log_message("Lua: EXIT  update_and_get_turbo_psi()")
+	DBG_log_message("Lua: EXIT  update_and_get_turbo_psi()")
 	return self.turbo_psi
 end
 
@@ -498,7 +500,7 @@ end
 --void BeamEngine::setstarter(int v)
 -- !!! caled externally
 function ClassicPowertrain.enable_starter(self, value)
-	RoR.log_message("Lua: ENTER enable_starter()")
+	DBG_log_message("Lua: ENTER enable_starter()")
 --{
 	--m_starter_is_running = (v == 1);
 	self.starter_is_running = value
@@ -510,14 +512,14 @@ function ClassicPowertrain.enable_starter(self, value)
 	if value and self.curr_engine_rpm < 750 then
 		self.curr_acc = 1
 	end
-	RoR.log_message("Lua: EXIT  enable_starter()")
+	DBG_log_message("Lua: EXIT  enable_starter()")
 end
 
 
 -- float BeamEngine::CalcEnginePower(float rpm)
 -- Called from `update_beam_engine()`
 function ClassicPowertrain.calc_engine_power(self, rpm)
-	RoR.log_message("Lua: ENTER calc_engine_power()")
+	DBG_log_message("Lua: ENTER calc_engine_power()")
 
 
 	--float atValue = 0.0f;
@@ -557,13 +559,13 @@ function ClassicPowertrain.calc_engine_power(self, rpm)
         if self.conf_turbo_version == 1 then
 			--for (int i = 0; i < m_conf_num_turbos; i++)
             local i
-			RoR.log_message("Lua: +for loop")
+			DBG_log_message("Lua: +for loop")
             for i = 0, self.conf_num_turbos, 1 do
 
                 --atValue = m_conf_turbo_addi_torque[i] * (m_turbo_curr_rpm[i] / m_conf_turbo_max_rpm);
                 addi_torque_value = self.conf_turbo_addi_torque[i] * (self.turbo_curr_rpm[i] / self.conf_turbo_max_rpm)
             end
-			RoR.log_message("Lua: -for loop")
+			DBG_log_message("Lua: -for loop")
 
 		--}
 		--else
@@ -577,7 +579,7 @@ function ClassicPowertrain.calc_engine_power(self, rpm)
 	--}
     end
 
-	RoR.log_message("Lua: EXIT  calc_engine_power()")
+	DBG_log_message("Lua: EXIT  calc_engine_power()")
 
 	--return (m_conf_engine_torque * tqValue) + atValue;
     return (self.conf_engine_torque * torque_ratio) + addi_torque_value;
@@ -592,7 +594,7 @@ end
 -- !!! called externally
 function ClassicPowertrain.calc_crank_factor(self)
 --{
-	RoR.log_message("Lua: ENTER calc_crank_factor()")
+	DBG_log_message("Lua: ENTER calc_crank_factor()")
 
     --float minWorkingRPM = m_conf_engine_idle_rpm * 1.1f; // minWorkingRPM > m_conf_engine_idle_rpm avoids commands deadlocking the engine
     local min_working_rpm = self.conf_engine_idle_rpm * 1.1 -- minWorkingRPM > m_conf_engine_idle_rpm avoids commands deadlocking the engine
@@ -601,15 +603,15 @@ function ClassicPowertrain.calc_crank_factor(self)
     local rpm_ratio = (self.curr_engine_rpm - min_working_rpm) / (self.conf_engine_max_rpm - min_working_rpm)
 
 	--rpmRatio = std::max(0.0f, rpmRatio); // Avoids a negative rpmRatio when m_curr_engine_rpm < minWorkingRPM
-    rpm_ratio = math.max(0.0, rmp_ratio) -- Avoids a negative rpmRatio when m_curr_engine_rpm < minWorkingRPM
+    rpm_ratio = math.max(0.0, rpm_ratio) -- Avoids a negative rpmRatio when self.curr_engine_rpm < min_working_rpm
 
 	--rpmRatio = std::min(rpmRatio, 1.0f); // Avoids a rpmRatio > 1.0f when m_curr_engine_rpm > m_conf_engine_max_rpm
-    rpm_ratio = math.min(rpm_ratio, 1.0) -- Avoids a rpmRatio > 1.0f when m_curr_engine_rpm > m_conf_engine_max_rpm
+    rpm_ratio = math.min(rpm_ratio, 1.0) -- Avoids a rpmRatio > 1.0f when self.curr_engine_rpm > self.conf_engine_max_rpm
 
 	--float crankfactor = 5.0f * rpmRatio;
     local crank_factor = 5.0 * rpm_ratio
 
-	RoR.log_message("Lua: EXIT  calc_crank_factor()")
+	DBG_log_message("Lua: EXIT  calc_crank_factor()")
 
 	--return crankfactor;
     return crank_factor
@@ -620,19 +622,19 @@ end
 -- !!! called externally
 function ClassicPowertrain.calc_smoke_factor(self)
 
-	RoR.log_message("Lua: ENTER calc_smoke_factor()")
+	DBG_log_message("Lua: ENTER calc_smoke_factor()")
 
 	--if (m_is_engine_running)
 	if self.is_engine_running then
 	--{
-		RoR.log_message("Lua: EXIT calc_smoke_factor()")
+		DBG_log_message("Lua: EXIT calc_smoke_factor()")
 
 		--return m_curr_acc * (1.0f - m_turbo_curr_rpm[0] /* doesn't matter */ / m_conf_turbo_max_rpm);// * m_conf_engine_torque / 5000.0f;
 		return self.curr_acc * (1.0 - self.turbo_curr_rpm[0] / self.conf_turbo_max_rpm)
 	--}
 	end
 
-	RoR.log_message("Lua: EXIT  calc_smoke_factor()")
+	DBG_log_message("Lua: EXIT  calc_smoke_factor()")
 	return -1
 end
 
@@ -642,7 +644,7 @@ end
 -- !!! called externally
 function ClassicPowertrain.stop(self)
 --{
-	RoR.log_message("Lua: ENTER stop()")
+	DBG_log_message("Lua: ENTER stop()")
 
 	--if (!m_is_engine_running) return;
     if not self.is_engine_running then return end
@@ -659,14 +661,14 @@ function ClassicPowertrain.stop(self)
     self:sound_script_trigger_stop(RoR.SoundTriggerSources.ENGINE)
 --#endif // USE_OPENAL
 --}
-	RoR.log_message("Lua: EXIT  stop()")
+	DBG_log_message("Lua: EXIT  stop()")
 end
 
 --void BeamEngine::start()
 -- !!! called externally
 function ClassicPowertrain.start(self)
 
-	RoR.log_message("Lua: ENTER start()")
+	DBG_log_message("Lua: ENTER start()")
 
 --	if (m_transmission_mode == AUTOMATIC)
 	if (self.transmission_mode == ClassicPowertrain.ShiftMode.AUTOMATIC)
@@ -708,7 +710,7 @@ function ClassicPowertrain.start(self)
 	self.curr_clutch_torque = 0.0
 
 	--for (int i = 0; i < m_conf_num_turbos; i++)
-	RoR.log_message("Lua: +for loop")
+	DBG_log_message("Lua: +for loop")
 	for i = 0, (self.conf_num_turbos - 1), 1 do
 	--{
 		--m_turbo_curr_rpm[i] = 0.0f;
@@ -716,7 +718,7 @@ function ClassicPowertrain.start(self)
 		self.turbo_cur_bov_rpm[i] = 0.0
 	--}
 	end
-	RoR.log_message("Lua: -for loop")
+	DBG_log_message("Lua: -for loop")
 
 --	m_air_pressure = 0.0f;
 --	m_is_engine_running = true;
@@ -735,7 +737,7 @@ function ClassicPowertrain.start(self)
 	--SoundScriptManager::getSingleton().trigStart(m_vehicle_index, SS_TRIG_ENGINE);
 	self:sound_script_trigger_start(RoR.SoundTriggerSources.ENGINE)
 --#endif // USE_OPENAL
-	RoR.log_message("Lua: EXIT  start()")
+	DBG_log_message("Lua: EXIT  start()")
 
 end
 
@@ -744,7 +746,7 @@ end
 -- !!! called externally
 --{
 function ClassicPowertrain.auto_shift_set(self, mode)
-	RoR.log_message("Lua: ENTER auto_shift_set()")
+	DBG_log_message("Lua: ENTER auto_shift_set()")
 
 	--m_autoselect = (autoswitch)mode;
 	self.autoselect = mode
@@ -752,7 +754,7 @@ function ClassicPowertrain.auto_shift_set(self, mode)
 	--this->UpdateBeamEngineShifts();
 	self:update_shifts()
 --}
-	RoR.log_message("Lua: EXIT  auto_shift_set()")
+	DBG_log_message("Lua: EXIT  auto_shift_set()")
 
 end
 
@@ -760,7 +762,7 @@ end
 -- !!! called externally
 function ClassicPowertrain.auto_shift_up()
 --{
-	RoR.log_message("Lua: ENTER auto_shift_up()")
+	DBG_log_message("Lua: ENTER auto_shift_up()")
 
 	--if (m_autoselect != REAR)
 	if self.autoselect ~= ClassicPowertrain.AutoSwitch.REAR
@@ -773,7 +775,7 @@ function ClassicPowertrain.auto_shift_up()
 		self:update_shifts()
 	--}
 	end
-	RoR.log_message("Lua: EXIT  auto_shift_up()")
+	DBG_log_message("Lua: EXIT  auto_shift_up()")
 --}
 end
 
@@ -781,7 +783,7 @@ end
 -- !!! called externally
 function ClassicPowertrain.auto_shift_down()
 --{
-	RoR.log_message("Lua: ENTER auto_shift_down()")
+	DBG_log_message("Lua: ENTER auto_shift_down()")
 
 	--if (m_autoselect != ClassicPowertrain.AutoSwitch.ONE)
 	if (self.autoselect ~= ClassicPowertrain.AutoSwitch.ONE)
@@ -794,7 +796,7 @@ function ClassicPowertrain.auto_shift_down()
 		self:update_shifts()
 	--}
 	end
-	RoR.log_message("Lua: EXIT  auto_shift_down()")
+	DBG_log_message("Lua: EXIT  auto_shift_down()")
 --}
 end
 
@@ -802,7 +804,7 @@ end
 -- !!! called externally
 function ClassicPowertrain.set_manual_clutch(self, val)
 --{
-	RoR.log_message("Lua: ENTER set_manual_clutch()")
+	DBG_log_message("Lua: ENTER set_manual_clutch()")
 
 	--if (m_transmission_mode >= ClassicPowertrain.ShiftMode.MANUAL)
 	if (self.transmission_mode >= ClassicPowertrain.ShiftMode.MANUAL)
@@ -816,7 +818,7 @@ function ClassicPowertrain.set_manual_clutch(self, val)
 	--}
 	end
 
-	RoR.log_message("Lua: EXIT  set_manual_clutch()")
+	DBG_log_message("Lua: EXIT  set_manual_clutch()")
 
 --}
 end
@@ -826,10 +828,10 @@ end
 -- !!! called externally
 function ClassicPowertrain.shift_to(self, new_gear)
 --{
-	RoR.log_message("Lua: ENTER shift_to()")
+	DBG_log_message("Lua: ENTER shift_to()")
 	--this->BeamEngineShift(newGear - m_curr_gear);
 	self:shift(new_gear - self.curr_gear)
-	RoR.log_message("Lua: EXIT  shift_to()")
+	DBG_log_message("Lua: EXIT  shift_to()")
 --}
 end
 
@@ -838,13 +840,13 @@ end
 -- !!! Called externally
 function ClassicPowertrain.shift(self, value)
 
-	RoR.log_message("Lua: ENTER shift()")
+	DBG_log_message("Lua: ENTER shift()")
 
 	--int getNumGears() { return m_conf_gear_ratios.size() - 2; };
-	local num_gears = self.conf_gear_ratios - 2
+	local num_gears = self.conf_num_gears -- num. forward gears
 
 	--if (!val || m_curr_gear + val < -1 || m_curr_gear + val > getNumGears()) return;
-	if value == 0 or (self.curr_gear + value < -1) or (self.curr_gear + val > num_gears) then
+	if value == 0 or (self.curr_gear + value < -1) or (self.curr_gear + value > num_gears) then
 		return
 	end
 
@@ -853,6 +855,7 @@ function ClassicPowertrain.shift(self, value)
 
 --#ifdef USE_OPENAL
 		--SoundScriptManager::getSingleton().trigStart(m_vehicle_index, SS_TRIG_SHIFT);
+		DBG_log_message("Lua: SND trigStart SHIFT")
 		self:sound_script_trigger_start(RoR.SoundTriggerSources.SHIFT)
 --#endif // USE_OPENAL
 
@@ -882,6 +885,7 @@ function ClassicPowertrain.shift(self, value)
 
 --#ifdef USE_OPENAL
 			--SoundScriptManager::getSingleton().trigOnce(m_vehicle_index, SS_TRIG_SHIFT);
+			DBG_log_message("Lua: SND trigOnce SHIFT")
 			self:sound_script_trigger_once(RoR.SoundTriggerSources.SHIFT)
 --#endif // USE_OPENAL
 
@@ -892,7 +896,7 @@ function ClassicPowertrain.shift(self, value)
 	--}
 	end
 
-	RoR.log_message("Lua: EXIT  shift()")
+	DBG_log_message("Lua: EXIT  shift()")
 --}
 end
 
@@ -902,7 +906,7 @@ end
 -- !!! called externally
 function ClassicPowertrain.network_set_state(self, rpm, force, clutch, gear_index, is_running, has_contact, auto_mode)
 
-	RoR.log_message("Lua: ENTER network_set_state()")
+	DBG_log_message("Lua: ENTER network_set_state()")
 --{
 --	m_curr_engine_rpm = rpm;
 --	m_curr_acc       = force;
@@ -927,7 +931,7 @@ function ClassicPowertrain.network_set_state(self, rpm, force, clutch, gear_inde
 		self.transmission_mode = auto_mode
 	end
 
-	RoR.log_message("Lua: EXIT  network_set_state()")
+	DBG_log_message("Lua: EXIT  network_set_state()")
 end
 
 
@@ -936,7 +940,7 @@ end
 
 function ClassicPowertrain.toggle_auto_transmission_mode(self)
 
-	RoR.log_message("Lua: ENTER toggle_auto_transmission_mode()")
+	DBG_log_message("Lua: ENTER toggle_auto_transmission_mode()")
 
 	--m_transmission_mode = (m_transmission_mode + 1) % (MANUAL_RANGES + 1);
 	self.transmission_mode = (self.transmission_mode + 1) % (ClassicPowertrain.ShiftMode.MANUAL_RANGES + 1); -- Rely on numeric constants
@@ -969,14 +973,14 @@ function ClassicPowertrain.toggle_auto_transmission_mode(self)
 	--}
 	end
 
-	RoR.log_message("Lua: EXIT  toggle_auto_transmission_mode()")
+	DBG_log_message("Lua: EXIT  toggle_auto_transmission_mode()")
 end
 
 --void BeamEngine::toggleContact()
 -- !!! called externally
 function ClassicPowertrain.toggle_starter_contact()
 
-	RoR.log_message("Lua: ENTER toggle_starter_contact()")
+	DBG_log_message("Lua: ENTER toggle_starter_contact()")
 
 	--m_starter_has_contact = !m_starter_has_contact;
 	self.starter_has_contact = not self.starter_has_contact
@@ -995,7 +999,7 @@ function ClassicPowertrain.toggle_starter_contact()
 	--}
 	end
 --#endif // USE_OPENAL
-	RoR.log_message("Lua: EXIT  toggle_starter_contact()")
+	DBG_log_message("Lua: EXIT  toggle_starter_contact()")
 
 end
 
@@ -1004,7 +1008,7 @@ end
 -- !!! called externally
 function ClassicPowertrain.offstart(self)
 
-	RoR.log_message("Lua: ENTER offstart()")
+	DBG_log_message("Lua: ENTER offstart()")
 
 	--m_curr_gear = 0;
 	self.curr_gear = 0
@@ -1042,7 +1046,7 @@ function ClassicPowertrain.offstart(self)
 	self:sound_script_trigger_stop(RoR.SoundTriggerSources.ENGINE)
 --#endif // USE_OPENAL
 
-	RoR.log_message("Lua: EXIT  offstart()")
+	DBG_log_message("Lua: EXIT  offstart()")
 
 end
 
@@ -1088,9 +1092,108 @@ function ClassicPowertrain.sound_script_modulate(self, source, value)
 	RoR.sound_script_modulate(veh_index, source, value)
 end
 
-local _DBG_FORCE_FLUSH = ""
-for i = 0,1000,1 do _DBG_FORCE_FLUSH = _DBG_FORCE_FLUSH .. "FLUSH!" end
-__dbg_log_flush = function() RoR.log_message(_DBG_FORCE_FLUSH) end
+
+local DBG_log_full_state = function(self)
+
+	-- # ------------------------------------------------
+	-- # Logs entire engine state as 1 line in RoR.log
+	-- #
+	-- # The output is not intended for reading by human,
+	-- # only for comparsion by DIFF tool
+	-- #
+	-- # Equivalent logging from legacy C++ code:
+	-- #     https://github.com/only-a-ptr/rigs-of-rods/tree/lua-powertrain-inspection
+	-- # ------------------------------------------------
+	function str_bool(val)
+		return val and " TRUE" or "FALSE"
+	end
+
+	txt = string.format("DBG Powertrain | ref_wheel_revolutions: %12.2f | cur_wheel_revolutions: %12.2f | curr_gear: %12.2f | curr_gear_range: %12.2f | abs_velocity: %12.2f "
+		.."| rel_velocity: %12.2f | vehicle_index: %12.2f | curr_clutch: %12.2f | curr_clutch_torque: %12.2f | engine_hydropump: %12.2f | post_shift_clock: %12.2f | shift_clock: %12.2f | conf_shift_time: %12.2f | is_post_shifting: %s | is_engine_running: %s "
+		.."| curr_gear_change_relative: %12.2f | air_pressure: %12.2f | auto_curr_acc: %12.2f | transmission_mode: %12.2f | autoselect: %12.2f | starter_has_contact: %s | starter_is_running: %s | curr_acc: %12.2f | prime: %12.2f | curr_engine_rpm: %12.2f "
+		.."| is_shifting: %s | autotrans_curr_shift_behavior: %12.2f | autotrans_up_shift_delay_counter: %12.2f | conf_autotrans_full_rpm_range: %12.2f | turbo_curr_rpm[0]: %12.2f | turbo_torque: %12.2f | turbo_inertia: %12.2f | turbo_psi: %12.2f | turbo_bov_torque: %12.2f "
+		.."| air_pressure: %12.2f | conf_turbo_has_wastegate %s | conf_turbo_has_bov %s | conf_turbo_has_flutter %s | conf_turbo_has_antilag %s | conf_engine_has_air %s | conf_engine_has_turbo %s | conf_num_turbos %12.2f | conf_turbo_max_rpm %12.2f | conf_turbo_engine_rpm_operation %12.2f "
+		.."| conf_turbo_version %12.2f | conf_turbo_min_bov_psi %12.2f | conf_turbo_wg_max_psi %12.2f | conf_turbo_wg_threshold_p %12.2f | conf_turbo_wg_threshold_n %12.2f | conf_turbo_antilag_chance_rand %12.2f | conf_turbo_antilag_min_rpm %12.2f | conf_turbo_antilag_power_factor %12.2f "
+		.."| conf_turbo_max_psi %12.2f | conf_turbo_inertia_factor %12.2f | conf_engine_diff_ratio %12.2f | conf_engine_torque %12.2f | conf_clutch_force %12.2f | conf_clutch_time %12.2f | conf_engine_idle_rpm %12.2f | conf_engine_inertia %12.2f | conf_engine_max_idle_mixture %12.2f "
+		.."| conf_engine_max_rpm %12.2f | conf_engine_min_idle_mixture %12.2f | conf_engine_min_rpm %12.2f | conf_engine_braking_torque %12.2f | conf_engine_torque %12.2f | conf_engine_stall_rpm %12.2f | conf_post_shift_time %12.2f | engine_type: %s",
+
+        self.ref_wheel_revolutions,
+        self.cur_wheel_revolutions,
+        self.curr_gear,
+        self.curr_gear_range,
+        self.abs_velocity,
+        self.rel_velocity,
+        self.vehicle_index,
+        self.curr_clutch,
+        self.curr_clutch_torque,
+        self.engine_hydropump,
+        self.post_shift_clock,
+        self.shift_clock,
+        self.conf_shift_time,
+        str_bool(self.is_post_shifting),
+        str_bool(self.is_engine_running),
+        self.curr_gear_change_relative,
+        self.air_pressure,
+        self.auto_curr_acc,
+        self.transmission_mode,
+        self.autoselect,
+        str_bool(self.starter_has_contact),
+        str_bool(self.starter_is_running),
+        self.curr_acc,
+        self.prime,
+        self.curr_engine_rpm,
+        str_bool(self.is_shifting),
+        self.autotrans_curr_shift_behavior,
+        self.autotrans_up_shift_delay_counter,
+        self.conf_autotrans_full_rpm_range,
+        self.turbo_curr_rpm[0],
+        self.turbo_torque,
+        self.turbo_inertia,
+        self.turbo_psi,
+        self.turbo_bov_torque,
+        self.air_pressure,
+
+        str_bool(self.conf_turbo_has_wastegate),
+        str_bool(self.conf_turbo_has_bov),
+        str_bool(self.conf_turbo_has_flutter),
+        str_bool(self.conf_turbo_has_antilag),
+        str_bool(self.conf_engine_has_air),
+        str_bool(self.conf_engine_has_turbo),
+
+        self.conf_num_turbos,
+        self.conf_turbo_max_rpm,
+        self.conf_turbo_engine_rpm_operation,
+        self.conf_turbo_version,
+        self.conf_turbo_min_bov_psi,
+        self.conf_turbo_wg_max_psi,
+        self.conf_turbo_wg_threshold_p,
+        self.conf_turbo_wg_threshold_n,
+        self.conf_turbo_antilag_chance_rand,
+        self.conf_turbo_antilag_min_rpm,
+        self.conf_turbo_antilag_power_factor,
+        self.conf_turbo_max_psi,
+        self.conf_turbo_inertia_factor,
+        self.conf_engine_diff_ratio,
+        self.conf_engine_torque,
+        self.conf_clutch_force,
+        self.conf_clutch_time,
+        self.conf_engine_idle_rpm,
+        self.conf_engine_inertia,
+        self.conf_engine_max_idle_mixture,
+        self.conf_engine_max_rpm,
+        self.conf_engine_min_idle_mixture,
+        self.conf_engine_min_rpm,
+        self.conf_engine_braking_torque,
+        self.conf_engine_torque,
+        self.conf_engine_stall_rpm,
+        self.conf_post_shift_time,
+        self.conf_engine_type
+        )
+
+
+	RoR.log_message(txt)
+
+end
 
 
 -- TIGHT-LOOP: Called at least once per frame.
@@ -1113,8 +1216,8 @@ __dbg_log_flush = function() RoR.log_message(_DBG_FORCE_FLUSH) end
 --     vehicle_brake_force ~~ [number] ~~ truck->brakeforce
 --     vehicle_brake_ratio ~~ [number] ~~ truck->brake
 function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, node0_velocity, hdir_velocity, wheel0_radius, vehicle_brake_force, vehicle_brake_ratio)
-	RoR.log_message("Lua: ENTER update_beam_engine()")
-	--__dbg_log_flush()
+	DBG_log_message("Lua: ENTER update_beam_engine()")
+	DBG_log_full_state(self)
 
 	--Beam* truck = BeamFactory::getSingleton().getTruck(this->m_vehicle_index);
 
@@ -1175,7 +1278,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 
     ------------------------------ END CalcIdleMixture() ------------------------
 
-	RoR.log_message("Lua: UPDATE ^1")
+	DBG_log_message("Lua: UPDATE ^1")
 
 	--acc = std::max(CalcIdleMixture(), acc);
     acc = math.max(idle_mixture, acc)
@@ -1217,7 +1320,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
     --}
     end
 
-	RoR.log_message("Lua: UPDATE ^2")
+	DBG_log_message("Lua: UPDATE ^2")
     ----------------------------- END CalcPrimeMixture() ---------------------------
 
 	--acc = std::max(CalcPrimeMixture(), acc);
@@ -1261,7 +1364,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 	--}
     end
 
-	RoR.log_message("Lua: UPDATE ^3")
+	DBG_log_message("Lua: UPDATE ^3")
 
 	--if (m_conf_engine_has_turbo)
 	--{
@@ -1271,7 +1374,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 
 		--for (int i = 0; i < m_conf_num_turbos; i++)
 		--{
-		RoR.log_message("Lua: +for loop (for each turbo)")
+		DBG_log_message("Lua: +for loop (for each turbo)")
         for i = 0, self.conf_num_turbos, 1 do
 
 			-- update turbo speed (lag)
@@ -1515,11 +1618,11 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
             end
 		--}
         end -- end "for"
-		RoR.log_message("Lua: -for loop (for each turbo)")
+		DBG_log_message("Lua: -for loop (for each turbo)")
 	--}
     end
 
-	RoR.log_message("Lua: UPDATE ^4")
+	DBG_log_message("Lua: UPDATE ^4")
 
 	-- update engine speed
 
@@ -1605,14 +1708,14 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 
 --#ifdef USE_OPENAL
 	--		SoundScriptManager::getSingleton().trigStart(m_vehicle_index, SS_TRIG_ENGINE);
-			self:sound_script_trigger(RoR.SoundTriggerSources.ENGINE)
+			self:sound_script_trigger_start(RoR.SoundTriggerSources.ENGINE)
 --#endif // USE_OPENAL
 		--}
 		end
 	--}
 	end
 
-	RoR.log_message("Lua: UPDATE ^5")
+	DBG_log_message("Lua: UPDATE ^5")
 
 	-- clutch
 
@@ -1660,7 +1763,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 	--}
 	end
 
-	RoR.log_message("Lua: UPDATE ^6")
+	DBG_log_message("Lua: UPDATE ^6")
 
 	--m_curr_engine_rpm = std::max(0.0f, m_curr_engine_rpm);
 	self.curr_engine_rpm = math.max(0.0, self.curr_engine_rpm)
@@ -1691,7 +1794,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 
 			--} else if (m_shift_clock > (m_conf_shift_time - m_conf_clutch_time))
 			--{
-			elseif (self.shift_clock > (self.conf_shift_time - m_conf_clutch_time)) then
+			elseif (self.shift_clock > (self.conf_shift_time - self.conf_clutch_time)) then
 
 				--m_curr_clutch = 1.0f - (m_conf_shift_time - m_shift_clock) / m_conf_clutch_time;
 				self.curr_clutch = 1.0 - (self.conf_shift_time - self.shift_clock) / self.conf_clutch_time
@@ -1714,6 +1817,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 
 --#ifdef USE_OPENAL
 				--SoundScriptManager::getSingleton().trigStart(m_vehicle_index, SS_TRIG_SHIFT);
+				DBG_log_message("Lua: SND trigStart SHIFT")
 				self:sound_script_trigger_start(RoR.SoundTriggerSources.SHIFT)
 --#endif // USE_OPENAL
 
@@ -1739,6 +1843,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 
 --#ifdef USE_OPENAL
 				--SoundScriptManager::getSingleton().trigStop(m_vehicle_index, SS_TRIG_SHIFT);
+				DBG_log_message("Lua: SND trigStop SHIFT")
 				self:sound_script_trigger_stop(RoR.SoundTriggerSources.SHIFT)
 --#endif // USE_OPENAL
 
@@ -1781,7 +1886,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 
 				--if (m_post_shift_clock > m_conf_post_shift_time)
 				--{
-				if (m_post_shift_clock > m_conf_post_shift_time) then
+				if (self.post_shift_clock > self.conf_post_shift_time) then
 					self.is_post_shifting = false
 				--}
 				end
@@ -1868,7 +1973,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 	--}
 	end
 
-	RoR.log_message("Lua: UPDATE ^7")
+	DBG_log_message("Lua: UPDATE ^7")
 
 	--if (doUpdate && !m_is_shifting && !m_is_post_shifting)
 	if (do_update and not self.is_shifting and not self.is_post_shifting) then
@@ -1993,7 +2098,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 			--for (unsigned int i=0; i < m_autotrans_acc_buffer.size(); i++)
 			local i
 			local buffer_start_index = self.autotrans_acc_buffer.first
-			RoR.log_message("Lua: +for loop (autotrans buffer)")
+			DBG_log_message("Lua: +for loop (autotrans buffer)")
 			for i = buffer_start_index, self.autotrans_acc_buffer.last, 1 do
 
 				--if (i < 50)
@@ -2019,7 +2124,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 				avg_brake_200 = avg_brake_200 + self.autotrans_brake_buffer[i]
 			--}
 			end
-			RoR.log_message("Lua: -for loop (autotrans buffer)")
+			DBG_log_message("Lua: -for loop (autotrans buffer)")
 
 			--avgRPM50 /= std::min(m_autotrans_rpm_buffer.size(), (std::deque<float>::size_type)50);
 			avg_rpm_50 = avg_rpm_50 / math.min(self.autotrans_rpm_buffer:size(), 50)
@@ -2264,21 +2369,21 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 	--}
 	end
 
-	RoR.log_message("Lua: UPDATE ^8")
+	DBG_log_message("Lua: UPDATE ^8")
 
 	-- audio stuff
 
 	--UpdateBeamEngineAudio(doUpdate);
 	--RoR.log_message("Lua: Invoking ClassicPowertrain:update_audio() self:"..tostring(self)..", do_update:"..tostring(do_update))
 	self:update_audio(do_update)
-	RoR.log_message("Lua: EXIT  update_beam_engine()")
+	DBG_log_message("Lua: EXIT  update_beam_engine()")
 
 --}
 end
 
 --void BeamEngine::UpdateBeamEngineAudio(int doUpdate)
 function ClassicPowertrain.update_audio(self, do_update)
-	RoR.log_message("Lua: ENTER update_audio()")
+	DBG_log_message("Lua: ENTER update_audio()")
 --{
 --#ifdef USE_OPENAL
 
@@ -2328,7 +2433,7 @@ function ClassicPowertrain.update_audio(self, do_update)
 	end
 --#endif // USE_OPENAL
 --}
-	RoR.log_message("Lua: EXIT  update_audio()")
+	DBG_log_message("Lua: EXIT  update_audio()")
 
 end
 

@@ -141,8 +141,9 @@ int LuaPanicFunction(lua_State* L)
 // static
 void LuaSubsystem::BeginRigSetup(rig_t* rig)
 {
-    rig->lua_state_machine = new Diluculum::LuaState();
-    lua_atpanic(rig->lua_state_machine->getState(), LuaPanicFunction);
+    pthread_mutex_init(&rig->lua_state_mutex, NULL);
+    rig->lua_state = new Diluculum::LuaState();
+    lua_atpanic(rig->lua_state->getState(), LuaPanicFunction);
 
     // Setup system API
     LuaValue module_ror = EmptyTable;
@@ -153,7 +154,7 @@ void LuaSubsystem::BeginRigSetup(rig_t* rig)
 
     module_ror[LuaValue("scripts_path")] = SSETTING("Simulation Scripts Path", "");
 
-    (*rig->lua_state_machine)["RoR"] = module_ror;
+    (*rig->lua_state)["RoR"] = module_ror;
 }
 
 // Static
@@ -241,7 +242,7 @@ void LuaSubsystem::SetupRigClassicPowertrain(
         lua_truckfile[LuaValue("engturbo")] = lua_engturbo;
     }
 
-    LuaState* const L = rig->lua_state_machine;
+    LuaState* const L = rig->lua_state;
     (*L)["truckfile"] = lua_truckfile;
 
     LuaValue lua_rig = EmptyTable;
@@ -259,7 +260,7 @@ void LuaSubsystem::SetupRigClassicPowertrain(
 // static
 void LuaSubsystem::FinishRigSetup(rig_t* rig)
 {
-    LuaState* const L = rig->lua_state_machine;
+    LuaState* const L = rig->lua_state;
     std::string scripts_path = SSETTING("Simulation Scripts Path", "");
     L->doFile(scripts_path + "/init_rig.lua");
 }

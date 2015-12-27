@@ -7395,7 +7395,7 @@ bool RigSpawner::SetupLuaScripting()
 
     try
     {
-        m_rig->engine->SetLuaState(m_rig->lua_state_machine);
+        m_rig->engine->SetLuaState(m_rig->lua_state, &m_rig->lua_state_mutex);
         auto root_module = this->m_file->root_module;
         LuaSubsystem::SetupRigClassicPowertrain(
             this->m_rig, root_module->engine, root_module->engoption, root_module->engturbo, m_rig->trucknum, m_rig->engine->getTorqueCurve());
