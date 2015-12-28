@@ -61,12 +61,25 @@ endmacro(setup_lib)
 
 macro(add_sub_dir BINNAME name)
 	FILE(GLOB_RECURSE ${BINNAME}_${name}_source ${RoR_Main_SOURCE_DIR}/${name}/*.cpp ${RoR_Main_SOURCE_DIR}/${name}/*.c)
-	FILE(GLOB_RECURSE ${BINNAME}_${name}_header ${RoR_Main_SOURCE_DIR}/${name}/*.h)
+	FILE(GLOB_RECURSE ${BINNAME}_${name}_header ${RoR_Main_SOURCE_DIR}/${name}/*.hpp ${RoR_Main_SOURCE_DIR}/${name}/*.h)
 	SOURCE_GROUP("${name}" FILES ${${BINNAME}_${name}_source} ${${BINNAME}_${name}_header})
 	include_directories(${RoR_Main_SOURCE_DIR}/${name})
 	set(${BINNAME}_sources ${${BINNAME}_sources} ${${BINNAME}_${name}_source})
 	set(${BINNAME}_headers ${${BINNAME}_headers} ${${BINNAME}_${name}_header})
 endmacro(add_sub_dir)
+
+# Author: only_a_ptr, 12/2015
+# Details: Simply copied 'add_sub_dir' macro above and added sippet http://stackoverflow.com/a/10138431
+macro(add_sub_dir_force_cplusplus BINNAME name)
+	FILE(GLOB_RECURSE ${BINNAME}_${name}_source ${RoR_Main_SOURCE_DIR}/${name}/*.cpp ${RoR_Main_SOURCE_DIR}/${name}/*.c)
+	FILE(GLOB_RECURSE ${BINNAME}_${name}_header ${RoR_Main_SOURCE_DIR}/${name}/*.hpp ${RoR_Main_SOURCE_DIR}/${name}/*.h)
+	SOURCE_GROUP("${name}" FILES ${${BINNAME}_${name}_source} ${${BINNAME}_${name}_header})
+	include_directories(${RoR_Main_SOURCE_DIR}/${name})
+    # Force compilation as C++
+    SET_SOURCE_FILES_PROPERTIES( ${${BINNAME}_${name}_source} PROPERTIES LANGUAGE CXX )
+	set(${BINNAME}_sources ${${BINNAME}_sources} ${${BINNAME}_${name}_source})
+	set(${BINNAME}_headers ${${BINNAME}_headers} ${${BINNAME}_${name}_header})
+endmacro(add_sub_dir_force_cplusplus)
 
 macro(add_main_dir BINNAME)
 	FILE(GLOB ${BINNAME}_main_source ${RoR_Main_SOURCE_DIR}/*.cpp ${RoR_Main_SOURCE_DIR}/*.c)

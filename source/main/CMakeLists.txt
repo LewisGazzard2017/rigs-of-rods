@@ -101,9 +101,17 @@ macro(add_ror_project BINNAME folder useWxWidgets)
   add_sub_dir(${BINNAME} ../rig_file_input_output)
   add_sub_dir(${BINNAME} rig_editor)
   add_sub_dir(${BINNAME} rig_editor/rig_data)
+  
+  # Scripting - AngelScript
   if(ROR_USE_ANGELSCRIPT)
     add_sub_dir(${BINNAME} scripting)
   endif()
+  
+  # Scripting - Lua
+  add_sub_dir                (${BINNAME} scripting/lua)
+  add_sub_dir_force_cplusplus(${BINNAME} scripting/lua/lib_lua)
+  add_sub_dir                (${BINNAME} scripting/lua/Diluculum)
+  
   add_sub_dir(${BINNAME} utils)
   add_sub_dir(${BINNAME} utils/profiler)
   add_sub_dir(${BINNAME} network)
