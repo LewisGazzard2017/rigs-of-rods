@@ -83,6 +83,8 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 
 #define LOAD_RIG_PROFILE_CHECKPOINT(ENTRY) rig_loading_profiler->Checkpoint(RoR::RigLoadingProfiler::ENTRY);
 
+#define PHYSICS_DT 0.0005 // fixed dt of 0.5 ms
+
 #include "RigDef_Parser.h"
 #include "RigDef_Validator.h"
 
@@ -339,7 +341,6 @@ void Beam::scaleTruck(float value)
 		beams[i].hydroRatio *= value;
 
 		beams[i].diameter *= value;
-		beams[i].lastforce *= value;
 	}
 	// scale nodes
 	Vector3 refpos = nodes[0].AbsPosition;
@@ -413,15 +414,14 @@ void Beam::scaleTruck(float value)
 
 void Beam::initSimpleSkeleton()
 {
-	// create
-	simpleSkeletonManualObject =  gEnv->sceneManager->createManualObject();
+	simpleSkeletonManualObject = gEnv->sceneManager->createManualObject();
 
 	simpleSkeletonManualObject->estimateIndexCount(free_beam*2);
 	simpleSkeletonManualObject->setCastShadows(false);
 	simpleSkeletonManualObject->setDynamic(true);
 	simpleSkeletonManualObject->setRenderingDistance(300);
 	simpleSkeletonManualObject->begin("vehicle-skeletonview-material", RenderOperation::OT_LINE_LIST);
-	for (int i=0; i < free_beam; i++)
+	for (int i=0; i<free_beam; i++)
 	{
 		simpleSkeletonManualObject->position(beams[i].p1->smoothpos);
 		simpleSkeletonManualObject->colour(1.0f,1.0f,1.0f);
@@ -431,31 +431,28 @@ void Beam::initSimpleSkeleton()
 	simpleSkeletonManualObject->end();
 	simpleSkeletonNode->attachObject(simpleSkeletonManualObject);
 	simpleSkeletonNode->setVisible(false);
-	simpleSkeletonInitiated=true;
+	simpleSkeletonInitiated = true;
 }
 
 void Beam::updateSimpleSkeleton()
 {
 	BES_GFX_START(BES_GFX_UpdateSkeleton);
+
 	ColourValue color;
 
 	if (!simpleSkeletonInitiated)
 		initSimpleSkeleton();
+
 	simpleSkeletonManualObject->beginUpdate(0);
-	// just update
-	for (int i=0; i < free_beam; i++)
+	for (int i=0; i<free_beam; i++)
 	{
-		// calculating colour
-		float scale=beams[i].scale;
-		if (scale>1) scale=1;
-		if (scale<-1) scale=-1;
-		float scaleabs = fabs(scale);
-		if (scale<=0)
-			color = ColourValue(0.2f, 2.0f*(1.0f-scaleabs), 2.0f*scaleabs, 0.8f);
+		float normalized_scale = std::min(std::abs(beams[i].scale), 1.0f);
+
+		if (beams[i].scale <= 0)
+			color = ColourValue(0.2f, 2.0f*(1.0f-normalized_scale), 2.0f*normalized_scale, 0.8f);
 		else
-			color = ColourValue(2.0f*scaleabs, 2.0f*(1.0f-scaleabs), 0.2f, 0.8f);
+			color = ColourValue(2.0f*normalized_scale, 2.0f*(1.0f-normalized_scale), 0.2f, 0.8f);
 		
-		// updating position & color
 		simpleSkeletonManualObject->position(beams[i].p1->smoothpos);
 		simpleSkeletonManualObject->colour(color);
 
@@ -464,6 +461,7 @@ void Beam::updateSimpleSkeleton()
 			simpleSkeletonManualObject->position(beams[i].p1->smoothpos);
 		else
 			simpleSkeletonManualObject->position(beams[i].p2->smoothpos);
+
 		simpleSkeletonManualObject->colour(color);
 	}
 	simpleSkeletonManualObject->end();
@@ -868,19 +866,6 @@ void Beam::calc_masses2(Real total, bool reCalc)
 		nodes[i].gravimass = Vector3(0.0f, gEnv->terrainManager->getGravity() * nodes[i].mass, 0.0f);
 	}
 
-    // update inverted mass cache
-	for (int i=0; i<free_node; i++)
-	{
-		nodes[i].inverted_mass=1.0f/nodes[i].mass;
-    }
-
-	//update minendmass
-	for (int i=0; i<free_beam; i++)
-	{
-		beams[i].minendmass = beams[i].p1->mass;
-		if (beams[i].p2->mass < beams[i].minendmass)
-			beams[i].minendmass = beams[i].p2->mass;
-	}
 	totalmass = 0;
 	for (int i=0; i<free_node; i++)
 	{
@@ -1315,14 +1300,6 @@ void Beam::SyncReset()
 	cc_mode = false;
 	fusedrag=Vector3::ZERO;
 	origin=Vector3::ZERO;
-	for (unsigned int i=0; i<interPointCD.size(); i++)
-	{
-		interPointCD[i]->reset();
-	}
-	for (unsigned int i=0; i<intraPointCD.size(); i++)
-	{
-		intraPointCD[i]->reset();
-	}
 	float yPos = nodes[lowestnode].AbsPosition.y;
 
 	Vector3 cur_position = nodes[0].AbsPosition;
@@ -1357,7 +1334,6 @@ void Beam::SyncReset()
 		beams[i].strength=beams[i].iStrength;
 		beams[i].plastic_coef=beams[i].default_plastic_coef;
 		beams[i].L=beams[i].refL;
-		beams[i].lastforce=Vector3::ZERO;
 		beams[i].stress=0.0;
 		beams[i].disabled=false;
 		if (beams[i].mSceneNode && beams[i].type!=BEAM_VIRTUAL && beams[i].type!=BEAM_INVISIBLE && beams[i].type!=BEAM_INVISIBLE_HYDRO)
@@ -1440,7 +1416,7 @@ void Beam::SyncReset()
 void Beam::threadentry()
 {
 	Beam **trucks = ttrucks;
-	dtperstep = global_dt / (Real)tsteps;
+	dtperstep = PHYSICS_DT;
 
 	for (curtstep=0; curtstep<tsteps; curtstep++)
 	{
@@ -1463,7 +1439,7 @@ void Beam::threadentry()
 			if (trucks[t])
 				trucks[t]->num_simulated_trucks = this->num_simulated_trucks;
 		}
-		if (num_simulated_trucks < 2 || !BeamFactory::getSingleton().beamThreadPool)
+		if (num_simulated_trucks < 2 || !gEnv->threadPool)
 		{
 			for (int t=0; t<tnumtrucks; t++)
 			{
@@ -1494,7 +1470,7 @@ void Beam::threadentry()
 				}
 			}
 
-			BeamFactory::getSingleton().beamThreadPool->enqueue(tasks);
+			gEnv->threadPool->enqueue(tasks);
 
 			// Wait for all tasks to complete
 			MUTEX_LOCK(&task_count_mutex[THREAD_BEAMFORCESEULER]);
@@ -1535,13 +1511,11 @@ bool Beam::frameStep(Real dt)
 	if (mTimeUntilNextToggle > -1)
 		mTimeUntilNextToggle -= dt;
 	
-	// Divide deltatime into constant-size steps;
-	// Step size: 1 second / 2000 = 0.5 miliseconds = 500 microseconds
-	// Examples:
-	// 2000 * [ 25ms] 0.025 = 50;
-	// 2000 * [ 50ms] 0.05  = 100;
-	// 2000 * [100ms] 0.1   = 200;
-	int steps = 2000.0 * dt;
+	dt += m_dt_remainder;
+
+	int steps = dt / PHYSICS_DT;
+
+	m_dt_remainder = dt - (steps * PHYSICS_DT);
 
 	// TODO: move this to the correct spot
 	// update all dashboards
@@ -1609,7 +1583,7 @@ bool Beam::frameStep(Real dt)
 		// simulation update
 		if (BeamFactory::getSingleton().getThreadingMode() == THREAD_SINGLE)
 		{
-			dtperstep = dt / (Real)steps;
+			dtperstep = PHYSICS_DT;
 			
 			for (int i=0; i<steps; i++)
 			{
@@ -2656,9 +2630,10 @@ void Beam::interTruckCollisionsPrepare(Real dt)
 	Beam** trucks = BeamFactory::getSingleton().getTrucks();
 	int numtrucks = BeamFactory::getSingleton().getTruckCount();
 
-	for (unsigned int i=0; i<interPointCD.size(); i++)
-	{
-		interPointCD[i]->update(trucks, numtrucks);
+	for (int t = 0; t < numtrucks; t++) {
+		if (trucks[t]) {
+			trucks[t]->interPointCD->update(trucks[t], trucks, numtrucks);
+		}
 	}
 }
 
@@ -2687,6 +2662,7 @@ void Beam::interTruckCollisionsCompute(Real dt, int chunk_index /*= 0*/, int chu
 	node_t* nb;
 	node_t* no;
 
+	int simulated_trucks = 0;
 	for (int t=0; t<numtrucks; t++)
 	{
 		//If you change any of the below "ifs" concerning trucks then you should
@@ -2694,158 +2670,145 @@ void Beam::interTruckCollisionsCompute(Real dt, int chunk_index /*= 0*/, int chu
 		//see "pointCD" above.
 		//Performance some times forces ugly architectural designs....
 		if (!trucks[t] || !trucks[t]->collisionRelevant || trucks[t]->state >= SLEEPING) continue;
+		if (simulated_trucks++ % chunk_number != chunk_index) continue;
 
-		trwidth=trucks[t]->collrange;
+		trwidth = trucks[t]->collrange;
 
-		int chunk_size = trucks[t]->free_collcab / chunk_number;
-		int end_index = (chunk_index+1)*chunk_size;
-
-		if (chunk_index+1 == chunk_number)
+		for (int i=0; i<trucks[t]->free_collcab; i++)
 		{
-			end_index = trucks[t]->free_collcab;
-		}
-
-		for (int i=chunk_index*chunk_size; i<end_index; i++)
-		{
-			trucks[t]->inter_collcabrate[i].update=true;
-			if (trucks[t]->inter_collcabrate[i].rate>0)
+			trucks[t]->inter_collcabrate[i].update = true;
+			if (trucks[t]->inter_collcabrate[i].rate > 0)
 			{
 				trucks[t]->inter_collcabrate[i].rate--;
-				trucks[t]->inter_collcabrate[i].update=false;
+				trucks[t]->inter_collcabrate[i].update = false;
 				continue;
 			}
 
-			tmpv=trucks[t]->collcabs[i]*3;
-			no=&trucks[t]->nodes[trucks[t]->cabs[tmpv]];
-			na=&trucks[t]->nodes[trucks[t]->cabs[tmpv+1]];
-			nb=&trucks[t]->nodes[trucks[t]->cabs[tmpv+2]];
+			tmpv = trucks[t]->collcabs[i]*3;
+			no = &trucks[t]->nodes[trucks[t]->cabs[tmpv]];
+			na = &trucks[t]->nodes[trucks[t]->cabs[tmpv+1]];
+			nb = &trucks[t]->nodes[trucks[t]->cabs[tmpv+2]];
 
 			int distance = trucks[t]->inter_collcabrate[i].distance + std::min(12.0f * no->Velocity.length() / 55.5f, 12.0f);
 			distance = std::max(1, distance);
 
-			interPointCD[chunk_index]->query(no->AbsPosition
+			trucks[t]->interPointCD->query(no->AbsPosition
 				, na->AbsPosition
 				, nb->AbsPosition, trwidth*distance);
 
-			trucks[t]->inter_collcabrate[i].calcforward=true;
-			for (int h=0; h<interPointCD[chunk_index]->hit_count; h++)
+			if (trucks[t]->interPointCD->hit_count > 0)
 			{
-				hitnodeid=interPointCD[chunk_index]->hit_list[h]->nodeid;
-				hittruckid=interPointCD[chunk_index]->hit_list[h]->truckid;
-				hitnode=&trucks[hittruckid]->nodes[hitnodeid];
+				//calculate transform matrices
+				bx =  na->RelPosition;
+				by =  nb->RelPosition;
+				bx -= no->RelPosition;
+				by -= no->RelPosition;
+				bz = bx.crossProduct(by);
+				bz.normalise();
+				//coordinates change matrix
+				forward.FromAxes(bx,by,bz);
+				forward = forward.Inverse();
+			}
+
+			trucks[t]->inter_collcabrate[i].calcforward = true;
+			for (int h=0; h<trucks[t]->interPointCD->hit_count; h++)
+			{
+				hitnodeid = trucks[t]->interPointCD->hit_list[h]->nodeid;
+				hittruckid = trucks[t]->interPointCD->hit_list[h]->truckid;
+				hitnode = &trucks[hittruckid]->nodes[hitnodeid];
 
 				//ignore self-contact here
-				if (hittruckid==t) continue;
+				if (hittruckid == t) continue;
 
-				hittruck=trucks[hittruckid];
-
-				//calculate transform matrices
-				if (trucks[t]->inter_collcabrate[i].calcforward)
-				{
-					trucks[t]->inter_collcabrate[i].calcforward=false;
-					bx=na->RelPosition;
-					by=nb->RelPosition;
-					bx-=no->RelPosition;
-					by-=no->RelPosition;
-					bz=bx.crossProduct(by);
-					bz=fast_normalise(bz);
-					//coordinates change matrix
-					forward.SetColumn(0, bx);
-					forward.SetColumn(1, by);
-					forward.SetColumn(2, bz);
-					forward=forward.Inverse();
-				}
+				hittruck = trucks[hittruckid];
 
 				//change coordinates
-				point=forward*(hitnode->AbsPosition-no->AbsPosition);
+				point = forward * (hitnode->AbsPosition - no->AbsPosition);
 
 				//test
-				if (point.x>=0 && point.y>=0 && (point.x+point.y)<=1.0 && point.z<=trwidth && point.z>=-trwidth)
+				if (point.x >= 0 && point.y >= 0 && (point.x + point.y) <= 1.0 && point.z <= trwidth && point.z >= -trwidth)
 				{
+					trucks[t]->inter_collcabrate[i].calcforward = false;
+
 					//collision
-					plnormal=bz;
+					plnormal = bz;
 
 					//some more accuracy for the normal
 					plnormal.normalise();
 
-					float penetration=0.0f;
+					float penetration = 0.0f;
 
 					//Find which side most of the connected nodes (through beams) are
-					if (hittruck->nodetonodeconnections[hitnodeid].size()>3)
+					if (hittruck->nodetonodeconnections[hitnodeid].size() > 3)
 					{
-						//float sumofdistances=0.0f;
-						int posside=0;
-						int negside=0;
-						float tmppz=point.z;
-						float distance;
+						int posside = 0;
+						int negside = 0;
 
-						for (unsigned int ni=0;ni<hittruck->nodetonodeconnections[hitnodeid].size();ni++)
+						for (unsigned int ni=0; ni < hittruck->nodetonodeconnections[hitnodeid].size(); ni++)
 						{
-							distance=plnormal.dotProduct(hittruck->nodes[hittruck->nodetonodeconnections[hitnodeid][ni]].AbsPosition-no->AbsPosition);
-							if (distance>=0) posside++; else negside++;
+							if (plnormal.dotProduct(hittruck->nodes[hittruck->nodetonodeconnections[hitnodeid][ni]].AbsPosition-no->AbsPosition) >= 0)
+								posside++;
+							else
+								negside++;
 						}
 
 						//Current hitpoint's position has triple the weight
-						if (point.z>=0) posside+=3;
-						else negside+=3;
+						if (point.z >= 0)
+							posside += 3;
+						else
+							negside += 3;
 
-						if (negside>posside)
+						if (negside > posside)
 						{
-							plnormal=-plnormal;
-							tmppz=-tmppz;
+							plnormal = -plnormal;
+							penetration = (trwidth + point.z);
+						} else
+						{
+							penetration = (trwidth - point.z);
 						}
-
-						penetration=(trwidth-tmppz);
 					} else
 					{
 						//If we are on the other side of the triangle invert the triangle's normal
-						if (point.z<0) plnormal=-plnormal;
-						penetration=(trwidth-fabs(point.z));
+						if (point.z < 0) plnormal = -plnormal;
+						penetration = (trwidth - fabs(point.z));
 					}
 
 					//Find the point's velocity relative to the triangle
-					vecrelVel=(hitnode->Velocity-
-						(no->Velocity*(-point.x-point.y+1.0f)+na->Velocity*point.x
-						+nb->Velocity*point.y));
+					vecrelVel = (hitnode->Velocity - (no->Velocity * (-point.x - point.y + 1.0f) + na->Velocity * point.x + nb->Velocity * point.y));
 
 					//Find the velocity perpendicular to the triangle
-					float velForce=vecrelVel.dotProduct(plnormal);
+					float velForce = vecrelVel.dotProduct(plnormal);
 					//if it points away from the triangle the ignore it (set it to 0)
-					if (velForce<0.0f) velForce=-velForce;
-					else velForce=0.0f;
+					if (velForce < 0.0f) velForce = -velForce;
+					else velForce = 0.0f;
 
 					//Velocity impulse
-					float vi=hitnode->mass*inverted_dt*(velForce+inverted_dt*penetration)*0.5f;
+					float vi = hitnode->mass * inverted_dt * (velForce + inverted_dt * penetration) * 0.5f;
 
-					//MUTEX_LOCK(&itc_node_access_mutex);
 					//The force that the triangle puts on the point
-					float trfnormal=(no->Forces*(-point.x-point.y+1.0f)+na->Forces*point.x
-						+nb->Forces*point.y).dotProduct(plnormal);
+					float trfnormal = (no->Forces * (-point.x - point.y + 1.0f) + na->Forces * point.x + nb->Forces * point.y).dotProduct(plnormal);
 					//(applied only when it is towards the point)
-					if (trfnormal<0.0f) trfnormal=0.0f;
+					trfnormal = std::max(0.0f, trfnormal);	
 
 					//The force that the point puts on the triangle
 					
-					float pfnormal=hitnode->Forces.dotProduct(plnormal);
+					float pfnormal = hitnode->Forces.dotProduct(plnormal);
 					//(applied only when it is towards the triangle)
-					if (pfnormal>0.0f) pfnormal=0.0f;
+					pfnormal = std::min(pfnormal, 0.0f);	
 
-					float fl=(vi+trfnormal-pfnormal)*0.5f;
+					float fl = (vi + trfnormal - pfnormal) * 0.5f;
 
-					forcevec=Vector3::ZERO;
+					forcevec = Vector3::ZERO;
 					float nso;
 
 					//Calculate the collision forces
 					gEnv->collisions->primitiveCollision(hitnode, forcevec, vecrelVel, plnormal, ((float) dt), trucks[t]->submesh_ground_model, &nso, penetration, fl);
 
-					hitnode->Forces+=forcevec;
-					// no network special case for now
-					//if (trucks[t]->state==NETWORKED)
+					hitnode->Forces += forcevec;
 
-					no->Forces-=(-point.x-point.y+1.0f)*forcevec;
-					na->Forces-=(point.x)*forcevec;
-					nb->Forces-=(point.y)*forcevec;
-					//MUTEX_UNLOCK(&itc_node_access_mutex);
+					no->Forces -= (-point.x - point.y + 1.0f) * forcevec;
+					na->Forces -= (point.x) * forcevec;
+					nb->Forces -= (point.y) * forcevec;
 				}
 			}
 		}
@@ -2921,113 +2884,107 @@ void Beam::intraTruckCollisionsCompute(Real dt, int chunk_index /*= 0*/, int chu
 
 	for (int i=chunk_index*chunk_size; i<end_index; i++)
 	{
-		intra_collcabrate[i].update=true;
-		if (intra_collcabrate[i].rate>0)
+		intra_collcabrate[i].update = true;
+		if (intra_collcabrate[i].rate > 0)
 		{
 			intra_collcabrate[i].rate--;
-			intra_collcabrate[i].update=false;
+			intra_collcabrate[i].update = false;
 			continue;
 		}
 
-		tmpv=collcabs[i]*3;
-		no=&nodes[cabs[tmpv]];
-		na=&nodes[cabs[tmpv+1]];
-		nb=&nodes[cabs[tmpv+2]];
+		tmpv = collcabs[i]*3;
+		no = &nodes[cabs[tmpv]];
+		na = &nodes[cabs[tmpv+1]];
+		nb = &nodes[cabs[tmpv+2]];
 
 		intraPointCD[chunk_index]->query(no->AbsPosition
 			, na->AbsPosition
 			, nb->AbsPosition, trwidth);
 
-		bool calcforward=true;
-		intra_collcabrate[i].calcforward=true;
+		if (intraPointCD[chunk_index]->hit_count > 0)
+		{
+			//calculate transform matrices
+			bx  = na->RelPosition;
+			by  = nb->RelPosition;
+			bx -= no->RelPosition;
+			by -= no->RelPosition;
+			bz = bx.crossProduct(by);
+			bz.normalise();
+			//coordinates change matrix
+			forward.FromAxes(bx,by,bz);
+			forward = forward.Inverse();
+		}
+
+		intra_collcabrate[i].calcforward = true;
 		for (int h=0; h<intraPointCD[chunk_index]->hit_count;h++)
 		{
-			hitnodeid=intraPointCD[chunk_index]->hit_list[h]->nodeid;
-			hitnode=&nodes[hitnodeid];
+			hitnodeid = intraPointCD[chunk_index]->hit_list[h]->nodeid;
+			hitnode = &nodes[hitnodeid];
 
 			//ignore wheel/chassis self contact
 			//if (hitnode->iswheel && !(trucks[t]->requires_wheel_contact)) continue;
 			if (hitnode->iswheel) continue;
-			if (no==hitnode || na==hitnode || nb==hitnode) continue;
-
-			//calculate transform matrices
-			if (calcforward)
-			{
-				calcforward=false;
-				bx=na->RelPosition;
-				by=nb->RelPosition;
-				bx-=no->RelPosition;
-				by-=no->RelPosition;
-				bz=bx.crossProduct(by);
-				bz=fast_normalise(bz);
-				//coordinates change matrix
-				forward.SetColumn(0, bx);
-				forward.SetColumn(1, by);
-				forward.SetColumn(2, bz);
-				forward=forward.Inverse();
-			}
+			if (no == hitnode || na == hitnode || nb == hitnode) continue;
 
 			//change coordinates
 			point = forward * (hitnode->AbsPosition - no->AbsPosition);
 
 			//test
-			if (point.x>=0 && point.y>=0 && (point.x+point.y)<=1.0 && point.z<=trwidth && point.z>=-trwidth)
+			if (point.x >= 0 && point.y >= 0 && (point.x+point.y) <= 1.0 && point.z <= trwidth && point.z >= -trwidth)
 			{
 				//collision
-				intra_collcabrate[i].calcforward=false;
-				plnormal=bz;
+				intra_collcabrate[i].calcforward = false;
+				plnormal = bz;
 
 				//some more accuracy for the normal
 				plnormal.normalise();
 
-				float penetration=0.0f;
+				float penetration = 0.0f;
 
-				if (point.z<0) plnormal=-plnormal;
-				penetration=(trwidth-fabs(point.z));
+				if (point.z < 0) plnormal =- plnormal;
+				penetration = (trwidth - fabs(point.z));
 
 				//Find the point's velocity relative to the triangle
-				vecrelVel=(hitnode->Velocity-
-					(no->Velocity*(-point.x-point.y+1.0f)+na->Velocity*point.x
-					+nb->Velocity*point.y));
+				vecrelVel = (hitnode->Velocity - (no->Velocity * (-point.x - point.y + 1.0f) + na->Velocity * point.x + nb->Velocity * point.y));
 
 				//Find the velocity perpendicular to the triangle
-				float velForce=vecrelVel.dotProduct(plnormal);
+				float velForce = vecrelVel.dotProduct(plnormal);
 				//if it points away from the triangle the ignore it (set it to 0)
-				if (velForce<0.0f) velForce=-velForce;
-				else velForce=0.0f;
+				if (velForce < 0.0f)
+				{
+					velForce = -velForce;
+				} else
+				{
+					velForce = 0.0f;
+				}
 
 				//Velocity impulse
-				float vi=hitnode->mass*inverted_dt*(velForce+inverted_dt*penetration)*0.5f;
+				float vi = hitnode->mass * inverted_dt * (velForce + inverted_dt * penetration) * 0.5f;
 
-				//MUTEX_LOCK(&itc_node_access_mutex);
 				//The force that the triangle puts on the point
-				float trfnormal=(no->Forces*(-point.x-point.y+1.0f)+na->Forces*point.x
-					+nb->Forces*point.y).dotProduct(plnormal);
+				float trfnormal = (no->Forces * (-point.x - point.y + 1.0f) + na->Forces * point.x
+					+ nb->Forces * point.y).dotProduct(plnormal);
 				//(applied only when it is towards the point)
-				if (trfnormal<0.0f) trfnormal=0.0f;
+				trfnormal = std::max(0.0f, trfnormal);
 
 				//The force that the point puts on the triangle
-				float pfnormal=hitnode->Forces.dotProduct(plnormal);
+				float pfnormal = hitnode->Forces.dotProduct(plnormal);
 				//(applied only when it is towards the triangle)
-				if (pfnormal>0.0f) pfnormal=0.0f;
+				pfnormal = std::min(pfnormal, 0.0f);
 
-				float fl=(vi+trfnormal-pfnormal)*0.5f;
+				float fl = (vi + trfnormal - pfnormal) * 0.5f;
 
-				forcevec=Vector3::ZERO;
+				forcevec = Vector3::ZERO;
 				float nso;
 
 				//Calculate the collision forces
 				gEnv->collisions->primitiveCollision(hitnode, forcevec, vecrelVel, plnormal, ((float) dt), submesh_ground_model, &nso, penetration, fl);
 
-				hitnode->Forces+=forcevec;
+				hitnode->Forces += forcevec;
 
-				// no network special case for now
-				//if (trucks[t]->state==NETWORKED)
-
-				no->Forces-=(-point.x-point.y+1.0f)*forcevec;
-				na->Forces-=(point.x)*forcevec;
-				nb->Forces-=(point.y)*forcevec;
-				//MUTEX_UNLOCK(&itc_node_access_mutex);
+				no->Forces -= (-point.x - point.y + 1.0f) * forcevec;
+				na->Forces -= (point.x) * forcevec;
+				nb->Forces -= (point.y) * forcevec;
 			}
 		}
 	}
@@ -3067,7 +3024,7 @@ void Beam::updateSkidmarks()
 		// create skidmark object for wheels with data if not existing
 		if (!skidtrails[i])
 		{
-			skidtrails[i] = new Skidmark(&wheels[i], beamsRoot, 300, 200);
+			skidtrails[i] = new Skidmark(&wheels[i], beamsRoot, 300, 20);
 		}
 
 		skidtrails[i]->updatePoint();
@@ -3854,55 +3811,47 @@ void Beam::updateVisualPrepare(float dt)
 		wings[i].cnode->setPosition(wings[i].fa->flexit());
 	}
 	//setup commands for hydros
-	hydroaileroncommand=autoaileron;
-	hydroruddercommand=autorudder;
-	hydroelevatorcommand=autoelevator;
+	hydroaileroncommand = autoaileron;
+	hydroruddercommand = autorudder;
+	hydroelevatorcommand = autoelevator;
 
-	if (cabFadeMode>0 && dt > 0)
+	if (cabFadeMode > 0 && dt > 0)
 	{
 		if (cabFadeTimer > 0)
-			cabFadeTimer-=dt;
+			cabFadeTimer -= dt;
+
 		if (cabFadeTimer < 0.1 && cabFadeMode == 1)
 		{
-			cabFadeMode=0;
+			cabFadeMode = 0;
 			cabFade(0.4);
 		} else if (cabFadeTimer < 0.1 && cabFadeMode == 2)
 		{
-			cabFadeMode=0;
+			cabFadeMode = 0;
 			cabFade(1);
 		}
 
 		if (cabFadeMode == 1)
-			cabFade(0.4 + 0.6 * cabFadeTimer/cabFadeTime);
+			cabFade(0.4 + 0.6 * cabFadeTimer / cabFadeTime);
 		else if (cabFadeMode == 2)
-			cabFade(1 - 0.6 * cabFadeTimer/cabFadeTime);
+			cabFade(1 - 0.6 * cabFadeTimer / cabFadeTime);
 	}
 
 	for (int i=0; i<free_beam; i++)
 	{
-		if (!skeleton)
+		if (!beams[i].disabled && beams[i].mSceneNode)
 		{
-			if (beams[i].broken==1 && beams[i].mSceneNode)
-			{
-				beams[i].mSceneNode->detachAllObjects();
-				beams[i].broken = 2;
-			}
-
-			if (beams[i].mSceneNode!=0 && !beams[i].disabled && beams[i].type!=BEAM_INVISIBLE && beams[i].type!=BEAM_INVISIBLE_HYDRO && beams[i].type!=BEAM_VIRTUAL)
+			if (skeleton)
 			{
 				beams[i].mSceneNode->setPosition(beams[i].p1->smoothpos.midPoint(beams[i].p2->smoothpos));
 				beams[i].mSceneNode->setOrientation(specialGetRotationTo(ref, beams[i].p1->smoothpos-beams[i].p2->smoothpos));
-				//beams[i].mSceneNode->setScale(default_beam_diameter/100.0,(beams[i].p1->smoothpos-beams[i].p2->smoothpos).length()/100.0,default_beam_diameter/100.0);
+				beams[i].mSceneNode->setScale(skeleton_beam_diameter, (beams[i].p1->smoothpos-beams[i].p2->smoothpos).length(), skeleton_beam_diameter);
+			} else if (beams[i].type != BEAM_INVISIBLE && beams[i].type != BEAM_INVISIBLE_HYDRO && beams[i].type != BEAM_VIRTUAL)
+			{
+				beams[i].mSceneNode->setPosition(beams[i].p1->smoothpos.midPoint(beams[i].p2->smoothpos));
+				beams[i].mSceneNode->setOrientation(specialGetRotationTo(ref, beams[i].p1->smoothpos-beams[i].p2->smoothpos));
 				beams[i].mSceneNode->setScale(beams[i].diameter, (beams[i].p1->smoothpos-beams[i].p2->smoothpos).length(), beams[i].diameter);
 			}
-		} else if (beams[i].mSceneNode!=0 && !beams[i].disabled)
-		{
-			beams[i].mSceneNode->setPosition(beams[i].p1->smoothpos.midPoint(beams[i].p2->smoothpos));
-			beams[i].mSceneNode->setOrientation(specialGetRotationTo(ref, beams[i].p1->smoothpos-beams[i].p2->smoothpos));
-			//beams[i].mSceneNode->setScale(default_beam_diameter/100.0,(beams[i].p1->smoothpos-beams[i].p2->smoothpos).length()/100.0,default_beam_diameter/100.0);
-			beams[i].mSceneNode->setScale(skeleton_beam_diameter, (beams[i].p1->smoothpos-beams[i].p2->smoothpos).length(), skeleton_beam_diameter);
 		}
-
 	}
 
 	if (skeleton == 2)
@@ -4043,33 +3992,40 @@ void Beam::showSkeleton(bool meshes, bool newMode, bool linked)
 {
 	if (lockSkeletonchange)
 		return;
-	lockSkeletonchange=true;
+
+	lockSkeletonchange = true;
 	int i;
 
-	skeleton=1;
+	skeleton = 1;
 
 	if (newMode)
-		skeleton=2;
+		skeleton = 2;
 
 	if (meshes)
 	{
-		cabFadeMode=1;
-		cabFadeTimer=cabFadeTime;
+		cabFadeMode = 1;
+		cabFadeTimer = cabFadeTime;
 	} else
 	{
-		cabFadeMode=-1;
+		cabFadeMode = -1;
 		// directly hide meshes, no fading
 		cabFade(0);
 	}
+
 	for (i=0; i<free_wheel; i++)
 	{
-		if (vwheels[i].cnode) vwheels[i].cnode->setVisible(false);
-		if (vwheels[i].fm) vwheels[i].fm->setVisible(false);
+		if (vwheels[i].cnode)
+			vwheels[i].cnode->setVisible(false);
+
+		if (vwheels[i].fm)
+			vwheels[i].fm->setVisible(false);
 	}
+
 	for (i=0; i<free_prop; i++)
 	{
 		if (props[i].scene_node)
 			setMeshWireframe(props[i].scene_node, true);
+
 		if (props[i].wheel)
 			setMeshWireframe(props[i].wheel, true);
 	}
@@ -4082,12 +4038,12 @@ void Beam::showSkeleton(bool meshes, bool newMode, bool linked)
 			{
 				if (!beams[i].broken && beams[i].mSceneNode->numAttachedObjects()==0)
 					beams[i].mSceneNode->attachObject(beams[i].mEntity);
-				//material
+
 				beams[i].mEntity->setMaterialName("vehicle-skeletonview-material");
 				beams[i].mEntity->setCastShadows(false);
 			}
 		}
-	}else
+	} else
 	{
 		if (simpleSkeletonNode)
 		{
@@ -4111,15 +4067,14 @@ void Beam::showSkeleton(bool meshes, bool newMode, bool linked)
 	for (i=0; i<free_flexbody; i++)
 	{
 		SceneNode *s = flexbodies[i]->getSceneNode();
-		if (!s)
-			continue;
-		setMeshWireframe(s, true);
+		if (s)
+			setMeshWireframe(s, true);
 	}
 
 	for (std::vector<tie_t>::iterator it=ties.begin(); it!=ties.end(); it++)
 		if (it->beam->disabled)
 			it->beam->mSceneNode->detachAllObjects();
-	
+
 	if (linked)
 	{
 		// apply to the locked truck
@@ -4129,7 +4084,7 @@ void Beam::showSkeleton(bool meshes, bool newMode, bool linked)
 		}
 	}
 
-	lockSkeletonchange=false;
+	lockSkeletonchange = false;
 
 	TRIGGER_EVENT(SE_TRUCK_SKELETON_TOGGLE, trucknum);
 }
@@ -4138,17 +4093,18 @@ void Beam::hideSkeleton(bool newMode, bool linked)
 {
 	if (lockSkeletonchange)
 		return;
+
 	lockSkeletonchange=true;
 	int i;
-	skeleton=0;
+	skeleton = 0;
 
-	if (cabFadeMode>=0)
+	if (cabFadeMode >= 0)
 	{
-		cabFadeMode=2;
-		cabFadeTimer=cabFadeTime;
+		cabFadeMode = 2;
+		cabFadeTimer = cabFadeTime;
 	} else
 	{
-		cabFadeMode=-1;
+		cabFadeMode = -1;
 		// directly show meshes, no fading
 		cabFade(1);
 	}
@@ -4156,13 +4112,17 @@ void Beam::hideSkeleton(bool newMode, bool linked)
 
 	for (i=0; i<free_wheel; i++)
 	{
-		if (vwheels[i].cnode) vwheels[i].cnode->setVisible(true);
-		if (vwheels[i].fm) vwheels[i].fm->setVisible(true);
+		if (vwheels[i].cnode)
+			vwheels[i].cnode->setVisible(true);
+
+		if (vwheels[i].fm)
+			vwheels[i].fm->setVisible(true);
 	}
 	for (i=0; i<free_prop; i++)
 	{
 		if (props[i].scene_node)
 			setMeshWireframe(props[i].scene_node, false);
+
 		if (props[i].wheel)
 			setMeshWireframe(props[i].wheel, false);
 	}
@@ -4173,13 +4133,16 @@ void Beam::hideSkeleton(bool newMode, bool linked)
 		{
 			if (beams[i].mSceneNode)
 			{
-				if (beams[i].type==BEAM_VIRTUAL || beams[i].type==BEAM_INVISIBLE || beams[i].type==BEAM_INVISIBLE_HYDRO) beams[i].mSceneNode->detachAllObjects();
-				//material
-				if (beams[i].type==BEAM_HYDRO || beams[i].type==BEAM_MARKED) beams[i].mEntity->setMaterialName("tracks/Chrome");
-				else beams[i].mEntity->setMaterialName(default_beam_material);
+				if (beams[i].type == BEAM_VIRTUAL || beams[i].type == BEAM_INVISIBLE || beams[i].type == BEAM_INVISIBLE_HYDRO)
+					beams[i].mSceneNode->detachAllObjects();
+
+				if (beams[i].type == BEAM_HYDRO || beams[i].type == BEAM_MARKED)
+					beams[i].mEntity->setMaterialName("tracks/Chrome");
+				else
+					beams[i].mEntity->setMaterialName(default_beam_material);
 			}
 		}
-	}else
+	} else
 	{
 		if (simpleSkeletonNode)
 			simpleSkeletonNode->setVisible(false);
@@ -5850,11 +5813,18 @@ void Beam::updateDashBoards(float &dt)
 
 Vector3 Beam::getGForces()
 {
-	if (cameranodecount > 0 && cameranodepos[0] >= 0 && cameranodepos[0] < MAX_NODES && cameranodedir[0] >= 0 && cameranodedir[0] < MAX_NODES && cameranoderoll[0] >= 0 && cameranoderoll[0] < MAX_NODES)
+	if (cameranodepos[0] >= 0 && cameranodepos[0] < MAX_NODES && cameranodedir[0] >= 0 && cameranodedir[0] < MAX_NODES && cameranoderoll[0] >= 0 && cameranoderoll[0] < MAX_NODES)
 	{
-		Vector3 acc      = cameranodeacc / cameranodecount;
-		cameranodeacc    = Vector3::ZERO;
-		cameranodecount  = 0;
+		static Vector3 result = Vector3::ZERO;
+
+		if (cameranodecount == 0) // multiple calls in one single frame, avoid division by 0
+		{
+			return result;
+		}
+
+		Vector3 acc = cameranodeacc / cameranodecount;
+		cameranodeacc      = Vector3::ZERO;
+		cameranodecount    = 0;
 
 		float longacc     = acc.dotProduct((nodes[cameranodepos[0]].RelPosition - nodes[cameranodedir[0]].RelPosition).normalisedCopy());
 		float latacc      = acc.dotProduct((nodes[cameranodepos[0]].RelPosition - nodes[cameranoderoll[0]].RelPosition).normalisedCopy());
@@ -5874,7 +5844,9 @@ Vector3 Beam::getGForces()
 
 		float vertacc = std::abs(gravity) - acc.dotProduct(-upv);
 
-		return Vector3(vertacc / std::abs(gravity), longacc / std::abs(gravity), latacc / std::abs(gravity));
+		result = Vector3(vertacc / std::abs(gravity), longacc / std::abs(gravity), latacc / std::abs(gravity));
+
+		return result;
 	}
 
 	return Vector3::ZERO;
@@ -5981,17 +5953,11 @@ void Beam::run()
 
 		switch (thread_task)
 		{
-		case THREAD_BEAMS:
-			calcBeams(curtstep==0, dtperstep, curtstep, tsteps, index, thread_number);
-			break;
 		case THREAD_INTRA_TRUCK_COLLISIONS:
 			intraTruckCollisionsCompute(dtperstep, index, thread_number);
 			break;
 		case THREAD_INTER_TRUCK_COLLISIONS:
 			interTruckCollisionsCompute(dtperstep, index, thread_number);
-			break;
-		case THREAD_NODES:
-			calcNodes(curtstep==0, dtperstep, curtstep, tsteps, index, thread_number);
 			break;
 		}
 	}
@@ -6086,6 +6052,7 @@ Beam::Beam(
 	, lockSkeletonchange(false)
 	, locked(0)
 	, lockedold(0)
+	, m_dt_remainder(0.0)
 	, mTimeUntilNextToggle(0)
 	, meshesVisible(true)
 	, minCameraRadius(0)
