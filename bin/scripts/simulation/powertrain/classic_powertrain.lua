@@ -311,7 +311,7 @@ function ClassicPowertrain.set_engine_options(self, engoption_def)
 	local def_shift_time = engoption_def.clutch_time
 	local def_clutch_time = engoption_def.shift_time
 
-	if self._clutch_force_use_default == false then
+	if engoption_def._clutch_force_use_default ~= true then
 		self.conf_clutch_force   = engoption_def.clutch_force
 	end
 
