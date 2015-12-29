@@ -102,7 +102,7 @@ function ClassicPowertrain.new(engine_min_rpm, engine_max_rpm, eng_torque, gear_
 	-- Engine --
     ------------
 
-    local eng_braking_torque = -eng_torque / 5.0
+    local eng_braking_torque = (-eng_torque / 5.0)
 
     self.legacy_torque_curve          = nil
     self.conf_engine_diff_ratio       = diff_ratio
@@ -119,7 +119,6 @@ function ClassicPowertrain.new(engine_min_rpm, engine_max_rpm, eng_torque, gear_
     -- 't' = truck (default), 'c' = car, 'e' = electric car
     self.conf_engine_type             = "t"
     self.conf_engine_braking_torque   = eng_braking_torque
-    self.conf_engine_torque           = 0
     self.conf_engine_stall_rpm        = 300.0
     self.conf_post_shift_time         = 0.2
     self.post_shift_clock             = 0.0
@@ -1118,8 +1117,8 @@ local DBG_log_full_state = function(self)
 	end
 
 	txt = string.format("DBG Powertrain | ref_wheel_revolutions: %12.2f | cur_wheel_revolutions: %12.2f | curr_gear: %12.2f | curr_gear_range: %12.2f | abs_velocity: %12.2f "
-		.."| rel_velocity: %12.2f | vehicle_index: %12.2f | curr_clutch: %12.2f | curr_clutch_torque: %12.2f | engine_hydropump: %12.2f | post_shift_clock: %12.2f | shift_clock: %12.2f | conf_shift_time: %12.2f | is_post_shifting: %s | is_engine_running: %s "
-		.."| curr_gear_change_relative: %12.2f | air_pressure: %12.2f | auto_curr_acc: %12.2f | transmission_mode: %12.2f | autoselect: %12.2f | starter_has_contact: %s | starter_is_running: %s | curr_acc: %12.2f | prime: %12.2f | curr_engine_rpm: %12.2f "
+		.."| rel_velocity: %12.2f | vehicle_index: %12.2f | curr_clutch: %12.2f | curr_clutch_torque: %40.2f | engine_hydropump: %12.2f | post_shift_clock: %12.2f | shift_clock: %12.2f | conf_shift_time: %12.2f | is_post_shifting: %s | is_engine_running: %s "
+		.."| curr_gear_change_relative: %12.2f | air_pressure: %12.2f | auto_curr_acc: %12.2f | transmission_mode: %12.2f | autoselect: %12.2f | starter_has_contact: %s | starter_is_running: %s | curr_acc: %12.2f | prime: %12.2f | curr_engine_rpm: %40.2f "
 		.."| is_shifting: %s | autotrans_curr_shift_behavior: %12.2f | autotrans_up_shift_delay_counter: %12.2f | conf_autotrans_full_rpm_range: %12.2f | turbo_curr_rpm[0]: %12.2f | turbo_torque: %12.2f | turbo_inertia: %12.2f | turbo_psi: %12.2f | turbo_bov_torque: %12.2f "
 		.."| air_pressure: %12.2f | conf_turbo_has_wastegate %s | conf_turbo_has_bov %s | conf_turbo_has_flutter %s | conf_turbo_has_antilag %s | conf_engine_has_air %s | conf_engine_has_turbo %s | conf_num_turbos %12.2f | conf_turbo_max_rpm %12.2f | conf_turbo_engine_rpm_operation %12.2f "
 		.."| conf_turbo_version %12.2f | conf_turbo_min_bov_psi %12.2f | conf_turbo_wg_max_psi %12.2f | conf_turbo_wg_threshold_p %12.2f | conf_turbo_wg_threshold_n %12.2f | conf_turbo_antilag_chance_rand %12.2f | conf_turbo_antilag_min_rpm %12.2f | conf_turbo_antilag_power_factor %12.2f "
