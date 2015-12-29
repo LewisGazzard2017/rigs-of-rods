@@ -173,7 +173,7 @@ function ClassicPowertrain.new(engine_min_rpm, engine_max_rpm, eng_torque, gear_
     self.conf_turbo_antilag_power_factor = 170
 
     self.conf_turbo_max_psi              = 0
-    self.conf_turbo_inertia_factor       = 0
+    self.conf_turbo_inertia_factor       = 1
     self.conf_turbo_addi_torque          = {}
     self.turbo_curr_rpm                  = { [0] = 0 } -- C++ like indexing from 0
     self.turbo_torque                    = 0
@@ -308,7 +308,7 @@ function ClassicPowertrain.set_engine_options(self, engoption_def)
 
 	-- IMPORTANT: Swap arguments for compatibility with legacy implementation
 	-- This bug has been in RoR since 2009: https://github.com/only-a-ptr/ror-legacy-svn-trunk/commit/834d3ddda1b1dfe591520534dc58feb7a7efdfe5
-	-- Author's commentary: http://www.rigsofrods.com/threads/120811-Dev-LuaPowertrain-project?p=1390652#post1390652
+	-- Developer commentary: http://www.rigsofrods.com/threads/120811-Dev-LuaPowertrain-project?p=1390652#post1390652
 	local def_shift_time = engoption_def.clutch_time
 	local def_clutch_time = engoption_def.shift_time
 
