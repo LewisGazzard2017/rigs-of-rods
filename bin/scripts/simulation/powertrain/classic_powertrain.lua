@@ -301,15 +301,23 @@ end
 -- Param S = the state object
 function ClassicPowertrain.set_engine_options(self, engoption_def)
 
+	RoR.log_message("DBG ENTER function ClassicPowertrain.set_engine_options(self, engoption_def), engoption_def.shift_time =" .. tostring(engoption_def.shift_time))
+
     self.conf_engine_inertia = engoption_def.inertia
 	self.conf_engine_type    = engoption_def.type
+
+	-- IMPORTANT: Swap arguments for compatibility with legacy implementation
+	-- This bug has been in RoR since 2009: https://github.com/only-a-ptr/ror-legacy-svn-trunk/commit/834d3ddda1b1dfe591520534dc58feb7a7efdfe5
+	-- Author's commentary: http://www.rigsofrods.com/threads/120811-Dev-LuaPowertrain-project?p=1390652#post1390652
+	local def_shift_time = engoption_def.clutch_time
+	local def_clutch_time = engoption_def.shift_time
 
 	if self._clutch_force_use_default == false then
 		self.conf_clutch_force   = engoption_def.clutch_force
 	end
 
 	if engoption_def.clutch_time then
-		self.conf_clutch_time = engoption_def.clutch_time
+		self.conf_clutch_time = def_clutch_time
 	end
 
 	if engoption_def.post_shift_time then
@@ -317,7 +325,7 @@ function ClassicPowertrain.set_engine_options(self, engoption_def)
 	end
 
 	if engoption_def.shift_time > 0 then
-		self.conf_shift_time              = engoption_def.shift_time
+		self.conf_shift_time              = def_shift_time
 	end
 
 	-- NOT A BUG, A FEATURE!
@@ -357,6 +365,7 @@ function ClassicPowertrain.set_engine_options(self, engoption_def)
         end
 
     end
+	RoR.log_message("DBG EXIT function ClassicPowertrain.set_engine_options(self, engoption_def), self.conf_shift_time =" .. tostring(self.conf_shift_time))
 
 end
 
