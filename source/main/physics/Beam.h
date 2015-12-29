@@ -534,10 +534,8 @@ protected:
 
 	enum ThreadTask {
 		THREAD_BEAMFORCESEULER,
-		THREAD_BEAMS,
 		THREAD_INTER_TRUCK_COLLISIONS,
 		THREAD_INTRA_TRUCK_COLLISIONS,
-		THREAD_NODES,
 		THREAD_MAX
 	};
 
@@ -564,13 +562,13 @@ protected:
 	* TIGHT LOOP; Physics & sound; 
 	* @param doUpdate Only passed to Beam::calcShocks2()
 	*/
-	void calcBeams(int doUpdate, Ogre::Real dt, int step, int maxsteps, int chunk_index, int chunk_number);
+	void calcBeams(int doUpdate, Ogre::Real dt, int step, int maxsteps);
 
 	/**
 	* TIGHT LOOP; Physics; 
 	* @param doUpdate Unused (overwritten in function)
 	*/
-	void calcNodes(int doUpdate, Ogre::Real dt, int step, int maxsteps, int chunk_index, int chunk_number);
+	void calcNodes(int doUpdate, Ogre::Real dt, int step, int maxsteps);
 
 	/**
 	* TIGHT LOOP; Physics; 
@@ -587,6 +585,9 @@ protected:
 	void SyncReset(); //this one should be called only synchronously (without physics running in background)
 
 	void SetPropsCastShadows(bool do_cast_shadows);
+
+	// Keeps track of the rounding error in the time step calculation
+	float m_dt_remainder;
 
 	float dtperstep;
 	int curtstep;
@@ -609,7 +610,7 @@ protected:
 	// inter-/intra truck collision stuff
 	pthread_mutex_t itc_node_access_mutex;
 
-	std::vector<PointColDetector*> interPointCD;
+	PointColDetector* interPointCD;
 	std::vector<PointColDetector*> intraPointCD;
 
 	// flexable stuff
