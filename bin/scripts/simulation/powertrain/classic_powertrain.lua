@@ -871,7 +871,7 @@ function ClassicPowertrain.shift(self, value)
 		self.curr_gear_change_relative = value
 
 		--m_is_shifting = 1;
-		self.is_shifting = 1
+		self.is_shifting = true
 
 		--m_shift_clock = 0.0f;
 		self.shift_clock = 0.0
@@ -1859,7 +1859,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 				self.curr_acc = self.auto_curr_acc
 
 				--m_is_shifting = 0;
-				self.is_shifting = 0
+				self.is_shifting = false
 
 				--m_curr_clutch = 1.0f;
 				self.curr_clutch = 1.0
@@ -2022,7 +2022,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 		--}
 
 		if (wheel0_radius ~= 0) then
-			selfref_wheel_revolutions = velocity / wheel0_radius * ClassicPowertrain.RAD_PER_SEC_TO_RPM
+			self.ref_wheel_revolutions = velocity / wheel0_radius * ClassicPowertrain.RAD_PER_SEC_TO_RPM
 		end
 
 

@@ -144,7 +144,7 @@ int BeamEngine::getAutoMode()
 {
     //return m_transmission_mode;
     SCOPED_LOCK()
-    return (*m_lua_state)["powertrain"][LuaValue("curr_engine_rpm")].value().asInteger();
+    return (*m_lua_state)["powertrain"][LuaValue("transmission_mode")].value().asInteger();
 }
 
 void BeamEngine::setAcc(float val)
@@ -221,7 +221,7 @@ int BeamEngine::getAutoShift()
 {
     //return (int)m_autoselect;
     SCOPED_LOCK()
-    return static_cast<int>((*m_lua_state)["powertrain"][LuaValue("autoselect")].value().asNumber());
+    return (*m_lua_state)["powertrain"][LuaValue("autoselect")].value().asInteger();
 }
 
 bool BeamEngine::hasContact()
