@@ -587,10 +587,16 @@ function ClassicPowertrain.calc_engine_power(self, rpm)
 	--}
     end
 
+	local result = (self.conf_engine_torque * torque_ratio) + addi_torque_value
+
 	DBG_log_message("Lua: EXIT  calc_engine_power()")
 
+	--local dbg_txt = string.format("Powertrain.CalcEnginePower(): input RPM: %10.3f | rpm_ratio: %10.3f | torque_ratio: %10.3f | addi_torque_value:  %10.3f | RESULT: %10.3f",
+    --    rpm, rpm_ratio, torque_ratio, addi_torque_value, result);
+	--RoR.log_message(dbg_txt)
+
 	--return (m_conf_engine_torque * tqValue) + atValue;
-    return (self.conf_engine_torque * torque_ratio) + addi_torque_value;
+    return result
 --}
 end
 
@@ -1225,6 +1231,15 @@ end
 --     vehicle_brake_ratio ~~ [number] ~~ truck->brake
 function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, node0_velocity, hdir_velocity, wheel0_radius, vehicle_brake_force, vehicle_brake_ratio)
 	DBG_log_message("Lua: ENTER update_beam_engine()")
+
+	--[[ # Log arguments (DBG)
+	RoR.log_message(
+		string.format("do_update: %s | node0_velocity: %12.2f | hdir_velocity: %12.2f "
+		.. "| wheel0_radius: %12.2f | vehicle_brake_force: %12.2f | vehicle_brake_ratio: %12.2f",
+		(do_update and " TRUE" or "FALSE"), node0_velocity, hdir_velocity, wheel0_radius, vehicle_brake_force, vehicle_brake_ratio)
+	)
+	--]]
+
 	DBG_log_full_state(self)
 
 	--Beam* truck = BeamFactory::getSingleton().getTruck(this->m_vehicle_index);
@@ -1273,7 +1288,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
         idle_mix = math.max(self.conf_engine_min_idle_mixture, idle_mix)
 
 		--idleMix = std::min(idleMix, m_conf_engine_max_idle_mixture);
-        idle_mix = math.min(idle_mix, self.conf_engine_min_idle_mixture)
+        idle_mix = math.min(idle_mix, self.conf_engine_max_idle_mixture)
 
 		--return idleMix;
         idle_mixture = idle_mix
@@ -1290,6 +1305,9 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 
 	--acc = std::max(CalcIdleMixture(), acc);
     acc = math.max(idle_mixture, acc)
+
+	local DBG_acc_snap1 = acc
+	local DBG_acc_snap1_idlemix = idle_mixture
 
     ----------------------------- CalcPrimeMixture() ---------------------------
     local prime_mixture = 0
@@ -1333,6 +1351,9 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 
 	--acc = std::max(CalcPrimeMixture(), acc);
     acc = math.max(prime_mixture, acc)
+
+	local DBG_acc_snap2 = acc
+	local DBG_acc_snap2_primemix = prime_mixture
 
 
 --	if (doUpdate)
@@ -1655,6 +1676,8 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 	--}
     end
 
+	local DBG_totaltorque_sample1 = total_torque
+
 	-- braking by hydropump
 
 
@@ -1667,6 +1690,8 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 	--}
     end
 
+	local DBG_totaltorque_sample2 = total_torque
+
 	--if (m_is_engine_running && m_starter_has_contact && m_curr_engine_rpm < (m_conf_engine_max_rpm * 1.25f))
 	--{
 	--	totaltorque += CalcEnginePower(m_curr_engine_rpm) * acc;
@@ -1675,6 +1700,8 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
     if (self.is_engine_running and self.starter_has_contact and self.curr_engine_rpm < (self.conf_engine_max_rpm * 1.25)) then
 		total_torque = total_torque + (self:calc_engine_power(self.curr_engine_rpm) * acc)
 	end
+
+	local DBG_totaltorque_sample3 = total_torque
 
 	--if (!engine_is_electric)
 	--{
@@ -1723,6 +1750,8 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 	--}
 	end
 
+	local DBG_totaltorque_sample4 = total_torque
+
 	DBG_log_message("Lua: UPDATE ^5")
 
 	-- clutch
@@ -1745,6 +1774,16 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 
 
 	-- integration
+
+	--[[ # debugging
+	local dbg_txt = string.format("Lua - DBG | totaltorque { 1: %10.3f | 2: %10.3f | 3: %10.3f | 4: %10.3f } |"
+		.. " acc: { 1: %10.3f (idlemix: %10.3f) | 2: %10.3f (primemix: %10.3f) | 3: %10.3f } |"
+		.. " retorque: %10.3f | self.curr_engine_rpm: %10.3f | self.conf_engine_inertia: %10.3f ",
+		DBG_totaltorque_sample1, DBG_totaltorque_sample2, DBG_totaltorque_sample3, DBG_totaltorque_sample4,
+		DBG_acc_snap1, DBG_acc_snap1_idlemix, DBG_acc_snap2, DBG_acc_snap2_primemix, acc,
+		retorque, self.curr_engine_rpm, self.conf_engine_inertia)
+	RoR.log_message(dbg_txt)
+	-- # END debugging --]]
 
 
 	--m_curr_engine_rpm += dt * totaltorque / m_conf_engine_inertia;
