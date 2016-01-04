@@ -25,6 +25,7 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 #include "TorqueCurve.h"
 
 using namespace Ogre;
+using namespace RoR;
 
 #ifdef PTW32_VERSION // Win32 pthreads
 #   define PTHREAD_ID() reinterpret_cast<int32_t>(pthread_self().p)
@@ -86,8 +87,8 @@ void Beam::thread entry()
 BeamEngine::BeamEngine(float m_conf_engine_min_rpm, float m_conf_engine_max_rpm, float torque, std::vector<float> gears, float dratio, int m_vehicle_index) :
 	  m_air_pressure(0.0f)
 	, m_auto_curr_acc(0.0f)
-	, m_transmission_mode(AUTOMATIC)
-	, m_autoselect(DRIVE)
+	, m_transmission_mode(Gearbox::SHIFTMODE_AUTOMATIC)
+	, m_autoselect(Gearbox::AUTOSWITCH_DRIVE)
 	, m_conf_engine_braking_torque(-torque / 5.0f)
 	, m_conf_clutch_force(10000.0f)
 	, m_conf_clutch_time(0.2f)
@@ -666,7 +667,8 @@ void BeamEngine::UpdateBeamEngine(float dt, int doUpdate)
 	{
 		if (m_is_engine_running && m_curr_engine_rpm < m_conf_engine_stall_rpm)
 		{
-			stop(); //No, electric engine has no stop
+            bool const must_lock = false;
+			this->BeamEngineStop(must_lock); //No, electric engine has no stop
 		}
 		// m_starter_is_running
 
@@ -727,7 +729,7 @@ void BeamEngine::UpdateBeamEngine(float dt, int doUpdate)
 
 	m_curr_engine_rpm = std::max(0.0f, m_curr_engine_rpm);
 
-	if (m_transmission_mode < MANUAL)
+	if (m_transmission_mode < Gearbox::SHIFTMODE_MANUAL)
 	{
 		// auto-shift
 		if (m_is_shifting && !engine_is_electric) //No shifting in electric cars
@@ -852,11 +854,11 @@ void BeamEngine::UpdateBeamEngine(float dt, int doUpdate)
 			m_ref_wheel_revolutions = velocity / truck->wheels[0].radius * RAD_PER_SEC_TO_RPM;
 		}
 
-		if (m_transmission_mode == AUTOMATIC && (m_autoselect == DRIVE || m_autoselect == TWO) && m_curr_gear > 0)
+		if (m_transmission_mode == Gearbox::SHIFTMODE_AUTOMATIC && (m_autoselect == Gearbox::AUTOSWITCH_DRIVE || m_autoselect == Gearbox::AUTOSWITCH_TWO) && m_curr_gear > 0)
 		{
 			if ((m_curr_engine_rpm > m_conf_engine_max_rpm - 100.0f && m_curr_gear > 1) || m_cur_wheel_revolutions * m_conf_gear_ratios[m_curr_gear + 1] > m_conf_engine_max_rpm - 100.0f)
 			{
-				if ((m_autoselect == DRIVE && m_curr_gear < m_conf_num_gears) || (m_autoselect == TWO && m_curr_gear < std::min(2, m_conf_num_gears)) && !engine_is_electric)
+				if ((m_autoselect == Gearbox::AUTOSWITCH_DRIVE && m_curr_gear < m_conf_num_gears) || (m_autoselect == Gearbox::AUTOSWITCH_TWO && m_curr_gear < std::min(2, m_conf_num_gears)) && !engine_is_electric)
 				{
 					this->BeamEngineShift(1, false);
 				}
@@ -946,7 +948,7 @@ void BeamEngine::UpdateBeamEngine(float dt, int doUpdate)
 						newGear--;
 					}
 				}
-				else if (m_curr_gear < (m_autoselect == TWO ? std::min(2, m_conf_num_gears) : m_conf_num_gears) &&
+				else if (m_curr_gear < (m_autoselect == Gearbox::AUTOSWITCH_TWO ? std::min(2, m_conf_num_gears) : m_conf_num_gears) &&
 					avgBrake200 < 0.2f && acc < std::min(avgAcc200 + 0.1f, 1.0f) && m_curr_engine_rpm > avgRPM200 - m_conf_autotrans_full_rpm_range / 20.0f)
 				{
 					if (avgAcc200 < 0.6f && avgAcc200 > 0.4f && m_curr_engine_rpm > m_conf_engine_min_rpm + oneThirdRPMRange && m_curr_engine_rpm < m_conf_engine_max_rpm - oneThirdRPMRange)
@@ -1000,7 +1002,7 @@ void BeamEngine::UpdateBeamEngine(float dt, int doUpdate)
 				m_autotrans_brake_buffer.pop_back();
 			}
 			// avoid over-revving
-			if (m_transmission_mode <= SEMIAUTO && m_curr_gear != 0)
+			if (m_transmission_mode <= Gearbox::SHIFTMODE_SEMIAUTO && m_curr_gear != 0)
 			{
 				if (std::abs(m_cur_wheel_revolutions * m_conf_gear_ratios[m_curr_gear + 1]) > m_conf_engine_max_rpm * 1.25f)
 				{
@@ -1068,18 +1070,18 @@ float BeamEngine::getRPM()
 void BeamEngine::toggleAutoMode()
 {
     SCOPED_LOCK("toggleAutoMode()") // only external calls
-	m_transmission_mode = (m_transmission_mode + 1) % (MANUAL_RANGES + 1);
+	m_transmission_mode = (m_transmission_mode + 1) % (Gearbox::SHIFTMODE_MANUAL_RANGES + 1);
 
 	// this switches off all automatic symbols when in manual mode
-	if (m_transmission_mode != AUTOMATIC)
+	if (m_transmission_mode != Gearbox::SHIFTMODE_AUTOMATIC)
 	{
-		m_autoselect = MANUALMODE;
+		m_autoselect = Gearbox::AUTOSWITCH_MANUALMODE;
 	} else
 	{
-		m_autoselect = NEUTRAL;
+		m_autoselect = Gearbox::AUTOSWITCH_NEUTRAL;
 	}
 
-	if (m_transmission_mode == MANUAL_RANGES)
+	if (m_transmission_mode == Gearbox::SHIFTMODE_MANUAL_RANGES)
 	{
 		m_curr_gear_range = 0.f; //INLINED this->setGearRange(0);
 		m_curr_gear = 0.f; //INLINED this->setGear(0);
@@ -1226,23 +1228,23 @@ void BeamEngine::toggleContact()
 }
 
 // quick start
-void BeamEngine::start()
+void BeamEngine::BeamEngineStart()
 {
-    SCOPED_LOCK("start()") // not verified
-	if (m_transmission_mode == AUTOMATIC)
+    SCOPED_LOCK("start()") // OK, only external calls
+	if (m_transmission_mode == Gearbox::SHIFTMODE_AUTOMATIC)
 	{
 		m_curr_gear = 1;
-		m_autoselect = DRIVE;
+		m_autoselect = Gearbox::AUTOSWITCH_DRIVE;
 	} else
 	{
-		if (m_transmission_mode == SEMIAUTO)
+		if (m_transmission_mode == Gearbox::SHIFTMODE_SEMIAUTO)
 		{
 			m_curr_gear = 1;
 		} else
 		{
 			m_curr_gear = 0;
 		}
-		m_autoselect = MANUALMODE;
+		m_autoselect = Gearbox::AUTOSWITCH_MANUALMODE;
 	}
 	m_curr_clutch = 0.0f;
 	m_curr_engine_rpm = 750.0f;
@@ -1270,9 +1272,9 @@ void BeamEngine::offstart()
 	m_curr_gear = 0;
 	m_curr_clutch = 0.0f;
 	if (m_conf_engine_type != 'e') // e = Electric engine
-		m_autoselect = NEUTRAL; //no Neutral in electric engines
+		m_autoselect = Gearbox::AUTOSWITCH_NEUTRAL; //no Neutral in electric engines
 	else
-		m_autoselect = ONE;
+		m_autoselect = Gearbox::AUTOSWITCH_ONE;
 
 	m_curr_engine_rpm = 0.0f;
 	m_is_engine_running = false;
@@ -1318,9 +1320,9 @@ void BeamEngine::setGearRange(int v)
 	m_curr_gear_range = v;
 }
 
-void BeamEngine::stop()
+void BeamEngine::BeamEngineStop(bool must_lock)
 {
-    SCOPED_LOCK("stop()") // not verified
+    SCOPED_LOCK_OPT("stop()", must_lock)
 	if (!m_is_engine_running) return;
 
 	m_is_engine_running = false;
@@ -1346,7 +1348,7 @@ void BeamEngine::BeamEngineShift(int val, bool must_lock /*=true*/)
 {
     SCOPED_LOCK_OPT("BeamEngineShift()", must_lock)
 	if (!val || m_curr_gear + val < -1 || m_curr_gear + val > getNumGears()) return;
-	if (m_transmission_mode < MANUAL)
+	if (m_transmission_mode < Gearbox::SHIFTMODE_MANUAL)
 	{
 #ifdef USE_OPENAL
 		SoundScriptManager::getSingleton().trigStart(m_vehicle_index, SS_TRIG_SHIFT);
@@ -1385,20 +1387,20 @@ void BeamEngine::UpdateBeamEngineShifts()
     // NO LOCK - only called internally
 
 
-	if (m_autoselect == MANUALMODE) return;
+	if (m_autoselect == Gearbox::AUTOSWITCH_MANUALMODE) return;
 
 #ifdef USE_OPENAL
 	SoundScriptManager::getSingleton().trigOnce(m_vehicle_index, SS_TRIG_SHIFT);
 #endif // USE_OPENAL
 	bool engine_is_electric = (m_conf_engine_type == 'e');
 
-	if (m_autoselect == REAR)
+	if (m_autoselect == Gearbox::AUTOSWITCH_REAR)
 	{
 		m_curr_gear = -1;
-	} else if (m_autoselect == NEUTRAL && !engine_is_electric)
+	} else if (m_autoselect == Gearbox::AUTOSWITCH_NEUTRAL && !engine_is_electric)
 	{
 		m_curr_gear =  0;
-	} else if (m_autoselect == ONE)
+	} else if (m_autoselect == Gearbox::AUTOSWITCH_ONE)
 	{
 		m_curr_gear =  1;
 	}
@@ -1414,7 +1416,7 @@ void BeamEngine::UpdateBeamEngineShifts()
 
 		m_curr_gear = newGear;
 		
-		if (m_autoselect == TWO)
+		if (m_autoselect == Gearbox::AUTOSWITCH_TWO)
 		{
 			m_curr_gear = std::min(m_curr_gear, 2);
 		}
@@ -1424,16 +1426,16 @@ void BeamEngine::UpdateBeamEngineShifts()
 void BeamEngine::autoShiftSet(int mode)
 {
     SCOPED_LOCK("autoShiftSet()") // OK
-	m_autoselect = (autoswitch)mode;
+	m_autoselect = (Gearbox::autoswitch)mode;
 	this->UpdateBeamEngineShifts();
 }
 
 void BeamEngine::autoShiftUp()
 {
     SCOPED_LOCK("autoShiftUp()") // OK
-	if (m_autoselect != REAR)
+	if (m_autoselect != Gearbox::AUTOSWITCH_REAR)
 	{
-		m_autoselect = (autoswitch)(m_autoselect-1);
+		m_autoselect = (Gearbox::autoswitch)(m_autoselect-1);
 		this->UpdateBeamEngineShifts();
 	}
 }
@@ -1441,23 +1443,23 @@ void BeamEngine::autoShiftUp()
 void BeamEngine::autoShiftDown()
 {
     SCOPED_LOCK("autoShiftDown()") // OK
-	if (m_autoselect != ONE)
+	if (m_autoselect != Gearbox::AUTOSWITCH_ONE)
 	{
-		m_autoselect = (autoswitch)(m_autoselect+1);
+		m_autoselect = (Gearbox::autoswitch)(m_autoselect+1);
 		this->UpdateBeamEngineShifts();
 	}
 }
 
-int BeamEngine::getAutoShift()
+Gearbox::autoswitch BeamEngine::getAutoShift()
 {
     SCOPED_LOCK("getAutoShift()") // OK
-	return (int)m_autoselect;
+	return m_autoselect;
 }
 
 void BeamEngine::setManualClutch(float val)
 {
     SCOPED_LOCK("setManualClutch()") // OK
-	if (m_transmission_mode >= MANUAL)
+	if (m_transmission_mode >= Gearbox::SHIFTMODE_MANUAL)
 	{
 		val = std::max(0.0f, val);
 		m_curr_clutch = 1.0 - val;
@@ -1566,3 +1568,4 @@ float BeamEngine::CalcPrimeMixture()
 
 	return 0.0f;
 }
+

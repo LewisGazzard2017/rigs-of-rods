@@ -62,6 +62,7 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 #include "Network.h"
 #include "PointColDetector.h"
 #include "PositionStorage.h"
+#include "Powertrain.h"
 #include "Replay.h"
 #include "RigLoadingProfiler.h"
 #include "RigSpawner.h"
@@ -122,7 +123,7 @@ Beam::~Beam()
 
 	// destruct and remove every tiny bit of stuff we created :-|
 	if (nettimer) delete nettimer; nettimer=0;
-	if (engine) delete engine; engine=0;
+	delete powertrain; powertrain = nullptr;
 	if (buoyance) delete buoyance; buoyance=0;
 	if (autopilot) delete autopilot;
 	if (fuseAirfoil) delete fuseAirfoil;
@@ -388,15 +389,9 @@ void Beam::scaleTruck(float value)
 	}
 	// tell the cabmesh that resizing is ok, and they dont need to break ;)
 	if (cabMesh) cabMesh->scale(value);
-	// update engine values
-	if (engine)
-	{
-		//engine->maxRPM *= value;
-		//engine->iddleRPM *= value;
-		engine->ScaleEngineTorque(value);
-		//engine->stallRPM *= value;
-		//engine->brakingTorque *= value;
-	}
+
+    // FIXME: Scale powertrain attributes
+
 	// todo: scale flexbody
 	for (int i=0;i<free_flexbody;i++)
 	{
@@ -693,7 +688,7 @@ void Beam::calcNetwork()
 
 	MUTEX_UNLOCK(&net_mutex);
 #ifdef USE_OPENAL
-	if (engine)
+	if (powertrain != nullptr)
 	{
 		SoundScriptManager::getSingleton().modulate(trucknum, SS_MOD_ENGINE, engspeed);
 	}
@@ -708,19 +703,19 @@ void Beam::calcNetwork()
 
 	brake = netbrake;
 
-	if (engine)
+	if (powertrain != nullptr)
 	{
 		int automode = -1;
-		if ((flagmask&NETMASK_ENGINE_MODE_AUTOMATIC)!=0)          automode = BeamEngine::AUTOMATIC;
-		else if ((flagmask&NETMASK_ENGINE_MODE_SEMIAUTO)!=0)      automode = BeamEngine::SEMIAUTO;
-		else if ((flagmask&NETMASK_ENGINE_MODE_MANUAL)!=0)        automode = BeamEngine::MANUAL;
-		else if ((flagmask&NETMASK_ENGINE_MODE_MANUAL_STICK)!=0)  automode = BeamEngine::MANUAL_STICK;
-		else if ((flagmask&NETMASK_ENGINE_MODE_MANUAL_RANGES)!=0) automode = BeamEngine::MANUAL_RANGES;
+		if ((flagmask&NETMASK_ENGINE_MODE_AUTOMATIC)!=0)          automode = Gearbox::SHIFTMODE_AUTOMATIC;
+		else if ((flagmask&NETMASK_ENGINE_MODE_SEMIAUTO)!=0)      automode = Gearbox::SHIFTMODE_SEMIAUTO;
+		else if ((flagmask&NETMASK_ENGINE_MODE_MANUAL)!=0)        automode = Gearbox::SHIFTMODE_MANUAL;
+		else if ((flagmask&NETMASK_ENGINE_MODE_MANUAL_STICK)!=0)  automode = Gearbox::SHIFTMODE_MANUAL_STICK;
+		else if ((flagmask&NETMASK_ENGINE_MODE_MANUAL_RANGES)!=0) automode = Gearbox::SHIFTMODE_MANUAL_RANGES;
 
 		bool contact = ((flagmask&NETMASK_ENGINE_CONT) != 0);
 		bool running = ((flagmask&NETMASK_ENGINE_RUN)  != 0);
 
-		engine->netForceSettings(engspeed, engforce, engclutch, gear, running, contact, automode);
+		powertrain->GetQueueOnMainThread().NetworkedUpdate(engspeed, engforce, engclutch, gear, running, contact, automode);
 	}
 
 
@@ -1309,7 +1304,10 @@ void Beam::SyncReset()
 		cur_dir = nodes[cameranodepos[0]].RelPosition - nodes[cameranodedir[0]].RelPosition;
 	}
 	float cur_rot = atan2(cur_dir.dotProduct(Vector3::UNIT_X), cur_dir.dotProduct(-Vector3::UNIT_Z));
-	if (engine) engine->start();
+	if (this->powertrain != nullptr)
+    {
+        this->powertrain->GetEngine()->BeamEngineStart(); // TODO: Which thread calls this?
+    }
 	for (int i=0; i<free_node; i++)
 	{
 		nodes[i].AbsPosition=nodes[i].iPosition;
@@ -1455,7 +1453,8 @@ void Beam::threadentry()
 					break;
 				}
 			}
-		} else
+		} 
+        else
 		{
 			task_count[THREAD_BEAMFORCESEULER] = num_simulated_trucks;
 
@@ -1494,6 +1493,14 @@ void Beam::threadentry()
 			interTruckCollisionsFinal(dtperstep);
 			BES_STOP(BES_CORE_Contacters);
 		}
+	}
+
+	for (int t=0; t<tnumtrucks; t++)
+	{
+		if (trucks[t] && trucks[t]->simulated)
+        {
+			trucks[t]->powertrain->PowertrainExportState();
+        }
 	}
 }
 
@@ -1600,6 +1607,7 @@ bool Beam::frameStep(Real dt)
 							// Since the local variable isn't read anywyere, this effectively only blocks update of the member.
 							// Bug or feature? ~only_a_ptr
 						trucks[t]->calcForcesEulerCompute(i==0, dtperstep, i, steps);
+                        trucks[t]->powertrain->PowertrainExportState(); // TODO: Do once per frame
 						trucks[t]->calcForcesEulerFinal(i==0, dtperstep, i, steps);
 						if (!disableTruckTruckSelfCollisions)
 						{
@@ -1629,6 +1637,8 @@ bool Beam::frameStep(Real dt)
 		ffforce = affforce / steps;
 		ffhydro = affhydro / steps;
 		if (free_hydro) ffhydro = ffhydro / free_hydro;
+
+        this->powertrain->CriticalSection_SwapData();
 
 		for (int t=0; t<numtrucks; t++)
 		{
@@ -1745,21 +1755,27 @@ void Beam::sendStreamData()
 		send_oob->flagmask = 0;
 
 		send_oob->time = Network::getNetTime();
-		if (engine)
+        // This is executed on main thread
+		if (this->powertrain != nullptr)
 		{
-			send_oob->engine_speed   = engine->getRPM();
-			send_oob->engine_force   = engine->getAcc();
-			send_oob->engine_clutch  = engine->getClutch();
-			send_oob->engine_gear    = engine->getGear();
+            PowertrainState powertrain = this->powertrain->GetStateOnMainThread();
+			send_oob->engine_speed   = powertrain.engine_current_rpm;
+			send_oob->engine_force   = powertrain.current_acceleration;
+			send_oob->engine_clutch  = powertrain.transmission_current_clutch;
+			send_oob->engine_gear    = powertrain.transmission_current_gear;
 
-			if (engine->hasContact()) send_oob->flagmask += NETMASK_ENGINE_CONT;
-			if (engine->isRunning()) send_oob->flagmask += NETMASK_ENGINE_RUN;
+			//if (engine_sim->hasContact()) send_oob->flagmask += NETMASK_ENGINE_CONT;
+            if (powertrain.engine_starter_has_contact) send_oob->flagmask += NETMASK_ENGINE_CONT;
 
-			if      (engine->getAutoMode() == BeamEngine::AUTOMATIC)     send_oob->flagmask += NETMASK_ENGINE_MODE_AUTOMATIC;
-			else if (engine->getAutoMode() == BeamEngine::SEMIAUTO)      send_oob->flagmask += NETMASK_ENGINE_MODE_SEMIAUTO;
-			else if (engine->getAutoMode() == BeamEngine::MANUAL)        send_oob->flagmask += NETMASK_ENGINE_MODE_MANUAL;
-			else if (engine->getAutoMode() == BeamEngine::MANUAL_STICK)  send_oob->flagmask += NETMASK_ENGINE_MODE_MANUAL_STICK;
-			else if (engine->getAutoMode() == BeamEngine::MANUAL_RANGES) send_oob->flagmask += NETMASK_ENGINE_MODE_MANUAL_RANGES;
+			//if (engine_sim->isRunning()) send_oob->flagmask += NETMASK_ENGINE_RUN;
+            if (powertrain.engine_is_running) send_oob->flagmask += NETMASK_ENGINE_RUN;
+
+            int auto_mode = powertrain.transmission_auto_shift_mode;
+			if      (auto_mode == Gearbox::SHIFTMODE_AUTOMATIC)     send_oob->flagmask += NETMASK_ENGINE_MODE_AUTOMATIC;
+			else if (auto_mode == Gearbox::SHIFTMODE_SEMIAUTO)      send_oob->flagmask += NETMASK_ENGINE_MODE_SEMIAUTO;
+			else if (auto_mode == Gearbox::SHIFTMODE_MANUAL)        send_oob->flagmask += NETMASK_ENGINE_MODE_MANUAL;
+			else if (auto_mode == Gearbox::SHIFTMODE_MANUAL_STICK)  send_oob->flagmask += NETMASK_ENGINE_MODE_MANUAL_STICK;
+			else if (auto_mode == Gearbox::SHIFTMODE_MANUAL_RANGES) send_oob->flagmask += NETMASK_ENGINE_MODE_MANUAL_RANGES;
 
 		}
 		if (free_aeroengine>0)
@@ -1916,10 +1932,12 @@ void Beam::calcAnimators(int flagstate, float &cstate, int &div, Real timer, flo
 		div++;
 	}
 
+    PowertrainState powertrain = this->powertrain->GetStateOnMainThread();
+
 	//torque
 	if (flag_state & ANIM_FLAG_TORQUE)
 	{
-		float torque=engine->getCrankFactor();
+		float torque = powertrain.engine_crank_factor;
 		if (torque <= 0.0f) torque = 0.0f;
 		if (torque >= previousCrank)
 			cstate -= torque / 10.0f;
@@ -1937,7 +1955,7 @@ void Beam::calcAnimators(int flagstate, float &cstate, int &div, Real timer, flo
 	// opt1 &opt2 = 0   this is a shifter
 		if (!option1 &&  !option2)
 		{
-			int shifter=engine->getGear();
+			int shifter=powertrain.transmission_current_gear; //engine->getGear();
 			if (shifter > previousGear)
 			{
 				cstate = 1.0f;
@@ -1980,7 +1998,7 @@ void Beam::calcAnimators(int flagstate, float &cstate, int &div, Real timer, flo
 	//shifterman1, left/right
 	if ((flag_state & ANIM_FLAG_SHIFTER) && option3 == 1.0f)
 	{
-		int shifter=engine->getGear();
+		int shifter=powertrain.transmission_current_gear; //engine->getGear();
 		if (!shifter)
 		{
 			cstate = -0.5f;
@@ -1998,7 +2016,7 @@ void Beam::calcAnimators(int flagstate, float &cstate, int &div, Real timer, flo
 	//shifterman2, up/down
 	if ((flag_state & ANIM_FLAG_SHIFTER) && option3 == 2.0f)
 	{
-		int shifter=engine->getGear();
+		int shifter=powertrain.transmission_current_gear; //engine->getGear();
 		cstate = 0.5f;
 		if (shifter < 0)
 		{
@@ -2014,8 +2032,8 @@ void Beam::calcAnimators(int flagstate, float &cstate, int &div, Real timer, flo
 	//shifterlinear, to amimate cockpit gearselect gauge and autotransmission stick
 	if ((flag_state & ANIM_FLAG_SHIFTER) && option3 == 4.0f)
 	{
-		int shifter=engine->getGear();
-		int numgears=engine->getNumGears();
+		int shifter=powertrain.transmission_current_gear; //engine->getGear();
+		int numgears=powertrain.transmission_num_forward_gears; //engine->getNumGears();
 		cstate -= (shifter + 2.0) / (numgears + 2.0);
 		div++;
 	}
@@ -2039,7 +2057,7 @@ void Beam::calcAnimators(int flagstate, float &cstate, int &div, Real timer, flo
 	//engine tacho ( scales with maxrpm, default is 3500 )
 	if (flag_state & ANIM_FLAG_TACHO)
 	{
-		float tacho=engine->getRPM()/engine->getMaxRPM();
+		float tacho=powertrain.engine_current_rpm / powertrain.conf_engine_max_rpm; //engine->getRPM()/engine->getMaxRPM();
 		cstate -= tacho;
 		div++;
 	}
@@ -2047,7 +2065,8 @@ void Beam::calcAnimators(int flagstate, float &cstate, int &div, Real timer, flo
 	//turbo
 	if (flag_state & ANIM_FLAG_TURBO)
 	{
-		float turbo=engine->getTurboPSI()*3.34;
+		//float turbo=engine->getTurboPSI()*3.34;
+        float turbo = powertrain.turbo_current_psi * 3.34;
 		cstate -= turbo / 67.0f ;
 		div++;
 	}
@@ -2063,7 +2082,7 @@ void Beam::calcAnimators(int flagstate, float &cstate, int &div, Real timer, flo
 	//accelerator
 	if (flag_state & ANIM_FLAG_ACCEL)
 	{
-		float accel=engine->getAcc();
+		float accel=powertrain.current_acceleration; //engine->getAcc();
 		cstate -= accel + 0.06f;
 		//( small correction, get acc is nver smaller then 0.06.
 		div++;
@@ -2072,7 +2091,7 @@ void Beam::calcAnimators(int flagstate, float &cstate, int &div, Real timer, flo
 		//clutch
 	if (flag_state & ANIM_FLAG_CLUTCH)
 	{
-		float clutch=engine->getClutch();
+		float clutch=powertrain.transmission_current_clutch; //engine->getClutch();
 		cstate -= abs(1.0f - clutch);
 		div++;
 	}
@@ -3453,10 +3472,14 @@ void Beam::updateFlares(float dt, bool isCurrent)
 		} else if (flares[i].type == 'b') {
 			isvisible = getBrakeLightVisible();
 		} else if (flares[i].type == 'R') {
-			if (engine || reverselight)
+			if (this->powertrain != nullptr || reverselight)
+            {
 				isvisible = getReverseLightVisible();
+            }
 			else
+            {
 				isvisible=false;
+            }
 		} else if (flares[i].type == 'u' && flares[i].controlnumber != -1) {
 			if (state==ACTIVATED) // no network!!
 			{
@@ -3746,7 +3769,7 @@ void Beam::updateVisualPrepare(float dt)
 		}
 	}
 	// update exhausts
-	if (!disable_smoke && engine && exhausts.size() > 0)
+	if (!disable_smoke && this->powertrain != nullptr && exhausts.size() > 0)
 	{
 		std::vector < exhaust_t >::iterator it;
 		for (it=exhausts.begin(); it!=exhausts.end(); it++)
@@ -3758,16 +3781,18 @@ void Beam::updateVisualPrepare(float dt)
 			ParticleEmitter *emit = it->smoker->getEmitter(0);
 			it->smokeNode->setPosition(nodes[it->emitterNode].smoothpos);
 			emit->setDirection(dir);
-			if (engine->getSmoke()!=-1.0)
+            float smoke = this->powertrain->GetStateOnMainThread().gfx_engine_exhaust_smoke;
+			if (smoke!=-1.0)
 			{
 				emit->setEnabled(true);
-				emit->setColour(ColourValue(0.0,0.0,0.0,0.02+engine->getSmoke()*0.06));
-				emit->setTimeToLive((0.02+engine->getSmoke()*0.06)/0.04);
-			} else
+				emit->setColour(ColourValue(0.0,0.0,0.0,0.02 + smoke *0.06));
+				emit->setTimeToLive((0.02 + smoke * 0.06)/0.04);
+			} 
+            else
 			{
 				emit->setEnabled(false);
 			}
-			emit->setParticleVelocity(1.0+engine->getSmoke()*2.0, 2.0+engine->getSmoke()*3.0);
+			emit->setParticleVelocity(1.0 + smoke * 2.0, 2.0 + smoke *3.0);
 		}
 	}
 
@@ -4763,8 +4788,9 @@ void Beam::cruisecontrolToggle()
 	if (cc_mode)
 	{
 		cc_target_speed = WheelSpeed;
-		cc_target_rpm   = engine->getRPM();
-	} else
+		cc_target_rpm   = this->powertrain->GetStateOnMainThread().engine_current_rpm;
+	} 
+    else
 	{
 		cc_target_speed = 0;
 		cc_target_rpm   = 0;
@@ -4951,9 +4977,14 @@ void Beam::setDebugOverlayState(int mode)
 	bool beamsVisible = debugVisuals == 2 || debugVisuals == 3 || (debugVisuals >= 6 && debugVisuals <= 11);
 
 	for (std::vector<debugtext_t>::iterator it=nodes_debug.begin(); it!=nodes_debug.end();it++)
+    {
 		it->node->setVisible(nodesVisible);
+    }
+
 	for (std::vector<debugtext_t>::iterator it=beams_debug.begin(); it!=beams_debug.end();it++)
+    {
 		it->node->setVisible(beamsVisible);
+    }
 
 	updateDebugOverlay();
 }
@@ -5159,10 +5190,14 @@ float Beam::getHeadingDirectionAngle()
 bool Beam::getReverseLightVisible()
 {
 	if (state == NETWORKED)
+    {
 		return netReverseLight;
+    }
 
-	if (engine)
-		return (engine->getGear() < 0);
+	if (this->powertrain != nullptr)
+    {
+		return (this->powertrain->GetStateOnMainThread().transmission_current_gear < 0);
+    }
 
 	return reverselight;
 }
@@ -5245,8 +5280,10 @@ bool Beam::isLocked()
 bool Beam::navigateTo(Vector3 &in)
 {
 	// start engine if not running
-	if (engine && !engine->isRunning())
-		engine->start();
+	if (this->powertrain != nullptr && !this->powertrain->GetStateOnMainThread().engine_is_running)
+    {
+        this->powertrain->GetQueueOnMainThread().AddCommand(PowertrainCommand::COMMAND_START);
+    }
 
 	Vector3 TargetPosition = in;
 	TargetPosition.y=0;	//Vector3 > Vector2
@@ -5321,39 +5358,41 @@ bool Beam::navigateTo(Vector3 &in)
 	///RoR::Application::GetConsole()->putMessage(Console::CONSOLE_MSGTYPE_SCRIPT, Console::CONSOLE_SYSTEM_NOTICE, txt, "note.png");
 
 
-	if (engine)
+	if (powertrain != nullptr)
 	{
+        PowertrainCommandQueue& queue = this->powertrain->GetQueueOnMainThread();
 		if (mVectorToTarget.length() > 5.0f)
 		{
 			if(pitch < -5 && WheelSpeed > 10)
 			{
 				if (pitch < 0) pitch = -pitch;
 				brake = pitch * brakeforce / 90;
-				engine->autoSetAcc(0);
+                queue.AddCommand(PowertrainCommand::COMMAND_AUTO_SET_ACC, 0.f);
 			}
 			else
 			{
 				if (WheelSpeed < maxvelo - 5)
 				{
 					brake = 0;
-					engine->autoSetAcc(power);
+                    queue.AddCommand(PowertrainCommand::COMMAND_AUTO_SET_ACC, power);
 				}
 				else if (WheelSpeed > maxvelo + 5)
 				{
 					brake = brakeforce / 3;
-					engine->autoSetAcc(0);
+                    queue.AddCommand(PowertrainCommand::COMMAND_AUTO_SET_ACC, 0.f);
 				}
 				else
 				{
 					brake = 0;
-					engine->autoSetAcc(0);
+                    queue.AddCommand(PowertrainCommand::COMMAND_AUTO_SET_ACC, 0.f);
 				}
 			}
 			return false;
 		} 
 		else
 		{
-			engine->autoSetAcc(0);
+			PowertrainCommandQueue& queue = this->powertrain->GetQueueOnMainThread();
+            queue.AddCommand(PowertrainCommand::COMMAND_AUTO_SET_ACC, 0.f);
 			brake = brakeforce;
 			return true;
 		}
@@ -5384,13 +5423,15 @@ void Beam::updateDashBoards(float &dt)
 	}
 
 	// engine and gears
-	if (engine)
+	if (this->powertrain != nullptr)
 	{
+        PowertrainState powertrain = this->powertrain->GetStateOnMainThread();
+
 		// gears first
-		int gear = engine->getGear();
+		int gear = powertrain.transmission_current_gear;
 		dash->setInt(DD_ENGINE_GEAR, gear);
 
-		int numGears = (int)engine->getNumGears();
+		int numGears = powertrain.transmission_num_forward_gears;
 		dash->setInt(DD_ENGINE_NUM_GEAR, numGears);
 
 		String str = String();
@@ -5406,14 +5447,14 @@ void Beam::updateDashBoards(float &dt)
 		dash->setChar(DD_ENGINE_GEAR_STRING, str.c_str());
 		
 		// R N D 2 1 String
-		int cg = engine->getAutoShift();
-		if (cg != BeamEngine::MANUALMODE)
+		int cg = powertrain.transmission_auto_shift_mode;
+		if (cg != Gearbox::AUTOSWITCH_MANUALMODE)
 		{
-			str  = ((cg == BeamEngine::REAR)   ?"#ffffff":"#868686") + String("R\n");
-			str += ((cg == BeamEngine::NEUTRAL)?"#ff0012":"#8a000a") + String("N\n");
-			str += ((cg == BeamEngine::DRIVE)  ?"#12ff00":"#248c00") + String("D\n");
-			str += ((cg == BeamEngine::TWO)    ?"#ffffff":"#868686") + String("2\n");
-			str += ((cg == BeamEngine::ONE)    ?"#ffffff":"#868686") + String("1");
+			str  = ((cg == Gearbox::AUTOSWITCH_REAR)   ?"#ffffff":"#868686") + String("R\n");
+			str += ((cg == Gearbox::AUTOSWITCH_NEUTRAL)?"#ff0012":"#8a000a") + String("N\n");
+			str += ((cg == Gearbox::AUTOSWITCH_DRIVE)  ?"#12ff00":"#248c00") + String("D\n");
+			str += ((cg == Gearbox::AUTOSWITCH_TWO)    ?"#ffffff":"#868686") + String("2\n");
+			str += ((cg == Gearbox::AUTOSWITCH_ONE)    ?"#ffffff":"#868686") + String("1");
 		} else
 		{
 			//str = "#b8b8b8M\na\nn\nu\na\nl";
@@ -5422,35 +5463,35 @@ void Beam::updateDashBoards(float &dt)
 		dash->setChar(DD_ENGINE_AUTOGEAR_STRING, str.c_str());
 
 		// autogears
-		int autoGear = engine->getAutoShift();
+		int autoGear = powertrain.transmission_auto_shift_mode;
 		dash->setInt(DD_ENGINE_AUTO_GEAR, autoGear);
 
 		// clutch
-		float clutch = engine->getClutch();
+		float clutch = powertrain.transmission_current_clutch;
 		dash->setFloat(DD_ENGINE_CLUTCH, clutch);
 
 		// accelerator
-		float acc = engine->getAcc();
+		float acc = powertrain.current_acceleration;
 		dash->setFloat(DD_ACCELERATOR, acc);
 
 		// RPM
-		float rpm = engine->getRPM();
+		float rpm = powertrain.engine_current_rpm;
 		dash->setFloat(DD_ENGINE_RPM, rpm);
 
 		// turbo
-		float turbo = engine->getTurboPSI() * 3.34f; // MAGIC :/
+		float turbo = powertrain.turbo_current_psi * 3.34f; // MAGIC :/
 		dash->setFloat(DD_ENGINE_TURBO, turbo);
 
 		// ignition
-		bool ign = engine->hasContact();
+		bool ign = powertrain.engine_starter_has_contact;
 		dash->setBool(DD_ENGINE_IGNITION, ign);
 
 		// battery
-		bool batt = (engine->hasContact() && !engine->isRunning());
+		bool batt = (ign && !powertrain.engine_is_running);
 		dash->setBool(DD_ENGINE_BATTERY, batt);
 
 		// clutch warning
-		bool cw = (fabs(engine->getTorque()) >= engine->getClutchForce() * 10.0f);
+        bool cw = (fabs(powertrain.engine_current_torque) >= powertrain.conf_transmission_clutch_force * 10.0f);
 		dash->setBool(DD_ENGINE_CLUTCH_WARNING, cw);
 
 	}
@@ -5666,14 +5707,15 @@ void Beam::updateDashBoards(float &dt)
 	// set the features of this vehicle once
 	if (!GUIFeaturesChanged)
 	{
-		bool hasEngine = (engine != 0);
+		bool hasEngine = (this->powertrain != nullptr);
 		bool hasturbo = false;
 		bool autogearVisible = false;
 
 		if (hasEngine)
 		{
-			hasturbo = engine->hasTurbo();
-			autogearVisible = (engine->getAutoShift() != BeamEngine::MANUALMODE);
+            PowertrainState pw = this->powertrain->GetStateOnMainThread();
+			hasturbo = pw.conf_engine_has_turbo; //engine->hasTurbo();
+			autogearVisible = (pw.transmission_auto_shift_mode != Gearbox::AUTOSWITCH_MANUALMODE);
 		}
 
 		dash->setEnabled(DD_ENGINE_TURBO, hasturbo);
@@ -5860,27 +5902,39 @@ void Beam::triggerGUIFeaturesChanged()
 void Beam::engineTriggerHelper(int engineNumber, int type, float triggerValue)
 {
 	// engineNumber tells us which engine
-	BeamEngine* e = engine; // placeholder: trucks do not have multiple engines yet
+	BeamEngine* en = this->powertrain ? this->powertrain->GetEngine() : nullptr; // placeholder: trucks do not have multiple engines yet
 
 	switch (type)
 	{
 	case TRG_ENGINE_CLUTCH:
-		if (e) e->setClutch(triggerValue);
+        if (en != nullptr)
+        {
+            this->powertrain->GetQueueOnMainThread().AddCommand(PowertrainCommand::COMMAND_SET_CLUTCH, triggerValue);
+        }
 		break;
 	case TRG_ENGINE_BRAKE:
 		brake = triggerValue * brakeforce;
 		break;
 	case TRG_ENGINE_ACC:
-		if (e) e->setAcc(triggerValue);
+        if (en != nullptr)
+        {
+            this->powertrain->GetQueueOnMainThread().AddCommand(PowertrainCommand::COMMAND_SET_ACC, triggerValue);
+        }
 		break;
 	case TRG_ENGINE_RPM:
 		// TODO: Implement setTargetRPM in the BeamEngine.cpp
 		break;
 	case TRG_ENGINE_SHIFTUP:
-		if (e) e->BeamEngineShift(1);
+        if (en != nullptr)
+        {
+            this->powertrain->GetQueueOnMainThread().AddCommand(PowertrainCommand::COMMAND_SHIFT, 1.f); // 1 = shift up
+        }
 		break;
 	case TRG_ENGINE_SHIFTDOWN:
-		if (e) e->BeamEngineShift(-1);
+        if (en != nullptr)
+        {
+            this->powertrain->GetQueueOnMainThread().AddCommand(PowertrainCommand::COMMAND_SHIFT, -1.f); // -1 = shift down
+        }
 		break;
 	default:
 		break;
@@ -6217,9 +6271,9 @@ Beam::Beam(
 	mCamera = gEnv->mainCamera;
 	updateFlares(0);
 	updateProps();
-	if (engine)
+	if (this->powertrain != nullptr)
 	{
-		engine->offstart();
+        this->powertrain->GetQueueOnMainThread().AddCommand(PowertrainCommand::COMMAND_OFFSTART);
 	}
 	// pressurize tires
 	addPressure(0.0);
@@ -6242,9 +6296,9 @@ Beam::Beam(
 		netcounter = 0;
 		// init mutex
 		pthread_mutex_init(&net_mutex, NULL);
-		if (engine)
+		if (this->powertrain != nullptr)
 		{
-			engine->start();
+            this->powertrain->GetQueueOnMainThread().AddCommand(PowertrainCommand::COMMAND_START);
 		}
 	}
 
@@ -6563,11 +6617,12 @@ bool Beam::LoadTruck(
 				else
 					test02 = false;
 
+                float max_rpm = this->powertrain->GetStateOnMainThread().conf_engine_max_rpm;
 				if (test02)
 				{
 					if (Settings::getSingleton().getSetting("SpeedUnit", "Metric") == "Imperial")
 					{
-						if (engine->getMaxRPM() > 3500)
+						if (max_rpm > 3500)
 						{
 							//7000 rpm tachometer thanks to klink
 							dash->loadDashBoard("default_dashboard7000_mph.layout", false);
@@ -6583,7 +6638,7 @@ bool Beam::LoadTruck(
 					}
 					else
 					{
-						if (engine->getMaxRPM() > 3500)
+						if (max_rpm > 3500)
 						{
 							//7000 rpm tachometer thanks to klink
 							dash->loadDashBoard("default_dashboard7000.layout", false);
@@ -6602,7 +6657,7 @@ bool Beam::LoadTruck(
 				{
 					if (Settings::getSingleton().getSetting("SpeedUnit", "Metric") == "Imperial")
 					{
-						if (engine->getMaxRPM() > 3500)
+						if (max_rpm > 3500)
 						{
 							//7000 rpm tachometer thanks to klink
 							dash->loadDashBoard("default_dashboard7000_analog_mph.layout", false);
@@ -6618,7 +6673,7 @@ bool Beam::LoadTruck(
 					}
 					else
 					{
-						if (engine->getMaxRPM() > 3500)
+						if (max_rpm > 3500)
 						{
 							//7000 rpm tachometer thanks to klink
 							dash->loadDashBoard("default_dashboard7000_analog.layout", false);
@@ -6650,6 +6705,13 @@ bool Beam::LoadTruck(
 	}
 #endif // USE_MYGUI
     LOAD_RIG_PROFILE_CHECKPOINT(ENTRY_BEAM_LOADTRUCK_LOAD_DASHBOARDS);
+
+    // Powertrain - init output data
+    if (this->powertrain != nullptr)
+    {
+        this->powertrain->PowertrainExportState(); // Save data to buffer
+        this->powertrain->CriticalSection_SwapData(); // Swap buffers
+    }
 
 	return true;
 }

@@ -22,6 +22,7 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 #define __BeamEngine_H_
 
 #include "RoRPrerequisites.h"
+#include "Powertrain.h"
 #include <pthread.h>
 
 /**
@@ -48,7 +49,7 @@ public:
 	float getSmoke();
 	float getTorque();
 	float getTurboPSI(bool must_lock = true);
-	int getAutoMode();
+	int getAutoMode(); // m_transmission_mode
 
 	/**
 	* Sets current engine state; Needed mainly for smoke.
@@ -116,7 +117,7 @@ public:
 	/**
 	* Quick engine start. Plays sounds.
 	*/
-	void start();
+	void BeamEngineStart();
 
 	// low level gear changing
 	int getGear();
@@ -125,7 +126,7 @@ public:
 	void setGearRange(int v);
 	
 	// stall engine
-	void stop();
+	void BeamEngineStop(bool must_lock = true);
 
 	// high level controls
 	bool hasContact() { return m_starter_has_contact; };
@@ -140,7 +141,7 @@ public:
 	float getMaxRPM() { return m_conf_engine_max_rpm; };
 	float getMinRPM() { return m_conf_engine_min_rpm; };
 	float CalcPrimeMixture();
-	int getAutoShift();
+	RoR::Gearbox::autoswitch getAutoShift(); // m_autoselect
 	int getNumGears() { return m_conf_gear_ratios.size() - 2; };
 	int getNumGearsRanges() { return getNumGears() / 6 + 1; };
 	TorqueCurve *getTorqueCurve() { return m_conf_engine_torque_curve; };
@@ -170,9 +171,6 @@ public:
 	void BeamEngineShiftTo(int val, bool must_lock = true);
 
 	void UpdateBeamEngine(float dt, int doUpdate);
-
-	enum shiftmodes {AUTOMATIC, SEMIAUTO, MANUAL, MANUAL_STICK, MANUAL_RANGES};
-	enum autoswitch {REAR, NEUTRAL, DRIVE, TWO, ONE, MANUALMODE};
 
 protected:
 
@@ -242,7 +240,7 @@ protected:
 	bool       m_starter_has_contact; //!< Engine
 	float      m_curr_acc; //!< Engine
 	float      m_curr_engine_rpm; //!< Engine
-	autoswitch m_autoselect;
+	RoR::Gearbox::autoswitch m_autoselect;
 	float      m_auto_curr_acc;
 	bool       m_starter_is_running;
 	int        m_prime;
