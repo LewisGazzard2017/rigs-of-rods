@@ -190,27 +190,27 @@ namespace Profiler {
 	void reset();
 
 	struct Scoped {
-		Scoped( const char *name ) { PROFILE_START_RAW( name ) }
-		~Scoped() { PROFILE_STOP() }
+		Scoped( const char *name ) { ::PROFILE_START_RAW( name ) }
+		~Scoped() { ::PROFILE_STOP() }
 	};
 
 	struct ScopedPause {
-		ScopedPause() { PROFILE_PAUSE() }
-		~ScopedPause() { PROFILE_UNPAUSE() }
+		ScopedPause() { ::PROFILE_PAUSE() }
+		~ScopedPause() { ::PROFILE_UNPAUSE() }
 	};
 
 	struct ScopedThread {
-		ScopedThread( const char *name ) { PROFILE_THREAD_START_RAW( name ); }
-		~ScopedThread() { PROFILE_THREAD_STOP() }
+		ScopedThread( const char *name ) { ::PROFILE_THREAD_START_RAW( name ); }
+		~ScopedThread() { ::PROFILE_THREAD_STOP() }
 	};
 }; // namespace Profiler
 
 
 struct ScopedTimer {
-	ScopedTimer( Profiler::Timer &t ) : mTimer(t) { mTimer.Start(); }
+	ScopedTimer( ::Profiler::Timer &t ) : mTimer(t) { mTimer.Start(); }
 	~ScopedTimer() { mTimer.Stop(); }
 protected:
-	Profiler::Timer &mTimer;
+	::Profiler::Timer &mTimer;
 };
 
 #endif // __PROFILER_H__

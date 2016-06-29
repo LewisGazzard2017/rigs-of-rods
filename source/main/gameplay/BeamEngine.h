@@ -24,6 +24,9 @@
 #include "RoRPrerequisites.h"
 
 #include "pthread.h"
+#include "Diluculum/LuaVariable.hpp"
+
+#define POWERTRAIN_PROFILING_ENABLED
 
 /**
 * Represents a virtual engine of a vehicle (not "engine" as in "physics engine").
@@ -40,11 +43,8 @@ public:
 
     // Wrapper interface
 
-    inline void SetLuaState(Diluculum::LuaState* lua_state, pthread_mutex_t* lua_state_mutex)
-    {
-        m_lua_state = lua_state;
-        m_lua_state_mutex = lua_state_mutex;
-    }
+    void SetLuaState(Diluculum::LuaState* lua_state, pthread_mutex_t* lua_state_mutex);
+    static void DumpPowertrainProfilerHtml();
 
     // Lua script interface
 
@@ -131,9 +131,10 @@ public:
     void UpdateBeamEngine(float deltatime_seconds, bool do_update);
 
 private:
-    Diluculum::LuaState* m_lua_state;
-    TorqueCurve*         m_legacy_torque_curve;
-    pthread_mutex_t*     m_lua_state_mutex;
+    Diluculum::LuaState*    m_lua_state;
+    TorqueCurve*            m_legacy_torque_curve;
+    pthread_mutex_t*        m_lua_state_mutex;
+    Diluculum::LuaVariable* m_lua_powertrain;
 
 };
 

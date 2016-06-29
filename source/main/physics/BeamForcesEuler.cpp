@@ -63,7 +63,7 @@ void Beam::calcForcesEulerCompute(int doUpdate, Real dt, int step, int maxsteps)
 	if (engine)
 	{
 		BES_START(BES_CORE_TruckEngine);
-		engine->UpdateBeamEngine(dt, doUpdate);
+		engine->UpdateBeamEngine(dt, doUpdate == 1);
 		BES_STOP(BES_CORE_TruckEngine);
 	}
 	//if (doUpdate) mWindow->setDebugText(engine->status);

@@ -29,6 +29,7 @@
 
 #include "Application.h"
 #include "Beam.h"
+#include "BeamEngine.h"
 #include "BeamFactory.h"
 #include "CacheSystem.h"
 #include "CameraManager.h"
@@ -78,6 +79,9 @@
 GlobalEnvironment *gEnv; 
 
 using namespace RoR;
+
+
+
 using namespace Ogre; // The _L() macro won't compile without.
 
 MainThread::MainThread():
@@ -671,6 +675,10 @@ void MainThread::Go()
 
 	delete gEnv;
 	gEnv = nullptr;
+
+#ifdef POWERTRAIN_PROFILING_ENABLED
+    BeamEngine::DumpPowertrainProfilerHtml();
+#endif
 
 }
 

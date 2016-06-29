@@ -414,7 +414,7 @@ DBG_log_message("Lua: ENTER update_shifts()")
 
 		--while (newGear < m_conf_num_gears && m_cur_wheel_revolutions > 0.0f && m_cur_wheel_revolutions * m_conf_gear_ratios[newGear + 1] > m_conf_engine_max_rpm - 100.0f)
 		DBG_log_message("Lua: +while loop")
-		while (new_gear < self.conf_num_gears and self.cur_wheel_revolutions > 0.0 and self.cur_wheel_revolutions * m_conf_gear_ratios[new_gear + 1] > self.conf_engine_max_rpm - 100.0)
+		while (new_gear < self.conf_num_gears and self.cur_wheel_revolutions > 0.0 and self.cur_wheel_revolutions * self.conf_gear_ratios[new_gear + 1] > self.conf_engine_max_rpm - 100.0)
 		--{
 		do
 			--newGear++;
@@ -1775,7 +1775,7 @@ function ClassicPowertrain.update_beam_engine(self, delta_time_sec, do_update, n
 
 	-- integration
 
-	--[[ # debugging
+	--[ [ # debugging the flow
 	local dbg_txt = string.format("Lua - DBG | totaltorque { 1: %10.3f | 2: %10.3f | 3: %10.3f | 4: %10.3f } |"
 		.. " acc: { 1: %10.3f (idlemix: %10.3f) | 2: %10.3f (primemix: %10.3f) | 3: %10.3f } |"
 		.. " retorque: %10.3f | self.curr_engine_rpm: %10.3f | self.conf_engine_inertia: %10.3f ",

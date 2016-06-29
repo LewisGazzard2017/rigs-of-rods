@@ -8,7 +8,8 @@
 // License: MIT
 // ===========================================================================
 
-#if defined(_X86_) || defined(__i386__) || defined(__386__) // Profiler is only compatible with x86
+// _M_IX86: https://msdn.microsoft.com/en-us/library/b0084kay.aspx ~ only_a_ptr, 01/2016
+#if defined(_X86_) || defined(__i386__) || defined(_M_IX86) || defined(__386__) // Profiler is only compatible with x86
 
 #define __PROFILER_SMP__
 #define __PROFILER_CONSOLIDATE_THREADS__
