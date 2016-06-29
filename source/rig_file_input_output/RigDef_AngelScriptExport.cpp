@@ -35,35 +35,6 @@ using namespace AngelScript;
 using namespace RigDef;
 using namespace RoR;
 
-// Quick hack to register std::vector<T> / std::shared_ptr<T>
-#define INHERIT_STD_VECTOR(CLASSNAME, ITEM_T) \
-	class CLASSNAME: public std::vector<ITEM_T>       \
-	{                                                   \
-	public: \
-		~CLASSNAME()                                    \
-		{                                               \
-			/* non-virtual, call explicitly */          \
-			std::vector<ITEM_T>::~vector();             \
-		}                                               \
-		ITEM_T AS_At(size_t i)             { return this->at(i); }    \
-		void   AS_Clear()                  { this->clear(); }         \
-		void   AS_PushBack(ITEM_T item)    { this->push_back(item); } \
-		size_t AS_Size()                   { return this->size(); }   \
-	};
-
-#define INHERIT_STD_SHARED_PTR(CLASSNAME, ITEM_T) \
-	class CLASSNAME: public std::shared_ptr<ITEM_T>       \
-	{                                                   \
-	public: \
-		~CLASSNAME()                                    \
-		{                                               \
-			/* non-virtual, call explicitly */          \
-			std::shared_ptr<ITEM_T>::~shared_ptr();         \
-		}                                               \
-		ITEM_T* AS_Get() { return this->get(); } \
-	};
-
-
 INHERIT_STD_SHARED_PTR(AS_RigDef_ModuleSharedPtr, RigDef::File::Module);
 INHERIT_STD_SHARED_PTR(AS_RigDef_FileSharedPtr,   RigDef::File);
 

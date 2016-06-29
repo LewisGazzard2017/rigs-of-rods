@@ -95,6 +95,26 @@ void AS_RenderFrameAndUpdateWindow()
 	}
 }
 
+std::string const & AS_SYS_GetStringSetting(std::string key, std::string default_val)
+{
+	return SSETTING(key, default_val);
+}
+
+std::string AS_SYS_LoadRigEditorResourceAsString(std::string filename)
+{
+	Ogre::DataStreamPtr helpfile_stream = Ogre::ResourceGroupManager::getSingleton().openResource(
+		filename, // TODO: Localization
+		RoR::ContentManager::ResourcePack::RIG_EDITOR.resource_group_name,
+		false);
+
+	if (!helpfile_stream.isNull())
+	{
+		m_help_view->setCaption(helpfile_stream->getAsString());
+		m_helpfile_loaded = true;
+		m_help_view->setVScrollPosition(0);
+	}
+}
+
 // WORKAROUND
 // =====================================================================
 // Cloned from as_scriptbuilder.cpp
@@ -424,6 +444,8 @@ int ScriptEngine::RegisterSystemInterface()
 		A.RegisterGlobalFunction("bool                SYS_IsRoRApplicationWindowClosed()", asFUNCTION(AS_IsRoRApplicationWindowClosed), asCALL_CDECL);
 		A.RegisterGlobalFunction("bool                SYS_RequestRoRShutdown()",           asFUNCTION(AS_RequestRoRShutdown),           asCALL_CDECL);
 		A.RegisterGlobalFunction("bool                SYS_RenderFrameAndUpdateWindow()",   asFUNCTION(AS_RenderFrameAndUpdateWindow),   asCALL_CDECL);
+		A.RegisterGlobalFunction("string const &      SYS_GetStringSetting(string key, string default_val)",
+			asFUNCTION(AS_SYS_GetStringSetting), asCALL_CDECL);
 
 		return 0;
 	}
