@@ -4,6 +4,7 @@
 namespace RoR {
 
 const int TOBJ_STR_LEN 300;
+const int TOBJ_LINE_BUF_LEN 2000;
 
 // -----------------------------------------------------------------------------
 struct TObjTree
@@ -105,6 +106,23 @@ struct TObjFile
     std::vector<TObjGrass>  grass;
     std::vector<TObjRig>    rigs;
     std::vector<TObjEntry>  objects;
+};
+
+// -----------------------------------------------------------------------------
+class TObjParser
+{
+public:
+    void Prepare();
+    void ProcessLine(const char* line);
+
+private:
+    void ProcessCurrentLine();
+
+    std::shared_ptr<TObjFile>  m_def;
+    int                        m_line_number;
+    const char*                m_cur_line;
+    bool                       m_in_procedural_road; // Old parser: 'bool proroad'
+    bool                       m_road2_use_old_mode; // Old parser: 'int r2oldmode' 
 };
 
 } // namespace RoR
