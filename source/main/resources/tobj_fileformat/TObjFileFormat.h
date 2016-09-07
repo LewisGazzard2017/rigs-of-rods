@@ -1,11 +1,16 @@
 
 #pragma once
 
+namespace RoR {
+
+const int TOBJ_STR_LEN 300;
+
+// -----------------------------------------------------------------------------
 struct TObjTree
 {                     
     TObjTree():
-        yaw_from    (0.f),        yaw_to      (0.f),
-        scale_from  (0.f),        scale_to    (0.f),
+        yaw_from(0.f),            yaw_to(0.f),
+        scale_from(0.f),          scale_to(0.f),
         min_distance(90),         max_distance(700),
         high_density(1.f),
         grid_spacing(0.f),
@@ -22,12 +27,13 @@ struct TObjTree
     float    high_density;
     float    grid_spacing;
     
-    char     tree_mesh[300];
-    char     color_map[300];
-    char     density_map[300];
-    char     collision_mesh[300];   
+    char     tree_mesh[TOBJ_STR_LEN];
+    char     color_map[TOBJ_STR_LEN];
+    char     density_map[TOBJ_STR_LEN];
+    char     collision_mesh[TOBJ_STR_LEN];   
 };
 
+// -----------------------------------------------------------------------------
 /// Unified 'grass' and 'grass2'
 struct TObjGrass
 {
@@ -58,11 +64,32 @@ struct TObjGrass
     float    min_x,   min_y,   min_h;
     float    max_x,   max_y,   max_h;
     
-    char     grass_mat_name[300];
-    char     color_map_filename[300];
-    char     density_map_filename[300];
+    char     grass_mat_name[TOBJ_STR_LEN];
+    char     color_map_filename[TOBJ_STR_LEN];
+    char     density_map_filename[TOBJ_STR_LEN];
 };
 
+// -----------------------------------------------------------------------------
+struct TObjRig
+{
+    Ogre::Vector3      position;
+    Ogre::Quaternion   rotation;
+    char               name[TOBJ_STR_LEN];
+    bool               is_machine;
+    bool               free_position;
+};
+
+// -----------------------------------------------------------------------------
+struct TObjEntry
+{
+    Ogre::Vector3      position;
+    Ogre::Vector3      rotation;
+    char               obj_name[TOBJ_STR_LEN];
+    char               type[TOBJ_STR_LEN];
+    char               name[TOBJ_STR_LEN];
+};
+
+// -----------------------------------------------------------------------------
 struct TObjFile
 {
     TObjFile():
@@ -76,6 +103,8 @@ struct TObjFile
     bool                    grid_enabled;
     std::vector<TObjTree>   trees;
     std::vector<TObjGrass>  grass;
+    std::vector<TObjRig>    rigs;
+    std::vector<TObjEntry>  objects;
 };
 
-} // namespace TObj
+} // namespace RoR
