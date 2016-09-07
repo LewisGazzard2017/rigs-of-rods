@@ -4,7 +4,6 @@
 namespace RoR {
 
 const int TOBJ_STR_LEN 300;
-const int TOBJ_LINE_BUF_LEN 2000;
 
 // -----------------------------------------------------------------------------
 struct TObjTree
@@ -65,7 +64,7 @@ struct TObjGrass
     float    min_x,   min_y,   min_h;
     float    max_x,   max_y,   max_h;
     
-    char     grass_mat_name[TOBJ_STR_LEN];
+    char     material_name[TOBJ_STR_LEN];
     char     color_map_filename[TOBJ_STR_LEN];
     char     density_map_filename[TOBJ_STR_LEN];
 };
@@ -99,7 +98,7 @@ struct TObjFile
         grid_enabled(false)
     {}
     
-    int                     num_collision_triangles;
+    long                    num_collision_triangles;
     Ogre::Vector3           grid_position;
     bool                    grid_enabled;
     std::vector<TObjTree>   trees;
@@ -113,7 +112,7 @@ class TObjParser
 {
 public:
     void Prepare();
-    void ProcessLine(const char* line);
+    bool ProcessLine(const char* line);
 
 private:
     void ProcessCurrentLine();
