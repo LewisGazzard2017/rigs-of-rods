@@ -89,6 +89,8 @@ struct TObjEntry
     char               name[TOBJ_STR_LEN];
 };
 
+struct 
+
 // -----------------------------------------------------------------------------
 struct TObjFile
 {
@@ -98,13 +100,14 @@ struct TObjFile
         grid_enabled(false)
     {}
     
-    long                    num_collision_triangles;
-    Ogre::Vector3           grid_position;
-    bool                    grid_enabled;
-    std::vector<TObjTree>   trees;
-    std::vector<TObjGrass>  grass;
-    std::vector<TObjRig>    rigs;
-    std::vector<TObjEntry>  objects;
+    long                          num_collision_triangles;
+    Ogre::Vector3                 grid_position;
+    bool                          grid_enabled;
+    std::vector<TObjTree>         trees;
+    std::vector<TObjGrass>        grass;
+    std::vector<TObjRig>          rigs;
+    std::vector<TObjEntry>        objects;
+    std::vector<ProceduralObject> proc_objects;
 };
 
 // -----------------------------------------------------------------------------
@@ -115,13 +118,14 @@ public:
     bool ProcessLine(const char* line);
 
 private:
-    void ProcessCurrentLine();
+    bool ProcessCurrentLine();
 
     std::shared_ptr<TObjFile>  m_def;
     int                        m_line_number;
     const char*                m_cur_line;
     bool                       m_in_procedural_road; // Old parser: 'bool proroad'
-    bool                       m_road2_use_old_mode; // Old parser: 'int r2oldmode' 
+    //bool                       m_road2_use_old_mode; // Old parser: 'int r2oldmode'
+    ProceduralObject           m_cur_procedural_obj; 
 };
 
 } // namespace RoR

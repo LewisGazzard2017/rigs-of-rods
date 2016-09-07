@@ -20,13 +20,8 @@ bool TObjParser::ProcessLine(const char* line)
 {
     if ((line != nullptr) && (strlen(line) != 0) && (line[0] != '/') || (line[0] != ';'))
     {
-        // No trimming by design.
-        if (strcmp(line, "end") == 0)
-        {
-            return false;
-        }
-        m_cur_line = line; 
-        this->ProcessCurrentLine();
+        m_cur_line = line; // No trimming by design.
+        return this->ProcessCurrentLine();
     }
     m_line_number++;
     return true;
@@ -57,31 +52,38 @@ void TObjParser::ProcessOgreDataStream(Ogre::DataStreamPtr ds)
 		Vector3 rot(Vector3::ZERO);
     */
 
-void TObjParser::ProcessCurrentLine()
+bool TObjParser::ProcessCurrentLine()
 {
-    if (strncmp(m_cur_line, "collision-tris", 14) == 0)
+    if (!strcmp(m_cur_line, "end"))
+    {
+        return false;
+    }
+    if (!strncmp(m_cur_line, "collision-tris", 14))
     {
         sscanf(m_cur_line, "collision-tris %ld", &m_def->num_collision_triangles);
+        return true;
     }
-    else if (strncmp(m_cur_line, "grid", 4) == 0)
+    if (!strncmp(m_cur_line, "grid", 4))
     {        
         Ogre::Vector3 & pos = m_def->grid_position;
         sscanf(m_cur_line, "grid %f, %f, %f", &pos.x, &pos.y, &pos.z); // No error check by design
         m_def->grid_enabled = true;
+        return true;
     }
-    else if (strncmp(m_cur_line, "trees", 5) == 0)
+    if (!strncmp(m_cur_line, "trees", 5))
     {
         TObjTree tree;
         sscanf(m_cur_line, "trees %f, %f, %f, %f, %f, %d, %d, %s %s %s %f %s",
             &tree.yaw_from, &tree.yaw_to, &tree.scale_from, &tree.scale_to, &tree.high_density,
             &tree.min_distance, &tree.max_distance, tree.tree_mesh, tree.color_map, tree.density_map
             &tree.grid_spacing, tree.collision_mesh);
-        m_trees.push_back(tree); 
+        m_trees.push_back(tree);
+        return true; 
     }
-    else if (strncmp(m_cur_line, "grass", 5) == 0 || strncmp(m_cur_line, "grass2", 6) == 0)
+    if (!strncmp(m_cur_line, "grass", 5) || !strncmp(m_cur_line, "grass2", 6))
     {
         TObjGrass grass;
-        if (strncmp(m_cur_line, "grass2", 6) == 0)
+        if (!strncmp(m_cur_line, "grass2", 6))
         {
             sscanf(m_cur_line, "grass2 %d, %f, %f, %f, %f, %f, %f, %f, %f, %d, %f, %f, %d, %s %s %s",
                 &grass.range, &grass.sway_speed, &grass.sway_length, &grass.sway_distribution,
@@ -99,65 +101,43 @@ void TObjParser::ProcessCurrentLine()
                 grass.material_name, grass.color_map_filename, grass.density_map_filename);
         }
         m_grass.push_back(grass);
-    }    
+        return true;
+    } 
+    if (!strncmp("begin_procedural_roads", line, 22))
+    {
+        m_in_procedural_road = true;
+        //m_road2_use_old_mode = true;
+        return true;
+    }
+    else if (!strncmp("end_procedural_roads", line, 20))
+    {
+        m_in_procedural_road = false;
+        m_def->proc_objects.push_back(m_cur_procedural_obj);
+        m_cur_procedural_obj = ProceduralObject();
+    }
     
-
-
-	
-
-		{ // ugly stuff to parse procedural roads
-			if (!strncmp("begin_procedural_roads", line, 22))
-			{
-				po = ProceduralObject();
-				po.loadingState = 1;
-				r2oldmode = 1;
-				proroad = true;
-				continue;
-			}
-			if (!strncmp("end_procedural_roads", line, 20))
-			{
-				if (r2oldmode)
-				{
-					if (proceduralManager) proceduralManager->addObject(po);
-					po = ProceduralObject();
-				}
-				proroad = false;
-				continue;
-			}
-			if (proroad)
-			{
-				float rwidth, bwidth, bheight;
-				//position x,y,z rotation rx,ry,rz, width, border width, border height, type
-				int r = sscanf(line, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %s",&pos.x,&pos.y,&pos.z, &rot.x, &rot.y, &rot.z, &rwidth, &bwidth, &bheight, oname);
-				Quaternion rotation = Quaternion(Degree(rot.x), Vector3::UNIT_X)*Quaternion(Degree(rot.y), Vector3::UNIT_Y)*Quaternion(Degree(rot.z), Vector3::UNIT_Z);
-				int roadtype=Road2::ROAD_AUTOMATIC;
-				int pillartype = 0;
-				if (!strcmp(oname, "flat")) roadtype=Road2::ROAD_FLAT;
-				if (!strcmp(oname, "left")) roadtype=Road2::ROAD_LEFT;
-				if (!strcmp(oname, "right")) roadtype=Road2::ROAD_RIGHT;
-				if (!strcmp(oname, "both")) roadtype=Road2::ROAD_BOTH;
-				if (!strcmp(oname, "bridge")) {roadtype=Road2::ROAD_BRIDGE;pillartype=1;}
-				if (!strcmp(oname, "monorail")) {roadtype=Road2::ROAD_MONORAIL;pillartype=2;}
-				if (!strcmp(oname, "monorail2")) {roadtype=Road2::ROAD_MONORAIL;pillartype=0;}
-				if (!strcmp(oname, "bridge_no_pillars")) {roadtype=Road2::ROAD_BRIDGE;pillartype=0;}
-
-				if (r2oldmode)
-				{
-					//fill object
-					ProceduralPoint pp;
-					pp.bheight = bheight;
-					pp.bwidth = bwidth;
-					pp.pillartype = pillartype;
-					pp.position = pos;
-					pp.rotation = rotation;
-					pp.type = roadtype;
-					pp.width = rwidth;
-
-					po.points.push_back(pp);
-				}
-				continue;
-			}
-		} //end of the ugly (somewhat)
+    if (m_in_procedural_road)
+    {
+        PoceduralPoint point;
+        char obj_name[TOBJ_STR_LEN] = "";
+        sscanf(line, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %s",
+            &point.pos.x, &point.pos.y, &point.pos.z,
+            &point.rot.x, &point.rot.y, &point.rot.z,
+            &point.width, &point.bwidth, &point.bheight, obj_name);
+            
+		     if (!strcmp(obj_name, "flat"))              { point.type = Road2::ROAD_FLAT;  }
+		else if (!strcmp(obj_name, "left"))              { point.type = Road2::ROAD_LEFT;  }
+		else if (!strcmp(obj_name, "right"))             { point.type = Road2::ROAD_RIGHT; }
+		else if (!strcmp(obj_name, "both" ))             { point.type = Road2::ROAD_BOTH;  }
+		else if (!strcmp(obj_name, "bridge"))            { point.type = Road2::ROAD_BRIDGE;    point.pillartype = 1; }
+		else if (!strcmp(obj_name, "monorail"))          { point.type = Road2::ROAD_MONORAIL;  point.pillartype = 2; }
+		else if (!strcmp(obj_name, "monorail2"))         { point.type = Road2::ROAD_MONORAIL;  point.pillartype = 0; }
+		else if (!strcmp(obj_name, "bridge_no_pillars")) { point.type = Road2::ROAD_BRIDGE;    point.pillartype = 0; }
+        else                                             { point.type = Road2::ROAD_AUTOMATIC; point.pillartype = 0; }
+        
+        m_cur_procedural_obj.points.push_back(point);
+        return true;
+    }
 
 		strcpy(name, "generic");
 		memset(oname, 0, 255);
