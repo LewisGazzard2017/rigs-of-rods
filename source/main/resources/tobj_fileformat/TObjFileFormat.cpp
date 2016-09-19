@@ -74,9 +74,13 @@ bool TObjParser::ProcessCurrentLine()
     {
         TObjTree tree;
         sscanf(m_cur_line, "trees %f, %f, %f, %f, %f, %d, %d, %s %s %s %f %s",
-            &tree.yaw_from, &tree.yaw_to, &tree.scale_from, &tree.scale_to, &tree.high_density,
-            &tree.min_distance, &tree.max_distance, tree.tree_mesh, tree.color_map, tree.density_map
-            &tree.grid_spacing, tree.collision_mesh);
+            &tree.yaw_from,      &tree.yaw_to,
+            &tree.scale_from,    &tree.scale_to,
+            &tree.high_density,
+            &tree.min_distance,  &tree.max_distance, 
+            tree.tree_mesh,      tree.color_map,         tree.density_map
+            &tree.grid_spacing,  tree.collision_mesh);
+            
         m_trees.push_back(tree);
         return true; 
     }
@@ -86,19 +90,25 @@ bool TObjParser::ProcessCurrentLine()
         if (!strncmp(m_cur_line, "grass2", 6))
         {
             sscanf(m_cur_line, "grass2 %d, %f, %f, %f, %f, %f, %f, %f, %f, %d, %f, %f, %d, %s %s %s",
-                &grass.range, &grass.sway_speed, &grass.sway_length, &grass.sway_distribution,
-                &grass.density, &grass.min_x, &grass.min_y, &grass.max_x, &grass.max_y,
-                &grass.grow_techniq, &grass.min_h, &grass.max_h, &grass.technique,
-                grass.material_name, grass.color_map_filename, grass.density_map_filename);
+                &grass.range,
+                &grass.sway_speed,   &grass.sway_length, &grass.sway_distribution, &grass.density, 
+                &grass.min_x,        &grass.min_y,       &grass.max_x,             &grass.max_y,
+                &grass.grow_techniq, &grass.min_h,       &grass.max_h,             &grass.technique,
+                grass.material_name,
+                grass.color_map_filename,
+                grass.density_map_filename);
         }
         else
         {
             // Same as 'grass2', except without 'technique' parameter
             sscanf(m_cur_line, "grass2 %d, %f, %f, %f, %f, %f, %f, %f, %f, %d, %f, %f, %s %s %s",
-                &grass.range, &grass.sway_speed, &grass.sway_length, &grass.sway_distribution,
-                &grass.density, &grass.min_x, &grass.min_y, &grass.max_x, &grass.max_y,
-                &grass.grow_techniq, &grass.min_h, &grass.max_h,
-                grass.material_name, grass.color_map_filename, grass.density_map_filename);
+                &grass.range,
+                &grass.sway_speed,   &grass.sway_length, &grass.sway_distribution, &grass.density,
+                &grass.min_x,        &grass.min_y,       &grass.max_x,             &grass.max_y,
+                &grass.grow_techniq, &grass.min_h,       &grass.max_h,
+                grass.material_name,
+                grass.color_map_filename,
+                grass.density_map_filename);
         }
         m_grass.push_back(grass);
         return true;
@@ -121,8 +131,8 @@ bool TObjParser::ProcessCurrentLine()
         PoceduralPoint point;
         char obj_name[TOBJ_STR_LEN] = "";
         sscanf(line, "%f, %f, %f, %f, %f, %f, %f, %f, %f, %s",
-            &point.pos.x, &point.pos.y, &point.pos.z,
-            &point.rot.x, &point.rot.y, &point.rot.z,
+            &point.pos.x, &point.pos.y,  &point.pos.z,
+            &point.rot.x, &point.rot.y,  &point.rot.z,
             &point.width, &point.bwidth, &point.bheight, obj_name);
             
 		     if (!strcmp(obj_name, "flat"))              { point.type = Road2::ROAD_FLAT;  }
@@ -138,7 +148,7 @@ bool TObjParser::ProcessCurrentLine()
         m_cur_procedural_obj.points.push_back(point);
         return true;
     }
-
+/* TODO:
 		strcpy(name, "generic");
 		memset(oname, 0, 255);
 		memset(type, 0, 255);
@@ -260,5 +270,5 @@ bool TObjParser::ProcessCurrentLine()
 		if (proceduralManager) proceduralManager->addObject(po);
 	}
 }
-    */
+*/
 }
