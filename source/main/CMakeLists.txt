@@ -547,6 +547,18 @@ target_include_directories( ${BINNAME} PRIVATE
  gui
  gui/mygui
  gui/panels
+ map_editor/libs/Shiny/Platforms/Ogre
+ map_editor/libs/Shiny/Main
+ map_editor/main
+ map_editor/libs/TinyXML
+ map_editor/scene
+ map_editor/road
+ map_editor/vdrift
+ map_editor/libs/PagedGeometry
+ map_editor/libs/BtOgre
+ map_editor/gui
+ map_editor/fileformats
+ map_editor/base
  network
  network/IRC
  network/protocol
