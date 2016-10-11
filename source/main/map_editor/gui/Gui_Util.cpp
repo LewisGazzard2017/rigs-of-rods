@@ -10,8 +10,8 @@
 #include "SplineRoad.h"
 #include "../road/PaceNotes.h"
 #include "MultiList2.h"
-#include "../sdl4ogre/sdlcursormanager.hpp"
-#include "../sdl4ogre/sdlinputwrapper.hpp"
+//STUNTPORT #include "../sdl4ogre/sdlcursormanager.hpp"
+//STUNTPORT #include "../sdl4ogre/sdlinputwrapper.hpp"
 #include <OgreTerrain.h>
 #include <OgreOverlay.h>
 #include <OgreOverlayElement.h>
@@ -208,10 +208,11 @@ void App::UpdVisGui()
 	}
 
 	bool vis = g || !bMoveCam;
-	mInputWrapper->setMouseVisible(vis);
-	mInputWrapper->setMouseRelative(!vis);
-	mInputWrapper->setAllowGrab(pSet->mouse_capture);
-	mInputWrapper->setGrabPointer(!vis);
+
+	//STUNTPORT mInputWrapper->setMouseVisible(vis);
+	//STUNTPORT mInputWrapper->setMouseRelative(!vis);
+	//STUNTPORT mInputWrapper->setAllowGrab(pSet->mouse_capture);
+	//STUNTPORT mInputWrapper->setGrabPointer(!vis);
 
 	if (scn->road)  scn->road->SetTerHitVis(bEdit());
 	if (!g && gcom->mToolTip)  gcom->mToolTip->setVisible(false);

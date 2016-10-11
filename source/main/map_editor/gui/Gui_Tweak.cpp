@@ -9,8 +9,8 @@
 #include "MultiList2.h"
 #include "MapEditor_GuiSlider.h"
 #include "../shiny/Main/Factory.hpp"
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
+//STUNTPORT #include <boost/algorithm/string.hpp>
+//STUNTPORT #include <boost/lexical_cast.hpp>
 #include <MyGUI.h>
 using namespace MyGUI;
 using namespace Ogre;
@@ -48,8 +48,9 @@ void CGui::CreateGUITweakMtr()
 		if (!isStr)
 		{
 			//  get size
-			std::vector<std::string> tokens;
-			boost::split(tokens, sVal, boost::is_any_of(" "));
+			//STUNTPORT std::vector<std::string> tokens;
+			//STUNTPORT boost::split(tokens, sVal, boost::is_any_of(" "));
+            auto tokens = Ogre::StringUtil::split(sVal, " ");
 			int size = tokens.size();
 
 			//LogO("PROP: " + name + "  val: " + sVal + "  type:" + toStr(type));
@@ -61,7 +62,7 @@ void CGui::CreateGUITweakMtr()
 			for (int i=0; i < size; ++i)
 			{
 				String nameSi = name + ":" + toStr(size) + "." + toStr(i);  // size and id in name
-				float val = boost::lexical_cast<float> (tokens[i]);
+				float val = Ogre::StringConverter::parseReal(tokens[i]); //STUNTPORT boost::lexical_cast<float> (tokens[i]);
 				int t = std::min(4,i);  const Colour& clr = clrsType[std::max(0,std::min(4,size-1))];
 
 				//  name text

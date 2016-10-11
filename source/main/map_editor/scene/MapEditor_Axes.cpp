@@ -1,6 +1,5 @@
 #include "MapEditor_Global.h"
-#include "Axes.h"
-#include "../../vdrift/dbl.h"
+#include "MapEditor_Axes.h"
 using namespace Ogre;
 using half_float::half;
 

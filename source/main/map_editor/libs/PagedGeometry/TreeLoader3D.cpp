@@ -529,7 +529,8 @@ void TreeIterator3D::moveNext()
 {
 	//Out of bounds check
 	if (!hasMore)
-		OGRE_EXCEPT(1, "Cannot read past end of TreeIterator list", "TreeIterator::moveNext()");
+		//STUNTPORT OGRE_EXCEPT(1, "Cannot read past end of TreeIterator list", "TreeIterator::moveNext()");
+        throw std::runtime_error("TreeIterator::moveNext() ----- Cannot read past end of TreeIterator list");
 
 	//Preserve the last tree
 	prevTreeDat = currentTreeDat;

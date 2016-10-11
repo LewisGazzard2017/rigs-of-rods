@@ -1,11 +1,12 @@
 #include "MapEditor_Global.h"
 #include "MapEditor_StringUtil.h"
+#include "MapEditor_Settings.h"
 #include "SceneXml.h"
 #include "FluidsXml.h"
 #include "tinyxml.h"
 #include "tinyxml2.h"
 #include <OgreSceneNode.h>
-#include "../vdrift/game.h"  // for surfaces map
+//STUNTPORT #include "../vdrift/game.h"  // for surfaces map
 using namespace std;
 using namespace Ogre;
 using namespace tinyxml2;

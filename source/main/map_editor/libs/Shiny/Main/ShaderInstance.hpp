@@ -40,10 +40,10 @@ namespace sh
 		std::vector<std::string> getUsedSamplers();
 		std::vector<std::string> getSharedParameters() { return mSharedParameters; }
 
-		void setUniformParameters (boost::shared_ptr<Pass> pass, PropertySetGet* properties);
+		void setUniformParameters (std::shared_ptr<Pass> pass, PropertySetGet* properties);
 
 	private:
-		boost::shared_ptr<GpuProgram> mProgram;
+		std::shared_ptr<GpuProgram> mProgram;
 		std::string mName;
 		ShaderSet* mParent;
 		bool mSupported; ///< shader compilation was sucessful?

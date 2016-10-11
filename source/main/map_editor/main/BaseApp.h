@@ -1,4 +1,5 @@
 #pragma once
+#include "MapEditor_Global.h"
 #include "MapEditor_GuiDefs.h"
 #include <OgreVector3.h>
 #include <OgreString.h>
@@ -67,14 +68,12 @@ protected:
 	///  input events
 	/*virtual*/
 
-    /* STUNTPORT
-	bool keyPressed( const SDL_KeyboardEvent &arg) = 0;
-	bool keyReleased(const SDL_KeyboardEvent &arg);
-	bool mouseMoved( const SFO::MouseMotionEvent &arg );
-	bool mousePressed( const SDL_MouseButtonEvent &arg, Uint8 id );
-	bool mouseReleased(const SDL_MouseButtonEvent &arg, Uint8 id );
-	void textInput(const SDL_TextInputEvent &arg);
-    */
+	bool keyPressed( const MapEditor_KeyboardEvent &arg);              // STUNTPORT orig = SDL_KeyboardEvent
+	bool keyReleased(const MapEditor_KeyboardEvent &arg);                  // STUNTPORT orig = SDL_KeyboardEvent
+	bool mouseMoved( const MapEditor_MouseMotionEvent &arg );             // STUNTPORT orig = SFO::MouseMotionEvent
+	bool mousePressed( const MapEditor_MouseButtonEvent &arg, Ogre::uint8 id );  // STUNTPORT orig = SDL_MouseButtonEvent
+	bool mouseReleased(const MapEditor_MouseButtonEvent &arg, Ogre::uint8 id );  // STUNTPORT orig = SDL_MouseButtonEvent
+	void textInput(const MapEditor_TextInputEvent &arg);                   // STUNTPORT orig = SDL_TextInputEvent
 
 	void onCursorChange(const std::string& name);
 

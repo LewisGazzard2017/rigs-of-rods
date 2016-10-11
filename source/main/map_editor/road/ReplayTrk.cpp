@@ -1,6 +1,6 @@
 #include "MapEditor_Global.h"
 #include "ReplayTrk.h"
-#include "common/Def_Str.h"
+#include "MapEditor_StringUtil.h"
 #include <OgreTimer.h>
 #include <string>
 

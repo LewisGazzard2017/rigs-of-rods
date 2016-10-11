@@ -1,5 +1,5 @@
 #include "MapEditor_Global.h"
-#include "../vdrift/dbl.h"
+
 #include "MapEditor_StringUtil.h"
 #include "SplineBase.h"
 #include <OgreVector4.h>

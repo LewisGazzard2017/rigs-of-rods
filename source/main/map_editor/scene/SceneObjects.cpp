@@ -3,18 +3,13 @@
 #include "MapEditor_StringUtil.h"
 #include "SceneXml.h"
 #include "CScene.h"
-#include "../common/Axes.h"
+#include "MapEditor_Axes.h"
 #include "MapEditor_PathManager.h"
-#include "../../btOgre/BtOgreGP.h"
+#include "BtOgreGP.h"
 #include "SplineRoad.h"
-#include "../common/ShapeData.h"
-#ifdef SR_EDITOR
-	#include "MapEditor_App.h"
-	#include "CGui.h"
-#else
-	#include "../CGame.h"
-	#include "../../vdrift/game.h"
-#endif
+#include "MapEditor_ShapeData.h"
+#include "MapEditor_App.h"
+#include "CGui.h"
 #include <BulletCollision/CollisionDispatch/btCollisionObject.h>
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
 #include <LinearMath/btDefaultMotionState.h>

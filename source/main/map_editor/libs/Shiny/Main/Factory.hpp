@@ -84,7 +84,7 @@ namespace sh
 		/// Internally, this will change all uniform parameters of this name marked with the macro \@shSharedParameter \n
 		/// @param name of the shared parameter
 		/// @param value of the parameter, use sh::makeProperty to construct this value
-		//STUNTPORT void setSharedParameter (const std::string& name, PropertyValuePtr value);
+		void setSharedParameter (const std::string& name, PropertyValuePtr value);
 
 		Language getCurrentLanguage ();
 

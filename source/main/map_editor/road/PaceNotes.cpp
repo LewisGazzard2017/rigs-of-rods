@@ -2,13 +2,8 @@
 #include "MapEditor_StringUtil.h"
 #include "RenderConst.h"
 #include "PaceNotes.h"
-#ifdef SR_EDITOR
-	#include "../editor/CApp.h"
-	#include "../editor/settings.h"
-#else
-	#include "../ogre/CGame.h"
-	#include "../vdrift/settings.h"
-#endif
+#include "MapEditor_App.h"
+#include "MapEditor_Settings.h"
 #include <OgreTimer.h>
 #include <OgreCamera.h>
 #include <OgreSceneManager.h>

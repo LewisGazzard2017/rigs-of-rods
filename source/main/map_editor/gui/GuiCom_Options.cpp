@@ -5,18 +5,12 @@
 #include "CScene.h"
 #include "SplineRoad.h"
 #include "MapEditor_PathManager.h"
-#ifndef SR_EDITOR
-	#include "../../vdrift/game.h"
-	#include "../CGame.h"
-	#include "../SplitScreen.h"
-#else
-	#include "MapEditor_App.h"
-	#include "MapEditor_Settings.h"
-#endif
+#include "MapEditor_App.h"
+#include "MapEditor_Settings.h"
 #include "MapEditor_GuiSlider.h"
 #include "WaterRTT.h"
 #include "../shiny/Main/Factory.hpp"
-#include "../sdl4ogre/sdlinputwrapper.hpp"
+//STUNTPORT #include "../sdl4ogre/sdlinputwrapper.hpp"
 #include <OgreTerrain.h>
 #include <OgreCamera.h>
 #include <OgreMaterialManager.h>

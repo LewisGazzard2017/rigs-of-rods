@@ -3,16 +3,10 @@
 #include "MapEditor_Axes.h"
 #include "SceneXml.h"
 #include "PaceNotes.h"
-#include "../ogre/ReplayTrk.h"
-#include "../vdrift/dbl.h"
-#ifdef SR_EDITOR
-	#include "../editor/CApp.h"
-	#include "../editor/settings.h"
-#else
-	#include "../ogre/CGame.h"
-	#include "../vdrift/settings.h"
-#endif
-#include "../road/SplineBase.h"
+#include "ReplayTrk.h"
+#include "MapEditor_App.h"
+#include "MapEditor_Settings.h"
+#include "SplineBase.h"
 #include "SplineRoad.h"
 #include "MapEditor_PathManager.h"
 #include <OgreTimer.h>

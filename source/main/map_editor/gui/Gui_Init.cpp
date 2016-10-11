@@ -3,20 +3,22 @@
 #include "MapEditor_GuiDefs.h"
 #include "GuiCom.h"
 #include "CData.h"
-#include "../ogre/common/data/TracksXml.h"
+#include "TracksXml.h"
 #include "MapEditor_Settings.h"
 #include "MapEditor_App.h"
 #include "CGui.h"
 #include "MapEditor_PathManager.h"
 #include "MultiList2.h"
 #include "MapEditor_GuiSlider.h"
-#include <boost/filesystem.hpp>
-#include "../sdl4ogre/sdlinputwrapper.hpp"
+#include "PlatformUtils.h"
+
+//STUNTPORT #include <boost/filesystem.hpp>
+//STUNTPORT #include "../sdl4ogre/sdlinputwrapper.hpp"
 #include <MyGUI.h>
 #include <MyGUI_InputManager.h>
 #include <OgreTimer.h>
 #include <OgreRenderWindow.h>
-#include "../ogre/common/RenderBoxScene.h"
+//STUNTPORT #include "../ogre/common/RenderBoxScene.h"
 using namespace MyGUI;
 using namespace Ogre;
 using namespace std;
@@ -632,7 +634,8 @@ void CGui::InitGui()
 			if (StringUtil::startsWith(name,"rock",false)||StringUtil::startsWith(name,"cave",false))
 				objListRck->addItem("#E0B070"+name);  // rocks
 			else 
-			if (boost::filesystem::exists(sData+"/objects/"+ name + ".bullet"))
+            std::string obj_filepath = sData+"/objects/"+ name + ".bullet";
+			if (RoR::PlatformUtils::FileExists(obj_filepath))
 				objListDyn->addItem("#A0E0FF"+name);  // dynamic
 			else
 				objListSt->addItem("#C8C8C8"+name);

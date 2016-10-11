@@ -1,6 +1,6 @@
 #include "MapEditor_Global.h"
 #include "bezier.h"
-#include "unittest.h"
+//STUNTPORT #include "unittest.h"
 
 #include <cmath>
 
@@ -566,6 +566,8 @@ bool BEZIER::CheckForProblems() const
 	return problem;
 }
 
+
+#if 0 //STUNTPORT 
 QT_TEST(bezier_test)
 {
 	MATHVECTOR<float,3> p[4], l[4], r[4];
@@ -588,6 +590,7 @@ QT_TEST(bezier_test)
 	b.SetFromCorners(MATHVECTOR<float,3>(1,0,1),MATHVECTOR<float,3>(-1,0,1),MATHVECTOR<float,3>(1,0,-1),MATHVECTOR<float,3>(-1,0,-1));
 	QT_CHECK(!b.CheckForProblems());
 }
+#endif // //STUNTPORT 
 
 bool BEZIER::IntersectQuadrilateralF(const MATHVECTOR<float,3> & orig, const MATHVECTOR<float,3> & dir,
 				     const MATHVECTOR<float,3> & v_00, const MATHVECTOR<float,3> & v_10,

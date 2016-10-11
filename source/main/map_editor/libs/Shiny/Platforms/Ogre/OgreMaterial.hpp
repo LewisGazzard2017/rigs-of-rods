@@ -15,7 +15,7 @@ namespace sh
 		OgreMaterial (const std::string& name, const std::string& resourceGroup);
 		virtual ~OgreMaterial();
 
-		virtual boost::shared_ptr<Pass> createPass (const std::string& configuration, unsigned short lodIndex);
+		virtual std::shared_ptr<Pass> createPass (const std::string& configuration, unsigned short lodIndex);
 		virtual bool createConfiguration (const std::string& name, unsigned short lodIndex);
 
 		virtual bool isUnreferenced();

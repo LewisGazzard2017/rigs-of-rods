@@ -4,7 +4,8 @@
 #include "BaseApp.h"
 #include "MapEditor_App.h"
 #include "MapEditor_PathManager.h"
-#include "Localization.h"
+#include "MapEditor_Localization.h"
+#include "PlatformUtils.h"
 
 //STUNTPORT #include <boost/thread.hpp>
 //STUNTPORT #include <boost/filesystem.hpp>
@@ -27,6 +28,9 @@
 #include <MyGUI_FactoryManager.h>
 #include <MyGUI_ImageBox.h>
 #include <MyGUI_TextBox.h>
+
+#include <thread>
+#include <chrono>
 
 namespace
 {
@@ -61,7 +65,8 @@ namespace
 		return unicode;
 	}
 
-	MyGUI::MouseButton sdlButtonToMyGUI(Uint8 button)
+    /* --STUNTPORT--
+	MyGUI::MouseButton sdlButtonToMyGUI(Ogre::Uint8 button)
 	{
 		//  The right button is the second button, according to MyGUI
 		if (button == SDL_BUTTON_RIGHT)  button = SDL_BUTTON_MIDDLE;
@@ -69,6 +74,7 @@ namespace
 		//  MyGUI's buttons are 0 indexed
 		return MyGUI::MouseButton::Enum(button - 1);
 	}
+    */
 }
 
 
@@ -104,6 +110,7 @@ void BaseApp::createFrameListener()
 	ovTerMtr = ovr.getOverlayElement("Editor/TerPrvPanel");
 
 	//  input
+#if 0 //--STUNTPORT--
 	mInputWrapper = new SFO::InputWrapper(mSDLWindow, mWindow);
 	mInputWrapper->setMouseEventCallback(this);
 	mInputWrapper->setKeyboardEventCallback(this);
@@ -111,6 +118,7 @@ void BaseApp::createFrameListener()
 	mCursorManager = new SFO::SDLCursorManager();
 	onCursorChange(MyGUI::PointerManager::getInstance().getDefaultPointer());
 	mCursorManager->setEnabled(true);
+#endif //--STUNTPORT--
 
 	mRoot->addFrameListener(this);
 }
@@ -138,7 +146,7 @@ void BaseApp::Run( bool showDialog )
 					break;
 			}else
 			if (pSet->limit_sleep >= 0)
-				boost::this_thread::sleep(boost::posix_time::milliseconds(pSet->limit_sleep));
+				std::this_thread::sleep_for(std::chrono::milliseconds(pSet->limit_sleep));
 	}	}
 
 	destroyScene();
@@ -191,6 +199,7 @@ BaseApp::~BaseApp()
 //-------------------------------------------------------------------------------------
 bool BaseApp::configure()
 {
+#if 0 // --STUNTPORT--
 	Ogre::RenderSystem* rs;
 	if (rs = mRoot->getRenderSystemByName(pSet->rendersystem))
 	{
@@ -243,6 +252,7 @@ bool BaseApp::configure()
 	SFO::SDLWindowHelper helper(mSDLWindow, pSet->windowx, pSet->windowy, "SR Editor", pSet->fullscreen, params);
 	helper.setWindowIcon("sr-editor.png");
 	mWindow = helper.getWindow();
+#endif // --STUNTPORT--
 
 	return true;
 }
@@ -355,61 +365,75 @@ void BaseApp::loadResources()
 //  key, mouse, window
 //-------------------------------------------------------------------------------------
 
-bool BaseApp::keyReleased( const SDL_KeyboardEvent &arg )
+bool BaseApp::keyReleased( const MapEditor_KeyboardEvent &arg )
 {
+    /* --STUNTPORT--
 	//if (bGuiFocus)
 		MyGUI::InputManager::getInstance().injectKeyRelease(MyGUI::KeyCode::Enum(mInputWrapper->sdl2OISKeyCode(arg.keysym.sym)));
 	return true;
+    */
 }
 
-void BaseApp::textInput(const SDL_TextInputEvent &arg)
+void BaseApp::textInput(const MapEditor_TextInputEvent &arg)
 {
+    /*    --STUNTPORT--
 	const char* text = &arg.text[0];
 	if (*text == '`')  return;
 	std::vector<unsigned long> unicode = utf8ToUnicode(std::string(text));
 	if (bGuiFocus)
 	for (std::vector<unsigned long>::iterator it = unicode.begin(); it != unicode.end(); ++it)
 		MyGUI::InputManager::getInstance().injectKeyPress(MyGUI::KeyCode::None, *it);
+    
+    --STUNTPORT--*/
 }
 
 
 //  Mouse
 //-------------------------------------------------------------------------------------
-bool BaseApp::mouseMoved( const SFO::MouseMotionEvent &arg )
+bool BaseApp::mouseMoved( const MapEditor_MouseMotionEvent &arg )
 {
+    /* --STUNTPORT--
 	mx += arg.xrel;  my += arg.yrel;
 	int dz = arg.zrel / 50;
 	if (dz != 0)
 		mz += dz > 0 ? 1 : -1;
 	//if (bGuiFocus)
 		MyGUI::InputManager::getInstance().injectMouseMove(arg.x, arg.y, arg.z);
+    
+    --STUNTPORT--*/
 	return true;
 }
 
-bool BaseApp::mousePressed( const SDL_MouseButtonEvent &arg, Uint8 id )
+bool BaseApp::mousePressed( const MapEditor_MouseButtonEvent &arg, Ogre::uint8 id )
 {
+    /*   --STUNTPORT--
 	if (bGuiFocus)
 		MyGUI::InputManager::getInstance().injectMousePress(arg.x, arg.y, sdlButtonToMyGUI(id));
 	if (id == SDL_BUTTON_LEFT)			mbLeft = true;
 	else if (id == SDL_BUTTON_RIGHT)	mbRight = true;
 	else if (id == SDL_BUTTON_MIDDLE)	mbMiddle = true;
+    --STUNTPORT--*/
 	return true;
 
 }
 
-bool BaseApp::mouseReleased( const SDL_MouseButtonEvent &arg, Uint8 id )
+bool BaseApp::mouseReleased( const MapEditor_MouseButtonEvent &arg, Ogre::uint8 id )
 {
+    /*  --STUNTPORT--
 	//if (bGuiFocus)
 		MyGUI::InputManager::getInstance().injectMouseRelease(arg.x, arg.y, sdlButtonToMyGUI(id));
 	if (id == SDL_BUTTON_LEFT)			mbLeft = false;
 	else if (id == SDL_BUTTON_RIGHT)	mbRight = false;
 	else if (id == SDL_BUTTON_MIDDLE)	mbMiddle = false;
+    --STUNTPORT--*/
 	return true;
 }
 
 
 void BaseApp::onCursorChange(const std::string &name)
 {
+    /*      --STUNTPORT--
+
 	if (!mCursorManager->cursorChanged(name))
 		return;  // the cursor manager doesn't want any more info about this cursor
 	//  See if we can get the information we need out of the cursor resource
@@ -433,6 +457,8 @@ void BaseApp::onCursorChange(const std::string &name)
 			mCursorManager->receiveCursorInfo(name, tex, left, top, size_x, size_y, hotspot_x, hotspot_y);
 		}
 	}
+
+    --STUNTPORT-- */
 }
 
 void BaseApp::windowResized(int x, int y)
@@ -479,8 +505,9 @@ void BaseApp::baseInitGui()
 	{	pSet->language = getSystemLanguage();
 		setlocale(LC_NUMERIC, "C");  }
 	
-	if (!boost::filesystem::exists(PATHMANAGER::Data() + "/gui/core_language_" + pSet->language + "_tag.xml"))
-		pSet->language = "en";  // use en if not found
+    std::string tagxml_filepath = PATHMANAGER::Data() + "/gui/core_language_" + pSet->language + "_tag.xml";
+	if (!RoR::PlatformUtils::FileExists(tagxml_filepath))
+		pSet->language = "en";  // use "en" if not found
 		
 	LanguageManager::getInstance().setCurrentLanguage(pSet->language);
 	//------------------------
