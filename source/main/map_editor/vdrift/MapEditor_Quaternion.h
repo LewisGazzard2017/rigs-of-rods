@@ -5,13 +5,13 @@
 #include <iostream>
 
 #include "mathvector.h"
-#include "joeserialize.h"
+//STUNTPORT-TMP #include "joeserialize.h"
 
 
 template <typename T>
 class QUATERNION
 {
-friend class joeserialize::Serializer;
+//STUNTPORT-TMP friend class joeserialize::Serializer;
 private:
 	T v[4];  //x y z w
 	
@@ -354,6 +354,7 @@ public:
 		return qout;
 	}
 	
+    /* //STUNTPORT-TMP
 	bool Serialize(joeserialize::Serializer & s)
 	{
 		if (!s.Serialize("x",v[0])) return false;
@@ -361,7 +362,7 @@ public:
 		if (!s.Serialize("z",v[2])) return false;
 		if (!s.Serialize("w",v[3])) return false;
 		return true;
-	}
+	}*/
 	
 	/*///assuming the eye is at the given coordinates, set the orientation to look at center
 	void LookAt(T eyex, 

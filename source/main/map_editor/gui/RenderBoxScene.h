@@ -9,7 +9,7 @@
 #include <Ogre.h>
 #include <MyGUI.h>
 #include "RenderBox.h"
-#include "Def_Str.h"
+#include "MapEditor_StringUtil.h"
 
 namespace wraps
 {

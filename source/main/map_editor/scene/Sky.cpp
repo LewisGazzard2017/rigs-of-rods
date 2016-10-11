@@ -1,18 +1,12 @@
-#include "pch.h"
-#include "../common/Def_Str.h"
-#include "../common/RenderConst.h"
-#include "../common/data/SceneXml.h"
-#include "../common/CScene.h"
-#include "../../road/Road.h"  // sun rot
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
+#include "RenderConst.h"
+#include "SceneXml.h"
+#include "CScene.h"
+#include "SplineRoad.h"  // sun rot
 #include "../shiny/Main/Factory.hpp"
-#include "../../vdrift/dbl.h"
-#ifdef SR_EDITOR
-	#include "../../editor/CApp.h"
-	#include "../../editor/settings.h"
-#else
-	#include "../CGame.h"
-	#include "../../vdrift/settings.h"
-#endif
+#include "MapEditor_App.h"
+#include "MapEditor_Settings.h"
 #include <OgreRoot.h>
 #include <OgreManualObject.h>
 #include <OgreSceneNode.h>

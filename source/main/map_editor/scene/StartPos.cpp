@@ -1,12 +1,12 @@
-#include "pch.h"
-#include "../ogre/common/Def_Str.h"
-#include "../ogre/common/RenderConst.h"
-#include "../ogre/common/CScene.h"
-#include "../ogre/common/Axes.h"
-#include "settings.h"
-#include "CApp.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
+#include "RenderConst.h"
+#include "CScene.h"
+#include "MapEditor_Axes.h"
+#include "MapEditor_Settings.h"
+#include "MapEditor_App.h"
 #include "CGui.h"
-#include "../road/Road.h"
+#include "SplineRoad.h"
 #include <Ogre.h>
 using namespace Ogre;
 

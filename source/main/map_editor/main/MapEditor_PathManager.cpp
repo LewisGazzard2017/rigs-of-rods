@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 /// Big portions of this file are borrowed and adapted from Performous under GPL (http://performous.org)
 
 #include "pathmanager.h"

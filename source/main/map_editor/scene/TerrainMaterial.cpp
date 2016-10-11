@@ -1,8 +1,8 @@
-#include "pch.h"
-#include "Def_Str.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
 #include "TerrainMaterial.h"
 #include "CScene.h"
-#include "data/SceneXml.h"
+#include "SceneXml.h"
 
 #include <OgreTerrain.h>
 #include <OgreMaterialManager.h>

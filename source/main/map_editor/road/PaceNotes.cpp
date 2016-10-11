@@ -1,6 +1,6 @@
-#include "pch.h"
-#include "../ogre/common/Def_Str.h"
-#include "../ogre/common/RenderConst.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
+#include "RenderConst.h"
 #include "PaceNotes.h"
 #ifdef SR_EDITOR
 	#include "../editor/CApp.h"

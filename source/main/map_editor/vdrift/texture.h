@@ -1,5 +1,5 @@
 #pragma once
-#include "reseatable_reference.h"
+//STUNTPORT #include "reseatable_reference.h"
 
 #include <string>
 #include <map>
@@ -122,11 +122,12 @@ class TEXTURELIBRARY
 		std::map <std::string, TEXTURE_GL> resourcemap;
 		typedef std::map <std::string, TEXTURE_GL>::iterator resourcemap_iterator;
 		bool repeatu, repeatv;
+        /*    //STUNTPORT 
 		bool FileExists(const std::string & filename)
 		{
 			std::ifstream f(filename.c_str());
 			return f;
-		}
+		}*/
 
 	public:
 		TEXTURELIBRARY() : repeatu(true), repeatv(true) {}
@@ -153,6 +154,7 @@ class TEXTURELIBRARY
 			return resourcemap[filename].Load(texinfo, error_output, "large");
 		}
 
+        /*     //STUNTPORT 
 		reseatable_reference <TEXTURE_GL> GetResource(const std::string & filename)
 		{
 			resourcemap_iterator resource = resourcemap.find(filename);
@@ -160,7 +162,7 @@ class TEXTURELIBRARY
 				return reseatable_reference <TEXTURE_GL> (resource->second);
 			else
 				return reseatable_reference <TEXTURE_GL> ();
-		}
+		}*/
 		
 		void SetRepeat(bool u, bool v)
 		{

@@ -1,9 +1,9 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "CScene.h"
-#include "data/CData.h"
-#include "data/SceneXml.h"
+#include "CData.h"
+#include "SceneXml.h"
 #include "WaterRTT.h"
-#include "../../road/Road.h"
+#include "SplineRoad.h"
 #include "../../road/PaceNotes.h"
 
 #include <OgreTerrain.h>

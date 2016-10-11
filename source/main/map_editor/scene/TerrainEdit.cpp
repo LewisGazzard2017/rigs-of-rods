@@ -1,9 +1,9 @@
-#include "pch.h"
-#include "../ogre/common/RenderConst.h"
-#include "../ogre/common/Def_Str.h"
-#include "../ogre/common/CScene.h"
-#include "settings.h"
-#include "CApp.h"
+#include "MapEditor_Global.h"
+#include "RenderConst.h"
+#include "MapEditor_StringUtil.h"
+#include "CScene.h"
+#include "MapEditor_Settings.h"
+#include "MapEditor_App.h"
 #include "CGui.h"
 #include <OgreTerrain.h>
 #include <OgreHardwarePixelBuffer.h>

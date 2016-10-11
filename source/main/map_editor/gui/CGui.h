@@ -1,9 +1,9 @@
 #pragma once
 #include "BaseApp.h"
-#include "../vdrift/tracksurface.h"
-#include "../vdrift/track.h"
-#include "../ogre/common/Gui_Def.h"
-#include "../ogre/common/SliderValue.h"
+#include "tracksurface.h"
+#include "MapEditor_Track.h"
+#include "MapEditor_GuiDefs.h"
+#include "SliderValue.h"
 
 #include <OgreCommon.h>
 #include <OgreVector3.h>
@@ -14,7 +14,7 @@
 #include <MyGUI_Enumerator.h>
 #include <MyGUI_WidgetDefines.h>  //EnumeratorWidgetPtr
 #include <MyGUI_Colour.h>
-#include "../ogre/common/MessageBox/MessageBoxStyle.h"
+#include "MessageBoxStyle.h"
 
 
 namespace wraps {	class RenderBoxScene;  }

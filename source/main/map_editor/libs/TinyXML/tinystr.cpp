@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 /*
 www.sourceforge.net/projects/tinyxml
 Original file by Yves Berquin.

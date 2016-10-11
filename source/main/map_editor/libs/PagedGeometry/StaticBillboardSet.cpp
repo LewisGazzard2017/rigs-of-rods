@@ -13,7 +13,7 @@ Permission is granted to anyone to use this software for any purpose, including 
 //functions by taking advantage of the static nature of billboards (note: StaticBillboardSet
 //does not allow billboards to be moved or deleted individually in real-time)
 //-------------------------------------------------------------------------------------
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include <OgreRoot.h>
 #include <OgreCamera.h>
 #include <OgreVector3.h>
@@ -38,7 +38,7 @@ Permission is granted to anyone to use this software for any purpose, including 
 #include <OgreTechnique.h>
 
 #include "StaticBillboardSet.h"
-#include "../ogre/common/RenderConst.h"
+#include "RenderConst.h"
 
 #include "../shiny/Main/Factory.hpp"
 #include "../shiny/Platforms/Ogre/OgreMaterial.hpp"

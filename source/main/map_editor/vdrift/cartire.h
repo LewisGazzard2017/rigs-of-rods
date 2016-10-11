@@ -3,9 +3,8 @@
 #include <vector>
 #include <cmath>
 
-#include "dbl.h"
 #include "mathvector.h"
-#include "carwheel.h"
+//STUNTPORT #include "carwheel.h"
 
 
 class CARTIRE	// loaded from .tire file
@@ -40,9 +39,11 @@ public:
 
 
 	/// Return the friction vector calculated from the magic formula.
+    /* STUNTPORT
 	MATHVECTOR<Dbl,3> GetForce (Dbl normal_force, Dbl friction_coeff, //Dbl roll_friction_coeff,
 					const MATHVECTOR<Dbl,3> & hub_velocity, Dbl patch_speed, Dbl current_camber,
 					CARWHEEL::SlideSlip* slips) const;  //out
+                    */
 
 	Dbl GetMaximumFx (Dbl load) const;
 	Dbl GetMaximumFy (Dbl load, Dbl current_camber) const;

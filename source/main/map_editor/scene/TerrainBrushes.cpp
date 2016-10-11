@@ -1,5 +1,5 @@
-#include "pch.h"
-#include "CApp.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_App.h"
 
 
 //  Brush Presets data

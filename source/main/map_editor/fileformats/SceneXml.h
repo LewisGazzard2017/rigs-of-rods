@@ -5,8 +5,8 @@
 #include <OgreVector4.h>
 #include <OgreColourValue.h>
 #include <OgreQuaternion.h>
-#include "../../../vdrift/mathvector.h"
-#include "../../../vdrift/quaternion.h"
+#include "mathvector.h"
+#include "MapEditor_Quaternion.h"
 
 namespace Ogre {  class SceneNode;  class Entity;  }
 namespace Forests {  class GrassLayer;  }

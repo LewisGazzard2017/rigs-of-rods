@@ -216,26 +216,24 @@ set( SOURCE_FILES
   resources/rig_def_fileformat/RigDef_SequentialImporter.{h,cpp}
   resources/rig_def_fileformat/RigDef_Serializer.{h,cpp}
   resources/rig_def_fileformat/RigDef_Validator.{h,cpp}
-  map_editor/base/settings_com.{h,cpp}
-  map_editor/base/settings.{h,cpp}
-  map_editor/base/MyGUI_D3D11.h
-  map_editor/base/BaseApp.{h,cpp}
-  map_editor/base/MyGUI_D3D11.cpp
-  map_editor/base/BaseApp_Create.cpp
+  map_editor/main/MapEditor_Settings.{h,cpp}
+  map_editor/main/MyGUI_D3D11.h
+  map_editor/main/BaseApp.{h,cpp}
+  map_editor/main/MyGUI_D3D11.cpp
+  map_editor/main/BaseApp_Create.cpp
   map_editor/fileformats/TracksXml.{h,cpp}
   map_editor/fileformats/SceneXml.{h,cpp}
   map_editor/fileformats/RenderConst.h
   map_editor/fileformats/FluidsXml.{h,cpp}
-  map_editor/fileformats/Def_Str.h
+  map_editor/fileformats/MapEditor_StringUtil.h
   map_editor/fileformats/CData.{h,cpp}
   map_editor/fileformats/BltObjects.h
   map_editor/fileformats/SceneXml_Load.cpp
   map_editor/fileformats/BltObjects.cpp
   map_editor/gui/Attribute.h
   map_editor/gui/BaseLayout.h
-  map_editor/gui/CApp.{h,cpp}
   map_editor/gui/CGui.{h,cpp}
-  map_editor/gui/Gui_Def.h
+  map_editor/gui/MapEditor_GuiDefs.h
   map_editor/gui/Gui_Events.cpp
   map_editor/gui/Gui_EventsTer.cpp
   map_editor/gui/Gui_Init.cpp
@@ -256,7 +254,7 @@ set( SOURCE_FILES
   map_editor/gui/Render2tex.cpp
   map_editor/gui/RenderBox.h
   map_editor/gui/RenderBoxScene.{h,cpp}
-  map_editor/gui/Slider.{h,cpp}
+  map_editor/gui/MapEditor_GuiSlider.{h,cpp}
   map_editor/gui/SliderValue.{h,cpp}
   map_editor/gui/WrapsAttribute.h
   map_editor/libs/BtOgre/BtOgre.cpp
@@ -286,27 +284,30 @@ set( SOURCE_FILES
   map_editor/vdrift/model.{h,cpp}
   map_editor/vdrift/model_joe03.{h,cpp}
   map_editor/vdrift/objectloader.{h,cpp}
+  map_editor/vdrift/aabb_space_partitioning.{h,cpp}
+  map_editor/vdrift/aabb.{h,cpp}      
   map_editor/vdrift/par.{h,cpp}
   map_editor/vdrift/roadpatch.{h,cpp}
   map_editor/vdrift/roadstrip.{h,cpp}
   map_editor/vdrift/texture.h
   map_editor/vdrift/texturelibrary.h
-  map_editor/vdrift/track.{h,cpp}
+  map_editor/vdrift/MapEditor_Track.{h,cpp}
   map_editor/vdrift/track_object.{h,cpp}
   map_editor/vdrift/tracksurface.h
   map_editor/vdrift/vertexarray.{h,cpp}
+  map_editor/vdrift/MapEditor_Quaternion.{h,cpp}  
   map_editor/road/PaceNotes.{h,cpp}
   map_editor/road/PaceNotesGen.cpp
   map_editor/road/ReplayTrk.{h,cpp}
-  map_editor/road/Road.h
-  map_editor/road/Road_Edit.cpp
-  map_editor/road/Road_File.cpp
-  map_editor/road/Road_Markers.cpp
-  map_editor/road/Road_Mesh.cpp
-  map_editor/road/Road_Prepass.cpp
-  map_editor/road/Road_Rebuild.cpp
+  map_editor/road/SplineRoad.h
+  map_editor/road/SplineRoad_Edit.cpp
+  map_editor/road/SplineRoad_File.cpp
+  map_editor/road/SplineRoad_Markers.cpp
+  map_editor/road/SplineRoad_Mesh.cpp
+  map_editor/road/SplineRoad_Prepass.cpp
+  map_editor/road/SplineRoad_Rebuild.cpp
   map_editor/road/SplineBase.{h,cpp}
-  map_editor/scene/Axes.{h,cpp}
+  map_editor/scene/MapEditor_Axes.{h,cpp}
   map_editor/scene/CScene.{h,cpp}
   map_editor/scene/Instancing.{h,cpp}
   map_editor/scene/PreviewTex.{h,cpp}
@@ -337,10 +338,10 @@ set( SOURCE_FILES
   map_editor/libs/TinyXML/tinyxmlerror.cpp
   map_editor/libs/TinyXML/tinyxmlparser.cpp  
   map_editor/main/bucketed_hashmap.h
-  map_editor/main/configfile.{h,cpp}
-  map_editor/main/main.cpp
-  map_editor/main/pathmanager.{h,cpp}
-  map_editor/main/pch.h
+  map_editor/main/MapEditor_App.{h,cpp}
+  map_editor/main/MapEditor_ConfigFile.{h,cpp}
+  map_editor/main/MapEditor_PathManager.{h,cpp}
+  map_editor/main/MapEditor_Global.h
   map_editor/libs/Shiny/Main/Factory.hpp
   map_editor/libs/Shiny/Main/Factory.cpp
   map_editor/libs/Shiny/Main/Language.hpp

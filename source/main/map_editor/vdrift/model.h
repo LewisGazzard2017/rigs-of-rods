@@ -6,15 +6,15 @@
 
 #include "vertexarray.h"
 #include "mathvector.h"
-#include "aabb.h"
-#include "joeserialize.h"
-#include "macros.h"
+//STUNTPORT #include "aabb.h"
+//STUNTPORT #include "joeserialize.h"
+//STUNTPORT #include "macros.h"
 
 
 ///loading data into the mesh vertexarray is implemented by derived classes
 class MODEL
 {
-friend class joeserialize::Serializer;
+//STUNTPORT friend class joeserialize::Serializer;
 private:
 	bool generatedlistid;
 	int listid;
@@ -63,11 +63,12 @@ public:
 	virtual bool CanSave() const {return false;}  ///< returns true if the model format is capable of saving to a file
 	virtual bool Save(const std::string & strFileName, std::ostream & error_output) const {return false;} ///< optional capability
 	
+    /*   //STUNTPORT 
 	bool Serialize(joeserialize::Serializer & s)
 	{
 		_SERIALIZE_(s,mesh);
 		return true;
-	}
+	}*/
 	
 	bool WriteToFile(const std::string & filepath);
 	bool ReadFromFile(const std::string & filepath, std::ostream & error_output, bool generatelistid=true);
@@ -106,11 +107,12 @@ public:
 	
 	void Scale(float x, float y, float z);
 	
+    /*    //STUNTPORT 
 	AABB <float> GetAABB() const
 	{
 //		assert(generatedmetrics);
 		AABB <float> output;
 		output.SetFromCorners(bboxmin, bboxmax);
 		return output;
-	}
+	}*/
 };

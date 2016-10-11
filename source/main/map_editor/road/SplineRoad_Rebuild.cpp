@@ -1,18 +1,15 @@
-#include "pch.h"
-#include "../ogre/common/Def_Str.h"
-#include "../ogre/common/RenderConst.h"
-#include "../ogre/common/ShapeData.h"
-#include "../vdrift/dbl.h"
-#include "Road.h"
-#ifndef SR_EDITOR
-	#include "../vdrift/game.h"
-#else
-	#include "../editor/CApp.h"
-	#include <BulletCollision/CollisionShapes/btTriangleMesh.h>
-	#include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
-	#include <BulletCollision/CollisionDispatch/btCollisionObject.h>
-	#include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
-#endif
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
+#include "RenderConst.h"
+#include "MapEditor_ShapeData.h"
+#include "SplineRoad.h"
+
+#include "MapEditor_App.h"
+#include <BulletCollision/CollisionShapes/btTriangleMesh.h>
+#include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
+#include <BulletCollision/CollisionDispatch/btCollisionObject.h>
+#include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
+
 #include <OgreTerrain.h>
 #include <OgreMeshManager.h>
 #include <OgreEntity.h>

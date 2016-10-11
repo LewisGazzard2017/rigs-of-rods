@@ -1,7 +1,7 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "cartire.h"
 #include "cardefs.h"
-//#include "../ogre/common/Def_Str.h"
+//#include "MapEditor_StringUtil.h"
 
 
 void CARTIRE::FindSigmaHatAlphaHat(Dbl load, Dbl & output_sigmahat, Dbl & output_alphahat, int iterations)

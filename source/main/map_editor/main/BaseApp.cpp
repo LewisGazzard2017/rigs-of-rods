@@ -1,8 +1,8 @@
-#include "pch.h"
-#include "../ogre/common/Def_Str.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
 #include "BaseApp.h"
-#include "settings.h"
-#include "../road/Road.h"
+#include "MapEditor_Settings.h"
+#include "SplineRoad.h"
 
 #include <OgreOverlayElement.h>
 #include <OgreCamera.h>

@@ -1,15 +1,15 @@
-#include "pch.h"
-#include "Def_Str.h"
-#include "Gui_Def.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
+#include "MapEditor_GuiDefs.h"
 #include "GuiCom.h"
 #ifndef SR_EDITOR
 	#include "../CGame.h"
 	#include "../SplitScreen.h"
 	#include "../vdrift/settings.h"
 #else
-	#include "../../editor/CApp.h"
-	#include "../../editor/settings.h"
-	#include "../../editor/CGui.h"
+	#include "MapEditor_App.h"
+	#include "MapEditor_Settings.h"
+	#include "CGui.h"
 #endif
 #include "SDL_video.h"
 #include <OgreRoot.h>

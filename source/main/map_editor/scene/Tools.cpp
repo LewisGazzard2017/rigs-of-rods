@@ -1,24 +1,18 @@
-#include "pch.h"
-#include "Def_Str.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
 #include "GuiCom.h"
-#include "../common/data/SceneXml.h"
-#include "../common/data/CData.h"
-#include "../common/data/TracksXml.h"
+#include "SceneXml.h"
+#include "CData.h"
+#include "TracksXml.h"
 #include "../common/data/BltObjects.h"
-#include "../vdrift/pathmanager.h"
-#include "../../road/Road.h"
-#ifndef SR_EDITOR
-	#include "../CGame.h"
-	#include "../CHud.h"
-	#include "../CGui.h"
-	#include "../vdrift/timer.h"
-	#include "../vdrift/game.h"
-#else
-	#include "CScene.h"
-	#include "../../editor/CApp.h"
-	#include "../../editor/CGui.h"
-	#include "../../editor/settings.h"
-#endif
+#include "MapEditor_PathManager.h"
+#include "SplineRoad.h"
+
+#include "CScene.h"
+#include "MapEditor_App.h"
+#include "CGui.h"
+#include "MapEditor_Settings.h"
+
 #include <OgreTimer.h>
 #include <OgreResourceGroupManager.h>
 #include <MyGUI_ComboBox.h>

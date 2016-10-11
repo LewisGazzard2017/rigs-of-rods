@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include <boost/shared_ptr.hpp>
+//STUNTPORT #include <boost/shared_ptr.hpp>
 
 #include "Language.hpp"
 #include "PropertyBase.hpp"
@@ -46,7 +46,7 @@ namespace sh
 	class Pass : public PropertySet
 	{
 	public:
-		virtual boost::shared_ptr<TextureUnitState> createTextureUnitState (const std::string& name) = 0;
+		virtual std::shared_ptr<TextureUnitState> createTextureUnitState (const std::string& name) = 0;
 		virtual void assignProgram (GpuProgramType type, const std::string& name) = 0;
 
 		/// @param type gpu program type
@@ -64,7 +64,7 @@ namespace sh
 	class Material : public PropertySet
 	{
 	public:
-		virtual boost::shared_ptr<Pass> createPass (const std::string& configuration, unsigned short lodIndex) = 0;
+		virtual std::shared_ptr<Pass> createPass (const std::string& configuration, unsigned short lodIndex) = 0;
 		virtual bool createConfiguration (const std::string& name, unsigned short lodIndex) = 0; ///< @return false if already exists
 		virtual void removeAll () = 0; ///< remove all configurations
 
@@ -87,9 +87,9 @@ namespace sh
 		void setCacheFolder (const std::string& folder);
 
 	private:
-		virtual boost::shared_ptr<Material> createMaterial (const std::string& name) = 0;
+		virtual std::shared_ptr<Material> createMaterial (const std::string& name) = 0;
 
-		virtual boost::shared_ptr<GpuProgram> createGpuProgram (
+		virtual std::shared_ptr<GpuProgram> createGpuProgram (
 			GpuProgramType type,
 			const std::string& compileArguments,
 			const std::string& name, const std::string& profile,

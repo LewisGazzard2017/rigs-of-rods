@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include <Ogre.h>
 #include <MyGUI.h>
 #include "RenderBoxScene.h"

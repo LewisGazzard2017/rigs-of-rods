@@ -7,7 +7,7 @@ Permission is granted to anyone to use this software for any purpose, including 
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 -------------------------------------------------------------------------------------*/
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "OgreRoot.h"
 #include "OgreTimer.h"
 #include "OgreCamera.h"
@@ -37,7 +37,7 @@ Permission is granted to anyone to use this software for any purpose, including 
 #include "PagedGeometry.h"
 #include "PropertyMaps.h"
 #include "RandomTable.h"
-#include "../ogre/common/RenderConst.h"
+#include "RenderConst.h"
 
 #include "../shiny/Main/Factory.hpp"
 

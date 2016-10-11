@@ -1,20 +1,20 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "RenderConst.h"
-#include "Def_Str.h"
-#include "data/SceneXml.h"
+#include "MapEditor_StringUtil.h"
+#include "SceneXml.h"
 #include "data/FluidsXml.h"
-#include "data/CData.h"
-#include "ShapeData.h"
+#include "CData.h"
+#include "MapEditor_ShapeData.h"
 #include "WaterRTT.h"
 #include "CScene.h"
 #ifdef SR_EDITOR
-	#include "../../editor/CApp.h"
-	#include "../../editor/settings.h"
+	#include "MapEditor_App.h"
+	#include "MapEditor_Settings.h"
 	#include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 #else
 	#include "../CGame.h"
 	#include "../../vdrift/game.h"
-	//#include "../../vdrift/settings.h"
+	//#include "MapEditor_Settings.h"
 #endif
 #include <BulletCollision/CollisionDispatch/btCollisionObject.h>
 #include <BulletCollision/CollisionShapes/btBoxShape.h>

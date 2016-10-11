@@ -1,31 +1,23 @@
-#include "pch.h"
-#include "../common/Def_Str.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
 #include "GuiCom.h"
-#include "../../road/Road.h"
-#include "../../vdrift/pathmanager.h"
-#include "../common/data/SceneXml.h"
-#include "../common/data/TracksXml.h"
-#include "../common/data/CData.h"
-#include "../common/CScene.h"
-#ifndef SR_EDITOR
-	#include "../../vdrift/game.h"
-	#include "../CGame.h"
-	#include "../CHud.h"
-	#include "../CGui.h"
-	#include "../SplitScreen.h"
-#else
-	#include "../../editor/CApp.h"
-	#include "../../editor/CGui.h"
-	#include "../../editor/settings.h"
-#endif
+#include "SplineRoad.h"
+#include "MapEditor_PathManager.h"
+#include "SceneXml.h"
+#include "TracksXml.h"
+#include "CData.h"
+#include "CScene.h"
+#include "MapEditor_App.h"
+#include "CGui.h"
+#include "MapEditor_Settings.h"
 #include "MultiList2.h"
 #include <OgreRoot.h>
 #include <OgreMaterialManager.h>
 #include <OgreSceneManager.h>
 #include <OgreTerrain.h>
 #include <OgreRenderWindow.h>
-#include "Gui_Def.h"
-#include <boost/filesystem.hpp>
+#include "MapEditor_GuiDefs.h"
+//STUNTPORT #include <boost/filesystem.hpp>
 #include <MyGUI_Window.h>
 #include <MyGUI_TabItem.h>
 #include <MyGUI_TabControl.h>

@@ -1,7 +1,7 @@
-#include "pch.h"
-#include "../ogre/common/Def_Str.h"
-#include "../vdrift/dbl.h"
-#include "Road.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
+#include "SplineRoad.h"
+
 #include <OgreTimer.h>
 using namespace Ogre;
 using std::vector;  using std::min;  using std::max;

@@ -1,12 +1,12 @@
-#include "pch.h"
-#include "../Def_Str.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
 #include "TracksXml.h"
 #include "tinyxml.h"
 #include "tinyxml2.h"
 #include <set>
-#include "../vdrift/pathmanager.h"
-#include "../../ReplayTrk.h"  // check
-#include "../../CHud.h"  // StrTime
+#include "MapEditor_PathManager.h"
+#include "ReplayTrk.h"  // check
+//STUNTPORT #include "../../CHud.h"  // StrTime
 using namespace std;
 using namespace tinyxml2;
 using Ogre::uchar;

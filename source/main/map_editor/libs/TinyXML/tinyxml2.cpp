@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 /*
 Original code by Lee Thomason (www.grinninglizard.com)
 

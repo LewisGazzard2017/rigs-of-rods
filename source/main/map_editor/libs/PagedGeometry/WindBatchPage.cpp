@@ -11,7 +11,7 @@ Permission is granted to anyone to use this software for any purpose, including 
 //WindBatchPage.cpp
 //WindBatchPage is an extension to PagedGeometry which displays entities as static geometry but that is affected by wind.
 //-------------------------------------------------------------------------------------
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include <OgreRoot.h>
 #include <OgreCamera.h>
 #include <OgreVector3.h>
@@ -25,7 +25,7 @@ Permission is granted to anyone to use this software for any purpose, including 
 
 #include "WindBatchPage.h"
 #include "WindBatchedGeometry.h"
-#include "../ogre/common/RenderConst.h"
+#include "RenderConst.h"
 
 #include "../shiny/Main/Factory.hpp"
 

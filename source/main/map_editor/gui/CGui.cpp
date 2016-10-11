@@ -1,8 +1,8 @@
-#include "pch.h"
-#include "CApp.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_App.h"
 #include "CGui.h"
-#include "../ogre/common/CScene.h"
-#include "../vdrift/pathmanager.h"
+#include "CScene.h"
+#include "MapEditor_PathManager.h"
 
 
 //  ctor

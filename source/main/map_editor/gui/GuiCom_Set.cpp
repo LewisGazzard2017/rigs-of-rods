@@ -1,20 +1,20 @@
-#include "pch.h"
-#include "Def_Str.h"
-#include "Gui_Def.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
+#include "MapEditor_GuiDefs.h"
 #include "GuiCom.h"
 #include "CScene.h"
 #include "WaterRTT.h"
-#include "../../road/Road.h"
-#include "../../vdrift/pathmanager.h"
+#include "SplineRoad.h"
+#include "MapEditor_PathManager.h"
 #ifndef SR_EDITOR
 	#include "../../vdrift/game.h"
 	#include "../CGame.h"
 	#include "../CGui.h"
 	#include "../SplitScreen.h"
 #else
-	#include "../../editor/CApp.h"
-	#include "../../editor/CGui.h"
-	#include "../../editor/settings.h"
+	#include "MapEditor_App.h"
+	#include "CGui.h"
+	#include "MapEditor_Settings.h"
 #endif
 #include <OgreRoot.h>
 #include <OgreMaterialManager.h>
@@ -22,7 +22,7 @@
 #include <OgreTerrain.h>
 #include <OgreRenderWindow.h>
 #include <MyGUI.h>
-#include "Slider.h"
+#include "MapEditor_GuiSlider.h"
 using namespace MyGUI;
 using namespace Ogre;
 

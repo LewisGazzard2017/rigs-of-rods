@@ -1,21 +1,15 @@
-#include "pch.h"
-#include "../common/Def_Str.h"
-#include "../common/RenderConst.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
+#include "RenderConst.h"
 #include "../common/ShapeData.h"
 #include "../common/GuiCom.h"
-#include "../common/CScene.h"
-#include "../common/data/SceneXml.h"
+#include "CScene.h"
+#include "SceneXml.h"
 #include "TerrainMaterial.h"
-#include "../vdrift/pathmanager.h"
-#ifdef SR_EDITOR
-	#include "../../editor/CApp.h"
-	#include "../../editor/settings.h"
-	#include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
-#else
-	#include "../CGame.h"
-	#include "../../vdrift/game.h"
-	#include "../../vdrift/settings.h"
-#endif
+#include "MapEditor_PathManager.h"
+#include "MapEditor_App.h"
+#include "MapEditor_Settings.h"
+#include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 #include <BulletCollision/CollisionDispatch/btCollisionObject.h>
 #include <BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
 #include <OgreTimer.h>

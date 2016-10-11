@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "Axes.h"
 #include "../../vdrift/dbl.h"
 using namespace Ogre;

@@ -1,7 +1,7 @@
-#include "pch.h"
-#include "../ogre/common/Def_Str.h"
-#include "../ogre/common/Axes.h"
-#include "../ogre/common/data/SceneXml.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
+#include "MapEditor_Axes.h"
+#include "SceneXml.h"
 #include "PaceNotes.h"
 #include "../ogre/ReplayTrk.h"
 #include "../vdrift/dbl.h"
@@ -13,8 +13,8 @@
 	#include "../vdrift/settings.h"
 #endif
 #include "../road/SplineBase.h"
-#include "../road/Road.h"
-#include "../vdrift/pathmanager.h"
+#include "SplineRoad.h"
+#include "MapEditor_PathManager.h"
 #include <OgreTimer.h>
 #include <OgreSceneNode.h>
 #include <OgreTerrain.h>

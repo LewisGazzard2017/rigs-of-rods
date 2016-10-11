@@ -1,8 +1,8 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "vertexarray.h"
 #include "unittest.h"
 #include "mathvector.h"
-#include "quaternion.h"
+#include "MapEditor_Quaternion.h"
 #include "matrix4.h"
 
 //#include <map>

@@ -1,13 +1,13 @@
-#include "pch.h"
-#include "../ogre/common/Def_Str.h"
-#include "settings.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
+#include "MapEditor_Settings.h"
 #include "BaseApp.h"
-#include "CApp.h" //
-#include "../vdrift/pathmanager.h"
-#include "../ogre/Localization.h"
+#include "MapEditor_App.h"
+#include "MapEditor_PathManager.h"
+#include "Localization.h"
 
-#include <boost/thread.hpp>
-#include <boost/filesystem.hpp>
+//STUNTPORT #include <boost/thread.hpp>
+//STUNTPORT #include <boost/filesystem.hpp>
 #include <OgreConfigFile.h>
 #if OGRE_VERSION >= MYGUI_DEFINE_VERSION(1, 9, 0) 
 #include <OgreOverlaySystem.h>
@@ -16,11 +16,11 @@
 #include <OgreOverlayElement.h>
 #include <OgreOverlayManager.h>
 #include <OgreTimer.h>
-#include "../ogre/common/MyGUI_D3D11.h"
-#include "../sdl4ogre/sdlinputwrapper.hpp"
-#include "../sdl4ogre/sdlcursormanager.hpp"
-#include "../sdl4ogre/sdlwindowhelper.hpp"
-#include "../ogre/common/PointerFix.h"
+#include "MyGUI_D3D11.h"
+//STUNTPORT #include "../sdl4ogre/sdlinputwrapper.hpp"
+//STUNTPORT #include "../sdl4ogre/sdlcursormanager.hpp"
+//STUNTPORT #include "../sdl4ogre/sdlwindowhelper.hpp"
+#include "PointerFix.h"
 #include <MyGUI_PointerManager.h>
 #include <MyGUI_Gui.h>
 #include <MyGUI_InputManager.h>

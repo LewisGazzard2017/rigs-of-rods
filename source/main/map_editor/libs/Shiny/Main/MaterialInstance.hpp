@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <fstream>
+#include <memory> // std::shared_ptr
 
 #include "PropertyBase.hpp"
 #include "Platform.hpp"
@@ -88,7 +89,7 @@ namespace sh
 		/// so initially only the parent's name is written to this member.
 		/// once all instances are loaded, the actual mParent pointer (from PropertySetGet class) can be set
 
-		std::vector< boost::shared_ptr<TextureUnitState> > mTexUnits;
+		std::vector< std::shared_ptr<TextureUnitState> > mTexUnits;
 
 		MaterialInstanceListener* mListener;
 
@@ -98,7 +99,7 @@ namespace sh
 
 		std::string mSourceFile;
 
-		boost::shared_ptr<Material> mMaterial;
+		std::shared_ptr<Material> mMaterial;
 
 		bool mShadersEnabled;
 

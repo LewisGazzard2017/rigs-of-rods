@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 /*		   Filename:	BtOgreAnim.cpp
  *		Description:	Bullet to Ogre implementation.
  *			Version:	1.1  (1.0 modified by CrystalH)

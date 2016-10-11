@@ -1,9 +1,9 @@
 #pragma once
 #include <OgreVector3.h>
 #include <OgreQuaternion.h>
-#include "../vdrift/mathvector.h"
-#include "../vdrift/quaternion.h"
-#include "../half.hpp"
+#include "mathvector.h"
+#include "MapEditor_Quaternion.h"
+#include "half.hpp"
 
 
 struct Axes

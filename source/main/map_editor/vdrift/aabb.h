@@ -2,7 +2,7 @@
 //#include <ostream>
 
 #include "mathvector.h"
-#include "mathplane.h"
+//STUNTPORT #include "mathplane.h"
 
 template <typename T>
 class AABB
@@ -166,6 +166,7 @@ public:
 		return true;
 	}
 	
+    /* * * * * STUNTPORT
 	class FRUSTUM
 	{
 		public:
@@ -203,5 +204,5 @@ public:
 				return false;
 		}
 		return true;
-	}
+	} * * * */
 };

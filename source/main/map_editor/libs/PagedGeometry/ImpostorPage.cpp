@@ -12,7 +12,7 @@ Permission is granted to anyone to use this software for any purpose, including 
 //ImpostorPage.cpp
 //ImposterPage is an extension to PagedGeometry which displays entities as imposters.
 //-------------------------------------------------------------------------------------
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include <OgreRoot.h>
 #include <OgreTimer.h>
 #include <OgreCamera.h>
@@ -26,8 +26,8 @@ Permission is granted to anyone to use this software for any purpose, including 
 #include "ImpostorPage.h"
 #include "StaticBillboardSet.h"
 
-#include "../ogre/common/Def_Str.h"
-#include "../vdrift/pathmanager.h"
+#include "MapEditor_StringUtil.h"
+#include "MapEditor_PathManager.h"
 
 #include "../shiny/Main/Factory.hpp"
 #include "../shiny/Platforms/Ogre/OgreMaterial.hpp"

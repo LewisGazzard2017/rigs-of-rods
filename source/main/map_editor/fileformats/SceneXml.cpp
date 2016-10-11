@@ -1,14 +1,14 @@
-#include "pch.h"
-#include "../Def_Str.h"
-#include "../vdrift/par.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
+#include "par.h"
 #include "SceneXml.h"
 #include "FluidsXml.h"
 #include "TracksXml.h"
-#include "../Axes.h"
+#include "MapEditor_Axes.h"
 #include "tinyxml.h"
 #include "tinyxml2.h"
 #include <OgreSceneNode.h>
-#include "../vdrift/game.h"  // for surfaces map
+//STUNTPORT #include "../vdrift/game.h"  // for surfaces map
 using namespace std;
 using namespace Ogre;
 using namespace tinyxml2;
@@ -171,6 +171,9 @@ void Scene::UpdateFluidsId()
 
 void Scene::UpdateSurfId()
 {
+    return;
+    /* STUNTPORT
+
 	if (!pGame)  return;
 	//  update surfId from surfName
 	int i;
@@ -197,6 +200,7 @@ void Scene::UpdateSurfId()
 		// road1mtr ?
 		td.layerRoad[i].surfId = id;
 	}
+    */
 }
 
 

@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "bucketed_hashmap.h"
-#include "../ogre/common/Def_Str.h"
+#include "MapEditor_StringUtil.h"
 
 /** @file
  *  @author Ported from StuntRally which ported it from VDrift

@@ -1,20 +1,15 @@
-#include "pch.h"
-#include "Def_Str.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
 #include "RenderConst.h"
-#include "../../vdrift/track.h"
+#include "MapEditor_Track.h"
 #include "GuiCom.h"
 #include "CScene.h"
-#ifndef SR_EDITOR
-	#include "../CGame.h"
-	#include "../CHud.h"
-	#include "../../vdrift/game.h"
-	#include "../SplitScreen.h"  //-
-#else
-	#include "../../editor/CApp.h"
-	#include "../../editor/CGui.h"
-	#include "../../editor/settings.h"
-	#include "../../vdrift/pathmanager.h"
-#endif
+
+#include "MapEditor_App.h"
+#include "CGui.h"
+#include "MapEditor_Settings.h"
+#include "MapEditor_PathManager.h"
+
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 #include <BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h>
 #include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>

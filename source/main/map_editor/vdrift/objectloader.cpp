@@ -1,6 +1,6 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "objectloader.h"
-#include "../ogre/common/Def_Str.h"
+#include "MapEditor_StringUtil.h"
 
 #include <string>
 #include <fstream>

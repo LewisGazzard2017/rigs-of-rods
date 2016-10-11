@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "roadstrip.h"
 
 bool ROADSTRIP::ReadFrom(std::istream & openfile, std::ostream & error_output)

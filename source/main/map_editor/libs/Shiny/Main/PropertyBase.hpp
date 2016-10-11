@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 
-#include <boost/shared_ptr.hpp>
+#include <memory> // STUNTPORT #include <boost/shared_ptr.hpp>
 
 namespace sh
 {
@@ -36,7 +36,7 @@ namespace sh
 	protected:
 		std::string mStringValue; ///< this will possibly not contain anything in the specialised classes
 	};
-	typedef boost::shared_ptr<PropertyValue> PropertyValuePtr;
+	typedef std::shared_ptr<PropertyValue> PropertyValuePtr;
 
 	class StringValue : public PropertyValue
 	{
@@ -187,7 +187,7 @@ namespace sh
 	};
 
 	template <typename T>
-	static T retrieveValue (boost::shared_ptr<PropertyValue>& value, PropertySetGet* context)
+	static T retrieveValue (std::shared_ptr<PropertyValue>& value, PropertySetGet* context)
 	{
 		if (typeid(*value).name() == typeid(LinkedValue).name())
 		{

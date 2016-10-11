@@ -1,9 +1,11 @@
 #pragma once
-#include "../ogre/common/Gui_Def.h"
+#include "MapEditor_GuiDefs.h"
 #include <OgreVector3.h>
 #include <OgreString.h>
 #include <OgreFrameListener.h>
-#include "../sdl4ogre/events.h"
+
+//STUNTPORT #include "../sdl4ogre/events.h"
+
 namespace SFO  {  class InputWrapper;  class SDLCursorManager;  }
 struct SDL_Window;
 namespace MyGUI{  class OgreD3D11Platform;  class OgrePlatform;  }
@@ -24,8 +26,8 @@ enum TABS_Edit
 
 
 class BaseApp : public BGui,
-		public Ogre::FrameListener,
-		public SFO::KeyListener, public SFO::MouseListener, public SFO::WindowListener
+		public Ogre::FrameListener
+		//STUNTPORT public SFO::KeyListener, public SFO::MouseListener, public SFO::WindowListener
 {
 public:
 	BaseApp();	virtual ~BaseApp();
@@ -64,12 +66,15 @@ protected:
 	
 	///  input events
 	/*virtual*/
+
+    /* STUNTPORT
 	bool keyPressed( const SDL_KeyboardEvent &arg) = 0;
 	bool keyReleased(const SDL_KeyboardEvent &arg);
 	bool mouseMoved( const SFO::MouseMotionEvent &arg );
 	bool mousePressed( const SDL_MouseButtonEvent &arg, Uint8 id );
 	bool mouseReleased(const SDL_MouseButtonEvent &arg, Uint8 id );
 	void textInput(const SDL_TextInputEvent &arg);
+    */
 
 	void onCursorChange(const std::string& name);
 

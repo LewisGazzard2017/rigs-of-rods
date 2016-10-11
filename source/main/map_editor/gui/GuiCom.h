@@ -1,5 +1,5 @@
 #pragma once
-#include "Gui_Def.h"
+#include "MapEditor_GuiDefs.h"
 #include "SliderValue.h"
 
 #include <MyGUI_Prerequest.h>
@@ -7,7 +7,7 @@
 #include <MyGUI_WidgetToolTip.h>
 #include <MyGUI_Enumerator.h>
 #include <OgreString.h>
-#include "settings_com.h"
+#include "MapEditor_Settings.h"
 
 
 namespace Ogre {  class SceneNode;  class Root;  class SceneManager;  class RenderWindow;  class Viewport;  class Light;  }

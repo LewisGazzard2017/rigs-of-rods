@@ -1,14 +1,12 @@
-#include "pch.h"
-#include "../common/RenderConst.h"
-#include "../common/Def_Str.h"
-#include "../common/data/SceneXml.h"
-#include "../common/CScene.h"
-#include "../../vdrift/pathmanager.h"
-#ifdef SR_EDITOR
-	#include "../../editor/CApp.h"
-#else
-	#include "../CGame.h"
-#endif
+#include "MapEditor_Global.h"
+#include "RenderConst.h"
+#include "MapEditor_StringUtil.h"
+#include "SceneXml.h"
+#include "CScene.h"
+#include "MapEditor_PathManager.h"
+
+#include "MapEditor_App.h"
+
 #include <OgreRoot.h>
 #include <OgreTimer.h>
 #include <OgreTerrain.h>

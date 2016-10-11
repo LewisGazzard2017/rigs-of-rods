@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "ReplayTrk.h"
 #include "common/Def_Str.h"
 #include <OgreTimer.h>

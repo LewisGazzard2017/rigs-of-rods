@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "MessageBoxStyle.h"
 #include "MyGUI_Macros.h"
 

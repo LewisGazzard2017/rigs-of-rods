@@ -1,6 +1,6 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "../vdrift/dbl.h"
-#include "../ogre/common/Def_Str.h"
+#include "MapEditor_StringUtil.h"
 #include "SplineBase.h"
 #include <OgreVector4.h>
 #include <OgreLogManager.h>

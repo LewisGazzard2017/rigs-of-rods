@@ -5,13 +5,13 @@
 #include <iostream>
 #include <cstring>
 #include <sstream>
-#include "joeserialize.h"
+//STUNTPORT-TMP #include "joeserialize.h"
 
 
 template <typename T, unsigned int dimension>
 class MATHVECTOR
 {
-friend class joeserialize::Serializer;
+//STUNTPORT-TMP friend class joeserialize::Serializer;
 private:
 	T v[dimension];
 	
@@ -233,6 +233,7 @@ public:
 		return output;
 	}
 	
+    /* //STUNTPORT-TMP
 	bool Serialize(joeserialize::Serializer & s)
 	{
 		for (unsigned int i = 0; i < dimension; ++i)
@@ -242,14 +243,14 @@ public:
 			if (!s.Serialize(namestr.str(),v[i])) return false;
 		}
 		return true;
-	}
+	}*/
 };
 
 ///we need a faster mathvector for 3-space, so specialize
 template <class T>
 class MATHVECTOR<T,3>
 {
-	friend class joeserialize::Serializer;
+	//STUNTPORT-TMP friend class joeserialize::Serializer;
 	private:
 		struct MATHVECTOR_XYZ
 		{
@@ -433,13 +434,14 @@ class MATHVECTOR<T,3>
 			return vec.Normalize() * scalar_projection;
 		}
 		
+        /* //STUNTPORT-TMP
 		bool Serialize(joeserialize::Serializer & s)
 		{
 			if (!s.Serialize("x",v.x)) return false;
 			if (!s.Serialize("y",v.y)) return false;
 			if (!s.Serialize("z",v.z)) return false;
 			return true;
-		}
+		}*/
 };
 
 template <typename T, unsigned int dimension>

@@ -1,18 +1,12 @@
-#include "pch.h"
-#include "Def_Str.h"
-#include "Gui_Def.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
+#include "MapEditor_GuiDefs.h"
 #include "GuiCom.h"
 #include "CScene.h"
-#include "../../vdrift/pathmanager.h"
-#ifndef SR_EDITOR
-	#include "../CGame.h"
-	#include "../CGui.h"
-	#include "../../vdrift/settings.h"
-#else
-	#include "../../editor/CApp.h"
-	#include "../../editor/CGui.h"
-	#include "../../editor/settings.h"
-#endif
+#include "MapEditor_PathManager.h"
+#include "MapEditor_App.h"
+#include "CGui.h"
+#include "MapEditor_Settings.h"
 #include "../../sdl4ogre/sdlinputwrapper.hpp"
 #include <MyGUI_InputManager.h>
 #include <MyGUI_Widget.h>

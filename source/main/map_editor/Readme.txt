@@ -13,4 +13,7 @@ Dev notes
 Source StuntRally commit:
     https://github.com/stuntrally/stuntrally/commit/a4d791d7618dfb02b918ea65c60dbccf9ba87ed4
     
-Layout of sources is loosely based on project file SR_Editor.vcproj    
+Layout of sources is loosely based on project file SR_Editor.vcproj   
+
+Several things were temporarily commented out. Look for 'STUNTPORT' in comments.
+     

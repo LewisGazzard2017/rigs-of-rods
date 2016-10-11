@@ -1,7 +1,7 @@
-#include "pch.h"
-#include "../Def_Str.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
 #include "BltObjects.h"
-#include "../../../vdrift/pathmanager.h"
+#include "MapEditor_PathManager.h"
 #include "tinyxml2.h"
 using namespace tinyxml2;
 

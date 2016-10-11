@@ -1,7 +1,7 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "CData.h"
-#include "../vdrift/pathmanager.h"
-#include "../Def_Str.h"
+#include "MapEditor_PathManager.h"
+#include "MapEditor_StringUtil.h"
 using Ogre::String;
 
 #include "FluidsXml.h"

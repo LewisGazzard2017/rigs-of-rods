@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "par.h"
 #include "track.h"
 
@@ -8,7 +8,7 @@
 #include "objectloader.h"
 #include <functional>
 #include <algorithm>
-#include "../ogre/common/Def_Str.h"
+#include "MapEditor_StringUtil.h"
 #include "game.h"  // for tires map
 
 #include <list>

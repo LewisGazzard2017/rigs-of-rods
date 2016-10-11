@@ -3,6 +3,8 @@
 #include "aabb_space_partitioning.h"
 #include "optional.h"
 
+#include <list>
+
 class ROADSTRIP
 {
 public:

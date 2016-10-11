@@ -1,5 +1,5 @@
-#include "pch.h"
-#include "../Def_Str.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
 #include "FluidsXml.h"
 #include "tinyxml2.h"
 using namespace tinyxml2;

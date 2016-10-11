@@ -1,6 +1,6 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "dbl.h"
-#include "quaternion.h"
+#include "MapEditor_Quaternion.h"
 #include "unittest.h"
 #include "../ogre/common/Def_Str.h"
 

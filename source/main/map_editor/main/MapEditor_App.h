@@ -1,11 +1,11 @@
 #pragma once
 #include "BaseApp.h"
 #include "../vdrift/mathvector.h"
-#include "../vdrift/quaternion.h"
-#include "../vdrift/tracksurface.h"
-#include "../vdrift/track.h"
-#include "../ogre/common/data/SceneXml.h"  //Object-
-#include "../ogre/common/PreviewTex.h"
+#include "MapEditor_Quaternion.h"
+#include "tracksurface.h"
+#include "MapEditor_Track.h"
+#include "SceneXml.h"  //Object-
+#include "PreviewTex.h"
 
 #include <OgreCommon.h>
 #include <OgreVector3.h>
@@ -63,7 +63,7 @@ public:
 	void UpdWndTitle(), SaveCam();
 
 
-	bool keyPressed(const SDL_KeyboardEvent &arg);
+    bool keyPressed(const MapEditor_KeyboardEvent &arg); // STUNTPORT-ORIG: SDL_KeyboardEvent
 
 	void LoadTrackEv(), SaveTrackEv(), UpdateTrackEv();
 	enum TrkEvent {  TE_None=0, TE_Load, TE_Save, TE_Update  } eTrkEvent;

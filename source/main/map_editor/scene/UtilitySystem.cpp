@@ -1,7 +1,7 @@
-#include "pch.h"
-#include "../ogre/common/Def_Str.h"
-#include "settings.h"
-#include "CApp.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
+#include "MapEditor_Settings.h"
+#include "MapEditor_App.h"
 #include "CGui.h"
 #include <boost/filesystem.hpp>
 #include <Ogre.h>

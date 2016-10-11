@@ -1,6 +1,6 @@
 #pragma once
 #include "../vdrift/mathvector.h"
-#include "../vdrift/quaternion.h"
+#include "MapEditor_Quaternion.h"
 //#include <OgreVector3.h>
 
 const static int ciTrkHdrSize = 32;

@@ -1,31 +1,22 @@
-#include "pch.h"
-#include "Def_Str.h"
+#include "MapEditor_Global.h"
+#include "MapEditor_StringUtil.h"
 #include "RenderConst.h"
-#include "data/CData.h"
-#include "data/SceneXml.h"
+#include "CData.h"
+#include "SceneXml.h"
 #include "data/BltObjects.h"
-#include "ShapeData.h"
+#include "MapEditor_ShapeData.h"
 #include "CScene.h"
 #include "../../road/SplineBase.h"
 #include "GuiCom.h"
-#ifdef SR_EDITOR
-	#include "../../editor/CApp.h"
-	#include "../../editor/settings.h"
-#else
-	#include "../CGame.h"
-	#include "../../vdrift/settings.h"
-	#include "../../vdrift/game.h"
-	#include "../SplitScreen.h"
-	#include "../../btOgre/BtOgreGP.h"
-#endif
-#include "../../vdrift/pathmanager.h"
+#include "MapEditor_App.h"
+#include "MapEditor_Settings.h"
+#include "MapEditor_PathManager.h"
 #include "../../paged-geom/GrassLoader.h"
 #include "../../paged-geom/BatchPage.h"
 #include "../../paged-geom/WindBatchPage.h"
 #include "../../paged-geom/ImpostorPage.h"
 #include "../../paged-geom/TreeLoader2D.h"
 #include "../../paged-geom/MersenneTwister.h"
-#include <boost/filesystem.hpp>
 #include <OgreTimer.h>
 #include <OgreTerrain.h>
 #include <OgreSubMesh.h>

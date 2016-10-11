@@ -3,8 +3,8 @@
 #include <cassert>
 #include <cstring>
 
-#include "joeserialize.h"
-#include "macros.h"
+//STUNTPORT #include "joeserialize.h"
+//STUNTPORT #include "macros.h"
 
 template <typename T> class MATRIX4;
 
@@ -12,7 +12,7 @@ class MODEL_OBJ;
 
 class VERTEXARRAY
 {
-friend class joeserialize::Serializer;
+//STUNTPORT friend class joeserialize::Serializer;
 friend class MODEL_OBJ;
 //private:
 public:
@@ -90,6 +90,7 @@ public:
 	
 	void SetVertexData2DQuad(float x1, float y1, float x2, float y2, float u1, float v1, float u2, float v2, float * vcorners, float * uvs, int * bfaces, int faceoffset=0) const;
 	
+    /*  //STUNTPORT 
 	bool Serialize(joeserialize::Serializer & s)
 	{
 		_SERIALIZE_(s,vertices);
@@ -97,7 +98,7 @@ public:
 		_SERIALIZE_(s,texcoords);
 		_SERIALIZE_(s,faces);
 		return true;
-	}
+	}*/
 	
 	///build the vertex array given the faces defined by the verts, normals, and texcoords passed in
 	class TRIFLOAT

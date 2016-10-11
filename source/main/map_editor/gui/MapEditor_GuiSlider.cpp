@@ -1,6 +1,6 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "MyGUI_Precompiled.h"
-#include "Slider.h"
+#include "MapEditor_GuiSlider.h"
 #include "MyGUI_InputManager.h"
 #include "MyGUI_Button.h"
 #include "MyGUI_ResourceSkin.h"

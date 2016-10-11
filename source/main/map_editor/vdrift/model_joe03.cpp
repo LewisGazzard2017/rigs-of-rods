@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "model_joe03.h"
 #include "joepack.h"
 #include "mathvector.h"

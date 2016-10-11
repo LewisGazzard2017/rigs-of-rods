@@ -7,11 +7,11 @@
 #include "tracksurface.h"
 
 #include "mathvector.h"
-#include "quaternion.h"
+#include "MapEditor_Quaternion.h"
 #include "bezier.h"
-#include "aabb.h"
-#include "aabb_space_partitioning.h"
-#include "optional.h"
+//STUNTPORT #include "aabb.h"
+//STUNTPORT #include "aabb_space_partitioning.h"
+//STUNTPORT #include "optional.h"
 
 #include "track_object.h"
 #include "roadstrip.h"

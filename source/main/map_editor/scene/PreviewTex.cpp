@@ -1,7 +1,7 @@
-#include "pch.h"
+#include "MapEditor_Global.h"
 #include "RenderConst.h"
 #include "PreviewTex.h"
-#include "Def_Str.h"
+#include "MapEditor_StringUtil.h"
 #include <fstream>
 #include <OgreHardwarePixelBuffer.h>
 #include <OgreResourceGroupManager.h>
