@@ -37,6 +37,160 @@
 #include "SceneMouse.h"
 
 namespace RoR {
+
+#define BOOL2STR(_B_) (_B_ ? "True" : "False")
+
+void LogVarStr(const char* name, const char* type, const char* old_val, const char* new_val)
+{
+    if (App::diag_trace_globals.GetActive())
+    {
+        char buf[1000];
+        sprintf(buf, "[RoR|GVars] %s (%s): [%s] => [%s]", name, type, old_val, new_val);
+        LOG(buf);
+    }
+}
+
+void LogVarPending(const char* name, const char* new_val)
+{
+    if (App::diag_trace_globals.GetActive())
+    {
+        char buf[1000];
+        sprintf(buf, "[RoR|GVars] %s (pending): ==> [%s]", name, new_val);
+        LOG(buf);
+    }
+}
+
+void LogVarInt(const char* name, const char* type, int old_val, int new_val)
+{
+    if (App::diag_trace_globals.GetActive())
+    {
+        char buf[1000];
+        sprintf(buf, "[RoR|GVars] %s (%s): [%d] => [%d]", name, type, old_val, new_val);
+        LOG(buf);
+    }
+}
+
+void LogVarIntPending(const char* name, int v)
+{
+    if (App::diag_trace_globals.GetActive())
+    {
+        char buf[1000];
+        sprintf(buf, "[RoR|GVars] %s (pending): ==> [%d]", name, v);
+        LOG(buf);
+    }
+}
+
+void GVarStr::SetActive(std::string s)
+{
+    if (s != m_active_val)
+    {
+        LogVarStr(m_name, "active", m_active_val.c_str(), s.c_str());
+        m_active_val = s; 
+    }
+}
+
+void GVarStr::SetConfig(std::string s)
+{
+    if (s != m_config_val)
+    {
+        LogVarStr(m_name, "config", m_config_val.c_str(), s.c_str());
+        m_config_val = s;
+    }
+}
+
+void GVarStr::SetPending(std::string s)
+{
+    if (s != m_pending_val)
+    {
+        LogVarPending(m_name, s.c_str()); m_pending_val = s;
+        m_has_pending = true;
+    }
+}
+
+void GVarBool::SetActive(bool v)
+{
+    if (v != m_active_val)
+    {
+        LogVarStr(m_name, "active", BOOL2STR(m_active_val), BOOL2STR(v));
+        m_active_val = v;
+    }
+}
+
+void GVarBool::SetConfig(bool v)
+{
+    if (v != m_config_val)
+    {
+        LogVarStr(m_name, "config", BOOL2STR(m_active_val), BOOL2STR(v));
+        m_config_val = v;
+    }
+}
+
+void GVarBool::SetPending(bool v)
+{
+    if (v != m_pending_val)
+    {
+        LogVarPending(m_name, BOOL2STR(v));
+        m_pending_val = v;
+        m_has_pending = true;
+    }
+}
+
+void GVarInt::SetActive(int v)
+{
+    if (v != m_active_val)
+    {
+        LogVarInt(m_name, "active", m_active_val, v);
+        m_active_val = v;
+    }
+}
+
+void GVarInt::SetConfig(int v)
+{
+    if (v != m_config_val)
+    {
+        LogVarInt(m_name, "active", m_config_val, v);
+        m_config_val = v;
+    }
+}
+
+void GVarInt::SetPending(int v)
+{
+    if (v != m_pending_val)
+    {
+        LogVarIntPending(m_name, v);
+        m_pending_val = v;
+        m_has_pending = true;
+    }
+}
+
+template<typename enum_T> void GVarEnum::SetActive(enum_T v)
+{
+    if (v != m_active_val)
+    {
+        LogVarStr(m_name, "active", (*m_tostring_fn)((int)m_active_val), (*m_tostring_fn)((int)v));
+        m_active_val = v;
+    }
+}
+
+template<typename enum_T> void GVarEnum::SetConfig(enum_T v)
+{
+    if (v != m_config_val)
+    {
+        LogVarStr(m_name, "config", (*m_tostring_fn)((int)m_config_val), (*m_tostring_fn)((int)v));
+        m_active_val = v;
+    }
+}
+
+template<typename enum_T> void GVarEnum::SetPending(enum_T v)
+{
+    if (v != m_config_val)
+    {
+        LogVarPending(m_name, (*m_tostring_fn)((int)v));
+        m_pending_val = v;
+        m_has_pending = true;
+    }
+}
+
 namespace App {
 
 
@@ -482,19 +636,18 @@ void Init()
 // ================================================================================
 
 
-void LogVarUpdate(const char* name, const char* old_value, const char* new_value)
+void LogVarUpdate(const char* old_value, const char* new_value)
 {
-    if (g_diag_trace_globals && (strcmp(old_value, new_value) != 0))
-    {
+
         char log[1000] = "";
-        snprintf(log, 1000, "[RoR|Globals] Updating \"%s\": [%s] => [%s]", name, old_value, new_value);
+       // snprintf(log, 1000, "[RoR|Globals] Updating \"%s\": [%s] => [%s]", name, old_value, new_value);
         LOG(log);
-    }
+    
 }
 
 void SetVarStr (std::string& var, const char* var_name, std::string const & new_value)
 {
-    LogVarUpdate(var_name, var.c_str(), new_value.c_str());
+    //LogVarUpdate(var_name, var.c_str(), new_value.c_str());
     var = new_value;
 }
 
@@ -511,13 +664,13 @@ void SetVarInt (int& var, const char* var_name, int new_value)
 
 void SetVarEnum (int& var, const char* var_name, int new_value, EnumToStringFn enum_to_str_fn)
 {
-    LogVarUpdate(var_name, (*enum_to_str_fn)(var), (*enum_to_str_fn)(new_value));
+    //LogVarUpdate(var_name, (*enum_to_str_fn)(var), (*enum_to_str_fn)(new_value));
     var = new_value;
 }
 
 void SetVarBool (bool& var, const char* var_name, bool new_value)
 {
-    LogVarUpdate(var_name, (var ? "True" : "False"), (new_value ? "True" : "False"));
+    //LogVarUpdate(var_name, (var ? "True" : "False"), (new_value ? "True" : "False"));
     var = new_value;
 }
 
@@ -670,5 +823,4 @@ const char* GfxTexFilterToStr(int v)
 }
 
 } // namespace Application
-
 } // namespace RoR

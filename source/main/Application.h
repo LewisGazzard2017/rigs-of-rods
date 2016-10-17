@@ -33,6 +33,65 @@
 #define STR_CREF  std::string const &
 
 namespace RoR {
+
+template<typename value_T> class GVar
+{
+public:
+    typedef const char* (*EnumToStringFn)(int);
+    GVar(const char* _name, const char* _conf_name, value_T _def_val);
+
+    value_T GetActive () const { return m_active_val;  }
+    value_T GetConfig () const { return m_config_val;  }
+    value_T GetPending() const { return m_pending_val; }
+
+protected:
+    value_T        m_active_val;
+    value_T        m_config_val;
+    value_T        m_pending_val;
+    const char*    m_name;
+    const char*    m_conf_name;
+    bool           m_has_pending;
+};
+
+class GVarBool:  public GVar<bool>
+{
+public:
+    void SetActive (bool v);
+    void SetConfig (bool v);
+    void SetPending(bool v);
+};
+
+class GVarInt: public GVar<int>
+{
+public:
+    void SetActive (int v);
+    void SetConfig (int v);
+    void SetPending(int v);
+};
+
+class GVarFloat: public GVar<float>
+{};
+
+class GVarStr: public GVar<std::string>
+{
+public:
+    void SetActive (std::string v);
+    void SetConfig (std::string v);
+    void SetPending(std::string v);
+};
+
+template<typename enum_T> class GVarEnum: public GVar<enum_T>
+{
+public:
+    GVarEnum(const char* _name, const char* _conf_name, enum_T _def_val, EnumToStringFn _fn);
+    void SetActive (enum_T v);
+    void SetConfig (enum_T v);
+    void SetPending(enum_T v);
+
+private:
+    EnumToStringFn m_tostring_fn;
+};
+
 namespace App {
 
 enum State
@@ -134,6 +193,12 @@ enum IoInputGrabMode
     INPUT_GRAB_ALL,
     INPUT_GRAB_DYNAMIC,
 };
+
+extern GVarBool                  diag_trace_globals;
+extern GVarStr                   mp_server_host;
+extern GVarStr                   mp_server_port;
+extern GVarEnum<GfxVegetation>   gfx_vegetation_mode;
+
 
 void Init();
 
