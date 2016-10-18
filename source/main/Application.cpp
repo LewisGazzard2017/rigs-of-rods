@@ -1,26 +1,26 @@
 /*
-	This source file is part of Rigs of Rods
-	Copyright 2013-2016 Petr Ohlidal
+    This source file is part of Rigs of Rods
+    Copyright 2013-2016 Petr Ohlidal & contributors
 
-	For more information, see http://www.rigsofrods.org/
+    For more information, see http://www.rigsofrods.org/
 
-	Rigs of Rods is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License version 3, as
-	published by the Free Software Foundation.
+    Rigs of Rods is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License version 3, as
+    published by the Free Software Foundation.
 
-	Rigs of Rods is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-	GNU General Public License for more details.
+    Rigs of Rods is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with Rigs of Rods. If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with Rigs of Rods. If not, see <http://www.gnu.org/licenses/>.
 */
 
 /** 
-	@file   Application.cpp
-	@author Petr Ohlidal
-	@date   05/2014
+    @file   Application.cpp
+    @author Petr Ohlidal
+    @date   05/2014
 */
 
 #include "Application.h"
@@ -265,18 +265,7 @@ namespace App {
 // Global variables
 // ================================================================================
 
-
-// Object instances
-static OgreSubsystem*   g_ogre_subsystem;
-static ContentManager*  g_content_manager;
-static OverlayWrapper*  g_overlay_wrapper;
-static SceneMouse*      g_scene_mouse;
-static GUIManager*      g_gui_manager;
-static Console*         g_console;
-static InputEngine*     g_input_engine;
-static CacheSystem*     g_cache_system;
-static MainThread*      g_main_thread_logic;
-
+// Helpers
 const char* SimGearboxModeToString(int v);
 const char* GfxFlaresModeToString (int v);
 const char* IoInputGrabModeToStr  (int v);
@@ -291,196 +280,116 @@ const char* MpStateToStr          (int v);
 
 #define Q(x) #x /* http://stackoverflow.com/a/6671729 */
 #define QUOTE(x) Q(x)
-#define MK_GVAR_DATA(_TYPE_, _NAME_, _CONF_, _DEFAULT_)       GVar##_TYPE_     _NAME_(QUOTE(_NAME_), _CONF_, _DEFAULT_)
-#define MK_GVAR_ENUM(_TYPE_, _NAME_, _CONF_, _DEFAULT_, _FN_) GVarEnum<_TYPE_> _NAME_(QUOTE(_NAME_), _CONF_, _DEFAULT_, _FN_)
+#define GVAR_DATA(_TYPE_, _NAME_, _CONF_, _DEFAULT_)       GVar##_TYPE_     _NAME_(QUOTE(_NAME_), _CONF_, _DEFAULT_)
+#define GVAR_ENUM(_TYPE_, _NAME_, _CONF_, _DEFAULT_, _FN_) GVarEnum<_TYPE_> _NAME_(QUOTE(_NAME_), _CONF_, _DEFAULT_, _FN_)
 
 // App
-MK_GVAR_ENUM(State      , app_state             , nullptr,          APP_STATE_BOOTSTRAP, AppStateToStr);
-MK_GVAR_DATA(Bool       , app_multithread       , "Multi-threading", true);
-MK_GVAR_DATA(Str        , app_language          , "Language",       "English");
-MK_GVAR_DATA(Str        , app_locale            , "Language Short", "en");
-MK_GVAR_DATA(Str        , app_screenshot_format , "Screenshot Format", "png");
+GVAR_ENUM( State           , app_state               , nullptr                   , APP_STATE_BOOTSTRAP, AppStateToStr);
+GVAR_DATA( Bool            , app_multithread         , "Multi-threading"         , true     );
+GVAR_DATA( Str             , app_language            , "Language"                , "English");
+GVAR_DATA( Str             , app_locale              , "Language Short"          , "en"     );
+GVAR_DATA( Str             , app_screenshot_format   , "Screenshot Format"       , "jpg"    );
 
 // Simulation
-MK_GVAR_ENUM(SimState       , sim_state             , nullptr                   , SIM_STATE_NONE,   SimStateToStr         );
-MK_GVAR_ENUM(SimGearboxMode , sim_gearbox_mode      , "GearboxMode"             , SIM_GEARBOX_AUTO, SimGearboxModeToString);
-MK_GVAR_DATA(Bool           , sim_position_storage  , "Position Storage"        , false   );
-MK_GVAR_DATA(Bool           , sim_replay_enabled    , "Replay mode"             , false   );
-MK_GVAR_DATA(Int            , sim_replay_length     , "Replay length"           , 1000    );
-MK_GVAR_DATA(Int            , sim_replay_stepping   , "Replay Steps per second" , 240     );
-MK_GVAR_DATA(Str            , sim_vehicle           , "Preselected Truck"       , nullptr );
-MK_GVAR_DATA(Str            , sim_vehicle_config    , "Preselected TruckConfig" , nullptr );
-MK_GVAR_DATA(Str            , sim_terrain           , "Preselected Map"         , nullptr );
-MK_GVAR_DATA(Bool           , sim_vehicle_enter     , "Enter Preselected Truck" , false   );
+GVAR_ENUM( SimState        , sim_state               , nullptr                   , SIM_STATE_NONE,   SimStateToStr         );
+GVAR_ENUM( SimGearboxMode  , sim_gearbox_mode        , "GearboxMode"             , SIM_GEARBOX_AUTO, SimGearboxModeToString);
+GVAR_DATA( Bool            , sim_position_storage    , "Position Storage"        , false   );
+GVAR_DATA( Bool            , sim_replay_enabled      , "Replay mode"             , false   );
+GVAR_DATA( Int             , sim_replay_length       , "Replay length"           , 1000    );
+GVAR_DATA( Int             , sim_replay_stepping     , "Replay Steps per second" , 240     );
+GVAR_DATA( Str             , sim_vehicle             , "Preselected Truck"       , nullptr );
+GVAR_DATA( Str             , sim_vehicle_config      , "Preselected TruckConfig" , nullptr );
+GVAR_DATA( Str             , sim_terrain             , "Preselected Map"         , nullptr );
+GVAR_DATA( Bool            , sim_vehicle_enter       , "Enter Preselected Truck" , false   );
 
 // Multiplayer
-MK_GVAR_ENUM(MpState    , mp_state              , nullptr           , MP_STATE_DISABLED, MpStateToStr);
-MK_GVAR_DATA(Str        , mp_server_host        , "Server name"     , nullptr      );
-MK_GVAR_DATA(Int        , mp_server_port        , "Server port"     , 0            );
-MK_GVAR_DATA(Str        , mp_server_password    , "Server password" , nullptr      );
-MK_GVAR_DATA(Str        , mp_player_name        , "Nickname"        , "Anonymous"  );
+GVAR_ENUM( MpState         , mp_state                , nullptr                   , MP_STATE_DISABLED, MpStateToStr);
+GVAR_DATA( Str             , mp_server_host          , "Server name"             , nullptr      );
+GVAR_DATA( Int             , mp_server_port          , "Server port"             , 0            );
+GVAR_DATA( Str             , mp_server_password      , "Server password"         , nullptr      );
+GVAR_DATA( Str             , mp_player_name          , "Nickname"                , "Anonymous"  );
 
 // Diagnostic
-MK_GVAR_DATA(Bool       , diag_trace_globals       , nullptr                                    , false );
-MK_GVAR_DATA(Bool       , diag_rig_log_node_import , "RigImporter_Debug_TraverseAndLogAllNodes" , false );
-MK_GVAR_DATA(Bool       , diag_rig_log_node_stats  , "RigImporter_PrintNodeStatsToLog"          , false );
-MK_GVAR_DATA(Bool       , diag_rig_log_messages    , "RigImporter_PrintMessagesToLog"           , false );
-MK_GVAR_DATA(Bool       , diag_collisions          , "Debug Collisions"                         , false );
-MK_GVAR_DATA(Bool       , diag_truck_mass          , "Debug Truck Mass"                         , false );
-MK_GVAR_DATA(Bool       , diag_envmap              , "EnvMapDebug"                              , false );
-MK_GVAR_DATA(Bool       , diag_videocameras        , "VideoCameraDebug"                         , false );
+GVAR_DATA( Bool            , diag_trace_globals      , nullptr                                    , false );
+GVAR_DATA( Bool            , diag_rig_log_node_import, "RigImporter_Debug_TraverseAndLogAllNodes" , false );
+GVAR_DATA( Bool            , diag_rig_log_node_stats , "RigImporter_PrintNodeStatsToLog"          , false );
+GVAR_DATA( Bool            , diag_rig_log_messages   , "RigImporter_PrintMessagesToLog"           , false );
+GVAR_DATA( Bool            , diag_collisions         , "Debug Collisions"                         , false );
+GVAR_DATA( Bool            , diag_truck_mass         , "Debug Truck Mass"        , false   );
+GVAR_DATA( Bool            , diag_envmap             , "EnvMapDebug"             , false   );
+GVAR_DATA( Bool            , diag_videocameras       , "VideoCameraDebug"        , false   );
 
 // System
-MK_GVAR_DATA(Str        , sys_process_dir          , nullptr               , nullptr );
-MK_GVAR_DATA(Str        , sys_user_dir             , nullptr               , nullptr );
-MK_GVAR_DATA(Str        , sys_config_dir           , "Config Root"         , nullptr );
-MK_GVAR_DATA(Str        , sys_cache_dir            , "Cache Path"          , nullptr );
-MK_GVAR_DATA(Str        , sys_logs_dir             , "Log Path"            , nullptr );
-MK_GVAR_DATA(Str        , sys_resources_dir        , "Resources Path"      , nullptr );
-MK_GVAR_DATA(Str        , sys_profiler_dir         , "Profiler output dir" , nullptr );
-MK_GVAR_DATA(Str        , sys_screenshot_dir       , nullptr               , nullptr );
+GVAR_DATA( Str             , sys_process_dir         , nullptr                   , nullptr );
+GVAR_DATA( Str             , sys_user_dir            , nullptr                   , nullptr );
+GVAR_DATA( Str             , sys_config_dir          , "Config Root"             , nullptr );
+GVAR_DATA( Str             , sys_cache_dir           , "Cache Path"              , nullptr );
+GVAR_DATA( Str             , sys_logs_dir            , "Log Path"                , nullptr );
+GVAR_DATA( Str             , sys_resources_dir       , "Resources Path"          , nullptr );
+GVAR_DATA( Str             , sys_profiler_dir        , "Profiler output dir"     , nullptr );
+GVAR_DATA( Str             , sys_screenshot_dir      , nullptr                   , nullptr );
 
 // Input - Output
-MK_GVAR_DATA(Bool       , io_ffback_enabled        ///< Config: BOOL  Force Feedback
-MK_GVAR_DATA(Float      , io_ffback_camera_gain    ///< Config: FLOAT Force Feedback Camera
-MK_GVAR_DATA(Float      , io_ffback_center_gain    ///< Config: FLOAT Force Feedback Centering
-MK_GVAR_DATA(Float      , io_ffback_master_gain    ///< Config: FLOAT Force Feedback Gain
-MK_GVAR_DATA(Float      , io_ffback_stress_gain    ///< Config: FLOAT Force Feedback Stress
-MK_GVAR_ENUM(IoInputGrabMode , io_input_grab_mode       ///< Config: BOOL  Input Grab          IoInputGrabModeToStr
-MK_GVAR_DATA(Bool       , io_arcade_controls       ///< Config: BOOL  ArcadeControls
-MK_GVAR_DATA(Int        , io_outgauge_mode         ///< Config: INT   OutGauge Mode
-MK_GVAR_DATA(Str        , io_outgauge_ip           ///< Config: STR   OutGauge IP
-MK_GVAR_DATA(Int        , io_outgauge_port         ///< Config: INT   OutGauge Port
-MK_GVAR_DATA(Float      , io_outgauge_delay        ///< Config: FLOAT OutGauge Delay
-MK_GVAR_DATA(Int        , io_outgauge_id           ///< Config: INT   OutGauge ID
+GVAR_ENUM( IoInputGrabMode , io_input_grab_mode      , "Input Grab"              , INPUT_GRAB_ALL, IoInputGrabModeToStr);
+GVAR_DATA( Bool            , io_ffback_enabled       , "Force Feedback"          , false           );
+GVAR_DATA( Float           , io_ffback_camera_gain   , "Force Feedback Camera"   , 100.f           );
+GVAR_DATA( Float           , io_ffback_center_gain   , "Force Feedback Centering", 0.f             );
+GVAR_DATA( Float           , io_ffback_master_gain   , "Force Feedback Gain"     , 100.f           );
+GVAR_DATA( Float           , io_ffback_stress_gain   , "Force Feedback Stress"   , 100.f           );
+GVAR_DATA( Bool            , io_arcade_controls      , "ArcadeControls"          , true            );
+GVAR_DATA( Int             , io_outgauge_mode        , "OutGauge Mode"           , 0               );
+GVAR_DATA( Str             , io_outgauge_ip          , "OutGauge IP"             , "192.168.1.100" );
+GVAR_DATA( Int             , io_outgauge_port        , "OutGauge Port"           , 1337            );
+GVAR_DATA( Float           , io_outgauge_delay       , "OutGauge Delay"          , 10.f            );
+GVAR_DATA( Int             , io_outgauge_id          , "OutGauge ID"             , 0               );
 
 // Audio
-MK_GVAR_DATA(Float      ,audio_master_volume      ///< Config: FLOAT Sound Volume
-MK_GVAR_DATA(Bool       ,audio_enable_creak       ///< Config: BOOL  Creak Sound
-MK_GVAR_DATA(Str        ,audio_device_name        ///< Config: STR   AudioDevice
-MK_GVAR_DATA(Bool       ,audio_menu_music         ///< Config: BOOL  MainMenuMusic 
+GVAR_DATA( Float           , audio_master_volume     , "Sound Volume"            , 100.f   );
+GVAR_DATA( Bool            , audio_enable_creak      , "Creak Sound"             , false   );
+GVAR_DATA( Str             , audio_device_name       , "AudioDevice"             , nullptr );
+GVAR_DATA( Bool            , audio_menu_music        , "MainMenuMusic"           , true    );
 
 // Graphics
-MK_GVAR_ENUM(GfxFlaresMode  , gfx_flares_mode      "Lights"               , GFX_FLARES_ALL_VEHICLES_HEAD_ONLY , GfxFlaresModeToString );
-MK_GVAR_ENUM(GfxShadowType  , gfx_shadow_type      "Shadow technique"     , GFX_SHADOW_TYPE_PSSM              , GfxShadowModeToStr );
-MK_GVAR_ENUM(GfxExtCamMode  , gfx_extcam_mode      "External Camera Mode" , GFX_EXTCAM_MODE_PITCHING          ,  );
-MK_GVAR_ENUM(GfxSkyMode     , gfx_sky_mode         "Sky effects"          , GFX_SKY_SANDSTORM                 , GfxSkyModeToString );
-MK_GVAR_ENUM(GfxTexFilter   , gfx_texture_filter   "Texture Filtering"    , GFX_TEXFILTER_TRILINEAR           , GfxTexFilterToStr );
-MK_GVAR_ENUM(GfxVegetation  , gfx_vegetation_mode  "Vegetation"           , GFX_VEGETATION_NONE               , GfxVegetationModeToStr );
-MK_GVAR_ENUM(GfxWaterMode   , gfx_water_mode       "Water effects"        , GFX_WATER_BASIC                   , GfxWaterModeToString );
+GVAR_ENUM( GfxFlaresMode   , gfx_flares_mode         , "Lights"                  , GFX_FLARES_ALL_VEHICLES_HEAD_ONLY , GfxFlaresModeToString );
+GVAR_ENUM( GfxShadowType   , gfx_shadow_type         , "Shadow technique"        , GFX_SHADOW_TYPE_PSSM              , GfxShadowModeToStr );
+GVAR_ENUM( GfxExtCamMode   , gfx_extcam_mode         , "External Camera Mode"    , GFX_EXTCAM_MODE_PITCHING          ,  );
+GVAR_ENUM( GfxSkyMode      , gfx_sky_mode            , "Sky effects"             , GFX_SKY_SANDSTORM                 , GfxSkyModeToString );
+GVAR_ENUM( GfxTexFilter    , gfx_texture_filter      , "Texture Filtering"       , GFX_TEXFILTER_TRILINEAR           , GfxTexFilterToStr );
+GVAR_ENUM( GfxVegetation   , gfx_vegetation_mode     , "Vegetation"              , GFX_VEGETATION_NONE               , GfxVegetationModeToStr );
+GVAR_ENUM( GfxWaterMode    , gfx_water_mode          , "Water effects"           , GFX_WATER_BASIC                   , GfxWaterModeToString );
 
 
-MK_GVAR_DATA(Bool       ,gfx_enable_sunburn        ///< Config: BOOL  Sunburn
-MK_GVAR_DATA(Bool       ,gfx_water_waves           ///< Config: BOOL  Waves
-MK_GVAR_DATA(Bool       ,gfx_minimap_disabled      ///< Config: BOOL  disableOverViewMap
-MK_GVAR_DATA(Int        ,gfx_particles_mode        ///< Config: BOOL  Particles
-MK_GVAR_DATA(Bool       ,gfx_enable_glow           ///< Config: BOOL  Glow
-MK_GVAR_DATA(Bool       ,gfx_enable_hdr            ///< Config: BOOL  HDR
-MK_GVAR_DATA(Bool       ,gfx_enable_heathaze       ///< Config: BOOL  HeatHaze
-MK_GVAR_DATA(Bool       ,gfx_envmap_enabled        ///< Config: BOOL  Envmap
-MK_GVAR_DATA(Int        ,gfx_envmap_rate           ///< Config: INT   EnvmapUpdateRate
-MK_GVAR_DATA(Int        ,gfx_skidmarks_mode        ///< Config: BOOL  Skidmarks
-MK_GVAR_DATA(Float      ,gfx_sight_range           ///< Config: FLOAT SightRange
-MK_GVAR_DATA(Float      ,gfx_fov_external          ///< Config: FLOAT FOV External
-MK_GVAR_DATA(Float      ,gfx_fov_internal          ///< Config: FLOAT FOV Internal
-MK_GVAR_DATA(Int        ,gfx_fps_limit             ///< Config: INT   FPS-Limiter
+GVAR_DATA( Bool            , gfx_enable_sunburn      , "Sunburn"                 , false  );
+GVAR_DATA( Bool            , gfx_water_waves         , "Waves"                   , false  );
+GVAR_DATA( Bool            , gfx_minimap_disabled    , "disableOverViewMap"      , false  );
+GVAR_DATA( Int             , gfx_particles_mode      , "Particles"               , 1      );
+GVAR_DATA( Bool            , gfx_enable_glow         , "Glow"                    , false  );
+GVAR_DATA( Bool            , gfx_enable_hdr          , "HDR"                     , false  );
+GVAR_DATA( Bool            , gfx_enable_heathaze     , "HeatHaze"                , false  );
+GVAR_DATA( Bool            , gfx_envmap_enabled      , "Envmap"                  , true   );
+GVAR_DATA( Int             , gfx_envmap_rate         , "EnvmapUpdateRate"        , 2      );
+GVAR_DATA( Int             , gfx_skidmarks_mode      , "Skidmarks"               , 1      );
+GVAR_DATA( Float           , gfx_sight_range         , "SightRange"              , 3000.f ); // Previously either 2000 or 4500 (inconsistent)
+GVAR_DATA( Float           , gfx_fov_external        , "FOV External"            , 60.f   );
+GVAR_DATA( Float           , gfx_fov_internal        , "FOV Internal"            , 75.f   );
+GVAR_DATA( Int             , gfx_fps_limit           , "FPS-Limiter"             , 0      ); // Unlimited
+
 
 // ================================================================================
-// Access functions
+// Global objects
 // ================================================================================
 
 
-// Helpers (forward decl.)
-typedef const char* (*EnumToStringFn)(int);
-
-
-
-void SetVarStr      (std::string&     var, const char* var_name, STR_CREF        new_value);
-void SetVarInt      (int&             var, const char* var_name, int             new_value);
-void SetVarEnum     (int&             var, const char* var_name, int             new_value,   EnumToStringFn to_str_fn );
-void SetVarBool     (bool&            var, const char* var_name, bool            new_value);
-void SetVarFloat    (float&           var, const char* var_name, float           new_value);
-
-// Getters
-
-
-// Setters
-void SetActiveAppState    (State    v) { SetVarEnum    (g_app_state_active     , "app_state_active"     , (int)v, AppStateToStr); }
-void SetPendingAppState   (State    v) { SetVarEnum    (g_app_state_pending    , "app_state_pending"    , (int)v, AppStateToStr); }
-void SetSimActiveTerrain  (STR_CREF v) { SetVarStr     (g_sim_active_terrain   , "sim_active_terrain"   , v); }
-void SetSimNextTerrain    (STR_CREF v) { SetVarStr     (g_sim_next_terrain     , "sim_next_terrain"     , v); }
-void SetActiveSimState    (SimState v) { SetVarEnum    (g_sim_state_active     , "sim_state_active"     , (int)v, SimStateToStr); }
-void SetPendingSimState   (SimState v) { SetVarEnum    (g_sim_state_pending    , "sim_state_pending"    , (int)v, SimStateToStr); }
-void SetActiveMpState     (MpState  v) { SetVarEnum    (g_mp_state_active      , "mp_state_active"      , (int)v, MpStateToStr ); }
-void SetPendingMpState    (MpState  v) { SetVarEnum    (g_mp_state_pending     , "mp_state_pending"     , (int)v, MpStateToStr ); }
-void SetMpServerHost      (STR_CREF v) { SetVarStr     (g_mp_server_host       , "mp_server_host"       , v); }
-void SetMpServerPassword  (STR_CREF v) { SetVarStr     (g_mp_server_password   , "mp_server_password"   , v); }
-void SetMpServerPort      (int      v) { SetVarInt     (g_mp_server_port       , "mp_server_port"       , v); }
-void SetMpPlayerName      (STR_CREF v) { SetVarStr     (g_mp_player_name       , "mp_player_name"       , v); }
-void SetDiagTraceGlobals  (bool     v) { SetVarBool    (g_diag_trace_globals   , "diag_trace_globals"   , v); }
-void SetSysProcessDir     (STR_CREF v) { SetVarStr     (g_sys_process_dir      , "sys_process_dir"      , v); }
-void SetSysUserDir        (STR_CREF v) { SetVarStr     (g_sys_user_dir         , "sys_user_dir"         , v); }
-void SetSysConfigDir      (STR_CREF v) { SetVarStr     (g_sys_config_dir       , "sys_config_dir"       , v); }
-void SetSysCacheDir       (STR_CREF v) { SetVarStr     (g_sys_cache_dir        , "sys_cache_dir"        , v); }
-void SetSysLogsDir        (STR_CREF v) { SetVarStr     (g_sys_logs_dir         , "sys_logs_dir"         , v); }
-void SetSysResourcesDir   (STR_CREF v) { SetVarStr     (g_sys_resources_dir    , "sys_resources_dir"    , v); }
-void SetIoFFbackEnabled   (bool     v) { SetVarBool    (g_io_ffback_enabled    , "io_ffback_enabled"    , v); }
-void SetIoFFbackCameraGain(float    v) { SetVarFloat   (g_io_ffback_camera_gain, "io_ffback_camera_gain", v); }
-void SetIoFFbackCenterGain(float    v) { SetVarFloat   (g_io_ffback_center_gain, "io_ffback_center_gain", v); }
-void SetIoFFbackMasterGain(float    v) { SetVarFloat   (g_io_ffback_master_gain, "io_ffback_master_gain", v); }
-void SetIoFFbackStressGain(float    v) { SetVarFloat   (g_io_ffback_stress_gain, "io_ffback_stress_gain", v); }
-void SetGfxShadowType     (GfxShadowType  v) { SetVarEnum    (g_gfx_shadow_type      , "gfx_shadow_mode"      , (int)v, GfxShadowModeToStr); }
-void SetGfxExternCamMode  (GfxExtCamMode  v) { SetVarInt     (g_gfx_extcam_mode      , "gfx_extcam_mode"      , (int)v); }
-void SetGfxTexFiltering   (GfxTexFilter   v) { SetVarEnum    (g_gfx_texture_filter   , "gfx_texture_filter"   , (int)v, GfxTexFilterToStr ); }
-void SetGfxVegetationMode (GfxVegetation  v) { SetVarEnum    (g_gfx_vegetation_mode  , "gfx_vegetation_mode"  , (int)v, GfxVegetationModeToStr); }
-void SetGfxEnableSunburn  (bool           v) { SetVarBool    (g_gfx_enable_sunburn   , "gfx_enable_sunburn"   , v); }
-void SetGfxWaterUseWaves  (bool           v) { SetVarBool    (g_gfx_water_waves      , "gfx_water_waves"      , v); }
-void SetGfxEnableGlow     (bool           v) { SetVarBool    (g_gfx_enable_glow      , "gfx_enable_glow"      , v); }
-void SetGfxEnableHdr      (bool           v) { SetVarBool    (g_gfx_enable_hdr       , "gfx_enable_hdr"       , v); }
-void SetGfxUseHeathaze    (bool           v) { SetVarBool    (g_gfx_enable_heathaze  , "gfx_enable_heathaze"  , v); }
-void SetGfxEnvmapEnabled  (bool           v) { SetVarBool    (g_gfx_envmap_enabled   , "gfx_envmap_enabled"   , v); }
-void SetGfxEnvmapRate     (int            v) { SetVarInt     (g_gfx_envmap_rate      , "gfx_envmap_rate"      , v); }
-void SetGfxSkidmarksMode  (int            v) { SetVarInt     (g_gfx_skidmarks_mode   , "gfx_skidmarks_mode"   , v); }
-void SetGfxParticlesMode  (int            v) { SetVarInt     (g_gfx_particles_mode   , "gfx_particles_mode"   , v); }
-void SetGfxMinimapDisabled   (bool        v) { SetVarBool    (g_gfx_minimap_disabled , "gfx_minimap_disabled" , v); }
-void SetDiagRigLogNodeImport (bool        v) { SetVarBool    (g_diag_rig_log_node_import  , "diag_rig_log_node_import"  , v); }
-void SetDiagRigLogNodeStats  (bool        v) { SetVarBool    (g_diag_rig_log_node_stats   , "diag_rig_log_node_stats"   , v); }
-void SetDiagRigLogMessages   (bool        v) { SetVarBool    (g_diag_rig_log_messages     , "diag_rig_log_messages"     , v); }
-void SetDiagCollisions       (bool        v) { SetVarBool    (g_diag_collisions           , "diag_collisions"           , v); }
-void SetDiagTruckMass        (bool        v) { SetVarBool    (g_diag_truck_mass           , "diag_truck_mass"           , v); }
-void SetDiagEnvmap           (bool        v) { SetVarBool    (g_diag_envmap               , "diag_envmap"               , v); }
-void SetAppLanguage          (STR_CREF    v) { SetVarStr     (g_app_language              , "app_language"              , v); }
-void SetAppLocale            (STR_CREF    v) { SetVarStr     (g_app_locale                , "app_locale"                , v); }
-void SetAppMultithread       (bool        v) { SetVarBool    (g_app_multithread           , "app_multithread"           , v); }
-void SetAppScreenshotFormat  (STR_CREF    v) { SetVarStr     (g_app_screenshot_format     , "app_screenshot_format"     , v); }
-void SetIoInputGrabMode      (IoInputGrabMode v) { SetVarEnum(g_io_input_grab_mode        , "io_input_grab_mode",    (int)v, IoInputGrabModeToStr); }
-void SetIoArcadeControls     (bool        v) { SetVarBool    (g_io_arcade_controls        , "io_arcade_controls"        , v); }
-void SetAudioMasterVolume  (float         v) { SetVarFloat   (g_audio_master_volume       , "audio_master_volume"       , v); }
-void SetAudioEnableCreak   (bool          v) { SetVarBool    (g_audio_enable_creak        , "audio_enable_creak"        , v); }
-void SetAudioDeviceName    (STR_CREF      v) { SetVarStr     (g_audio_device_name         , "audio_device_name"         , v); }
-void SetAudioMenuMusic     (bool          v) { SetVarBool    (g_audio_menu_music          , "audio_menu_music"          , v); }
-void SetSimReplayEnabled   (bool          v) { SetVarBool    (g_sim_replay_enabled        , "sim_replay_enabled"        , v); }
-void SetSimReplayLength    (int           v) { SetVarInt     (g_sim_replay_length         , "sim_replay_length"         , v); }
-void SetSimReplayStepping  (int           v) { SetVarInt     (g_sim_replay_stepping       , "sim_replay_stepping"       , v); }
-void SetSimPositionStorage (bool          v) { SetVarBool    (g_sim_position_storage      , "sim_position_storage"      , v); }
-void SetSimNextVehicle     (STR_CREF      v) { SetVarStr     (g_sim_next_vehicle          , "sim_next_vehicle"          , v); }
-void SetSimNextVehConfig   (STR_CREF      v) { SetVarStr     (g_sim_next_veh_config       , "sim_next_veh_config"       , v); }
-void SetSimNextVehEnter    (bool          v) { SetVarBool    (g_sim_next_veh_enter        , "sim_next_veh_enter"        , v); }
-void SetSimGearboxMode     (SimGearboxMode v){ SetVarEnum    (g_sim_gearbox_mode          , "sim_gearbox_mode",      (int)v, SimGearboxModeToString); }
-void SetGfxFlaresMode      (GfxFlaresMode v) { SetVarEnum    (g_gfx_flares_mode           , "gfx_flares_mode",       (int)v, GfxFlaresModeToString ); }
-void SetSysScreenshotDir   (STR_CREF      v) { SetVarStr     (g_sys_screenshot_dir        , "sys_screenshot_dir"        , v); }
-void SetIoOutGaugeMode     (int           v) { SetVarInt     (g_io_outgauge_mode          , "io_outgauge_mode"          , v); }
-void SetIoOutGaugeIp       (STR_CREF      v) { SetVarStr     (g_io_outgauge_ip            , "io_outgauge_ip"            , v); }
-void SetIoOutGaugePort     (int           v) { SetVarInt     (g_io_outgauge_port          , "io_outgauge_port"          , v); }
-void SetIoOutGaugeDelay    (float         v) { SetVarFloat   (g_io_outgauge_delay         , "io_outgauge_delay"         , v); }
-void SetIoOutGaugeId       (int           v) { SetVarInt     (g_io_outgauge_id            , "io_outgauge_id"            , v); }
-void SetGfxSkyMode         (GfxSkyMode    v) { SetVarEnum    (g_gfx_sky_mode              , "gfx_sky_mode",          (int)v, GfxSkyModeToString   ); }
-void SetGfxWaterMode       (GfxWaterMode  v) { SetVarEnum    (g_gfx_water_mode            , "gfx_water_mode",        (int)v, GfxWaterModeToString ); }
-void SetGfxSightRange      (float         v) { SetVarFloat   (g_gfx_sight_range           , "gfx_sight_range"           , v); }
-void SetGfxFovExternal     (float         v) { SetVarFloat   (g_gfx_fov_external          , "gfx_fov_external"          , v); }
-void SetGfxFovInternal     (float         v) { SetVarFloat   (g_gfx_fov_internal          , "gfx_fov_internal"          , v); }
-void SetGfxFpsLimit        (int           v) { SetVarInt     (g_gfx_fps_limit             , "gfx_fps_limit"             , v); }
-void SetDiagVideoCameras   (bool          v) { SetVarBool    (g_diag_videocameras         , "diag_videocamera"          , v); }
+// Object instances
+static OgreSubsystem*   g_ogre_subsystem;
+static ContentManager*  g_content_manager;
+static OverlayWrapper*  g_overlay_wrapper;
+static SceneMouse*      g_scene_mouse;
+static GUIManager*      g_gui_manager;
+static Console*         g_console;
+static InputEngine*     g_input_engine;
+static CacheSystem*     g_cache_system;
+static MainThread*      g_main_thread_logic;
 
 // Instance access
 OgreSubsystem*         GetOgreSubsystem      () { return g_ogre_subsystem; };
@@ -588,90 +497,9 @@ void CreateCacheSystem()
 	g_cache_system = new CacheSystem();
 }
 
-void Init()
-{
-    g_app_state_active     = APP_STATE_BOOTSTRAP;
-    g_app_state_pending    = APP_STATE_MAIN_MENU;
-    g_app_language         = "English";
-    g_app_locale           = "en";
-    g_app_screenshot_format= "jpg";
-	g_app_multithread      = true;
-
-    g_mp_state_active      = MP_STATE_DISABLED;
-    g_mp_state_pending     = MP_STATE_NONE;
-    g_mp_player_name       = "Anonymous";
-
-
-
-    g_diag_trace_globals   = false; // Don't init to 'true', logger is not ready at startup.
-
-
-    g_gfx_sight_range      = 3000.f; // Previously either 2000 or 4500 (inconsistent)
-    g_gfx_fov_external     = 60.f;
-    g_gfx_fov_internal     = 75.f;
-    g_gfx_fps_limit        = 0; // Unlimited
-
-    g_io_outgauge_ip       = "192.168.1.100";
-    g_io_outgauge_port     = 1337;
-    g_io_outgauge_delay    = 10.f;
-    g_io_outgauge_mode     = 0; // 0 = disabled, 1 = enabled
-    g_io_outgauge_id       = 0;
-}
-
-
 // ================================================================================
 // Private helper functions
 // ================================================================================
-
-
-void LogVarUpdate(const char* old_value, const char* new_value)
-{
-
-        char log[1000] = "";
-       // snprintf(log, 1000, "[RoR|Globals] Updating \"%s\": [%s] => [%s]", name, old_value, new_value);
-        LOG(log);
-    
-}
-
-void SetVarStr (std::string& var, const char* var_name, std::string const & new_value)
-{
-    //LogVarUpdate(var_name, var.c_str(), new_value.c_str());
-    var = new_value;
-}
-
-void SetVarInt (int& var, const char* var_name, int new_value)
-{
-    if (g_diag_trace_globals && (var != new_value))
-    {
-        char log[1000] = "";
-        snprintf(log, 1000, "[RoR|Globals] Updating \"%s\": [%d] => [%d]", var_name, var, new_value);
-        LOG(log);
-    }
-    var = new_value;
-}
-
-void SetVarEnum (int& var, const char* var_name, int new_value, EnumToStringFn enum_to_str_fn)
-{
-    //LogVarUpdate(var_name, (*enum_to_str_fn)(var), (*enum_to_str_fn)(new_value));
-    var = new_value;
-}
-
-void SetVarBool (bool& var, const char* var_name, bool new_value)
-{
-    //LogVarUpdate(var_name, (var ? "True" : "False"), (new_value ? "True" : "False"));
-    var = new_value;
-}
-
-void SetVarFloat(float& var, const char* var_name, float new_value)
-{
-    if (g_diag_trace_globals && (var != new_value))
-    {
-        char log[1000] = "";
-        snprintf(log, 1000, "[RoR|Globals] Updating \"%s\": [%f] => [%f]", var_name, var, new_value);
-        LOG(log);
-    }
-    var = new_value;
-}
 
 const char* AppStateToStr(int v)
 {
