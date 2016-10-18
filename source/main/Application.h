@@ -56,6 +56,7 @@ protected:
 class GVarBool:  public GVar<bool>
 {
 public:
+    GVarBool(const char* n, const char* cf, bool def): GVar(n, cf, def) {}
     void SetActive (bool v);
     void SetConfig (bool v);
     void SetPending(bool v);
@@ -64,17 +65,25 @@ public:
 class GVarInt: public GVar<int>
 {
 public:
+    GVarInt(const char* n, const char* cf, int def): GVar(n, cf, def) {}
     void SetActive (int v);
     void SetConfig (int v);
     void SetPending(int v);
 };
 
 class GVarFloat: public GVar<float>
-{};
+{
+public:
+    GVarFloat(const char* n, const char* cf, float def): GVar(n, cf, def) {}
+    void SetActive (float v);
+    void SetConfig (float v);
+    void SetPending(float v);
+};
 
 class GVarStr: public GVar<std::string>
 {
 public:
+    GVarStr(const char* n, const char* cf, std::string def): GVar(n, cf, def) {}
     void SetActive (std::string v);
     void SetConfig (std::string v);
     void SetPending(std::string v);
