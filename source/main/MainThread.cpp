@@ -52,6 +52,7 @@
 #include "Language.h"
 #include "MumbleIntegration.h"
 #include "Mirrors.h"
+#include "ModCache.h"
 #include "Network.h"
 #include "OgreSubsystem.h"
 #include "OverlayWrapper.h"
@@ -97,6 +98,8 @@ void MainThread::Go()
     // ================================================================================
     // Bootstrap
     // ================================================================================
+
+    ModCache::InitializeAsync(true);
 
     App::StartOgreSubsystem();
 #ifdef ROR_USE_OGRE_1_9

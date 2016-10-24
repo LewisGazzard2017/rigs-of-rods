@@ -206,6 +206,7 @@ set( SOURCE_FILES
   physics/water/ScrewProp.{h,cpp}
   resources/CacheSystem.{h,cpp}
   resources/ContentManager.{h,cpp}
+  resources/ModCache.{h,cpp}  
   resources/rig_def_fileformat/RigDef_File.{h,cpp}
   resources/rig_def_fileformat/RigDef_Node.{h,cpp}
   resources/rig_def_fileformat/RigDef_Parser.{h,cpp}
@@ -235,6 +236,7 @@ set( SOURCE_FILES
   utils/InterThreadStoreVector.h
   utils/Language.{h,cpp}
   utils/MeshObject.{h,cpp}
+  utils/MiniZ.{h,cpp}
   utils/MumbleIntegration.{h,cpp}
   utils/PlatformUtils.{h,cpp}
   utils/RoRWindowEventUtilities.{h,cpp}
@@ -244,6 +246,7 @@ set( SOURCE_FILES
   utils/SimpleOpt.h
   utils/Singleton.h
   utils/Timer.h
+  utils/TinyDir.h
   utils/Utils.{h,cpp}
   utils/WriteTextToTexture.{h,cpp}
   utils/ZeroedMemoryAllocator.h
