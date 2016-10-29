@@ -124,11 +124,21 @@ struct Stats
     int vehicles_num_dirs;
 };
 
-/// Launch async init
-void    InitializeAsync(bool force_regen);
+struct ProgressInfo
+{
+    ProgressInfo();
 
-/// Is async init finished?
-bool    IsInitialized();
+    static const int LABEL_LEN = 100;
+    static const int INFO_LEN  = 300;
+
+    char label[2][LABEL_LEN];
+    char info [2][INFO_LEN];
+    const char* title;
+};
+
+void           InitializeAsync(bool force_regen);
+bool           IsInitFinished();
+ProgressInfo   GetProgressInfo();
 
 } // namespace ModCache
 } // namespace RoR

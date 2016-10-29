@@ -34,7 +34,7 @@
 namespace RoR {
 
 // Forward
-namespace GUI { class SimUtils; class TopMenubar; }
+namespace GUI { class SimUtils; class TopMenubar; class ModCacheMonitor; }
 
 class GUIManager :
     public GUIInputManager
@@ -92,6 +92,7 @@ public:
     GUI::FrictionSettings* GetFrictionSettings();
     GUI::SimUtils* GetSimUtils();
     GUI::TopMenubar* GetTopMenubar();
+    GUI::ModCacheMonitor*       GetModCacheMonitor();
 
     // GUI manipulation
     void pushMessageChatBox(Ogre::String txt);

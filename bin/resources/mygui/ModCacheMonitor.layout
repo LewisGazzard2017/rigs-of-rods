@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="Layout" version="3.2.0">
+    <Widget type="Window" skin="WindowCS" position="45 30 755 85" layer="Popup" name="ModCacheMonitor">
+        <Property key="Caption" value="[ModCache] Processing ..."/>
+        <Property key="TextAlign" value="Default"/>
+        <Widget type="TextBox" skin="TextBox" position="100 0 635 25" name="info_1">
+            <Property key="TextAlign" value="Right VCenter"/>
+        </Widget>
+        <Widget type="TextBox" skin="TextBox" position="100 25 635 25" name="info_2">
+            <Property key="TextAlign" value="Right VCenter"/>
+        </Widget>
+        <Widget type="TextBox" skin="TextBox" position="10 0 90 25" name="label_1">
+            <Property key="TextAlign" value="Right VCenter"/>
+        </Widget>
+        <Widget type="TextBox" skin="TextBox" position="10 25 90 25" name="label_2">
+            <Property key="TextAlign" value="Right VCenter"/>
+        </Widget>
+    </Widget>
+    <CodeGeneratorSettings>
+        <Property key="IncludeDirectory" value="D:\Projects\Git\rigs-of-rods-0-4-truckparser\source\main\gui\panels"/>
+        <Property key="PanelName" value="ModCacheMonitorLayout"/>
+        <Property key="PanelNamespace" value="Foo"/>
+        <Property key="SourceDirectory" value="D:\Projects\Git\rigs-of-rods-0-4-truckparser\source\main\gui\panels"/>
+    </CodeGeneratorSettings>
+</MyGUI>

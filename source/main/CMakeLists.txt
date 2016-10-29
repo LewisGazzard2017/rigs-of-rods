@@ -158,6 +158,8 @@ set( SOURCE_FILES
   gui/panels/GUI_MainSelectorLayout.{h,cpp}
   gui/panels/GUI_MessageBox.{h,cpp}
   gui/panels/GUI_MessageBoxLayout.{h,cpp}
+  gui/panels/GUI_ModCacheMonitor.{h,cpp}
+  gui/panels/GUI_ModCacheMonitorLayout.{h,cpp}  
   gui/panels/GUI_MultiplayerSelector.{h,cpp}
   gui/panels/GUI_MultiplayerSelectorLayout.{h,cpp}
   gui/panels/GUI_MultiplayerClientList.{h,cpp} 

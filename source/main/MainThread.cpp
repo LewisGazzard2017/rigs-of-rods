@@ -45,6 +45,7 @@
 #include "GUIManager.h"
 #include "GUI_LoadingWindow.h"
 #include "GUI_MainSelector.h"
+#include "GUI_ModCacheMonitor.h"
 #include "GUI_MultiplayerClientList.h"
 #include "GUI_MultiplayerSelector.h"
 #include "Heathaze.h"
@@ -812,6 +813,26 @@ void MainThread::MainMenuLoopUpdate(float seconds_since_last_frame)
         App::GetGuiManager()->GetMpSelector()->CheckAndProcessRefreshResult();
     }
 #endif // USE_SOCKETW
+
+    // Update ModCache monitor window
+    auto window = App::GetGuiManager()->GetModCacheMonitor();
+    if (! ModCache::IsInitFinished())
+    {
+        if (! window->IsVisible())
+        {
+            window->SetVisible(true);
+            window->PositionOnScreen();
+        }
+        // TODO: Use a timer here to avoid locking every frame?
+        ModCache::ProgressInfo info = ModCache::GetProgressInfo();
+        window->SetCaption(info.title);
+        window->SetTextLine1(info.label[0], info.info[0]);
+        window->SetTextLine2(info.label[1], info.info[1]);
+    }
+    else
+    {
+        window->SetVisible(false);
+    }
 
     RoR::App::GetInputEngine()->Capture();
 

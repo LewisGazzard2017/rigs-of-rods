@@ -45,6 +45,7 @@
 #include "GUI_GameChatBox.h"
 #include "GUI_LoadingWindow.h"
 #include "GUI_MessageBox.h"
+#include "GUI_ModCacheMonitor.h"
 #include "GUI_MultiplayerSelector.h"
 #include "GUI_MultiplayerClientList.h"
 #include "GUI_MainSelector.h"
@@ -81,6 +82,7 @@ struct GuiManagerImpl
     GUI::RigSpawnerReportWindow panel_SpawnerReport;
     GUI::VehicleDescription     panel_VehicleDescription;
     GUI::MpClientList           panel_MpClientList;
+    GUI::ModCacheMonitor        panel_ModCacheMonitor;
     GUI::FrictionSettings       panel_FrictionSettings;
     GUI::TextureToolWindow      panel_TextureToolWindow;
     GUI::LoadingWindow          panel_LoadingWindow;
@@ -134,6 +136,7 @@ GUI::MultiplayerSelector*   GUIManager::GetMpSelector()        { return &m_impl-
 GUI::FrictionSettings*      GUIManager::GetFrictionSettings()  { return &m_impl->panel_FrictionSettings    ; }
 GUI::SimUtils*              GUIManager::GetSimUtils()          { return &m_impl->panel_SimUtils            ; }
 GUI::TopMenubar*            GUIManager::GetTopMenubar()        { return &m_impl->panel_TopMenubar          ; }
+GUI::ModCacheMonitor*       GUIManager::GetModCacheMonitor()   { return &m_impl->panel_ModCacheMonitor     ; }
 
 GUIManager::GUIManager() :
     m_renderwindow_closed(false),

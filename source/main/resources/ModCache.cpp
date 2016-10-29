@@ -33,11 +33,14 @@
 #include <mutex>
 #include <cstdlib> // remove()
 #include <cstring> // strrchr()
+#include <atomic>
 
 #define ZIP_FILENAME_BUF_LEN 200
 #define CACHEFILE_NAME       "mod-cache.json"
 
 #define LOGSTREAM Ogre::LogManager::getSingleton().stream() << "[RoR|ModCache] "
+
+#define PROGINFO_SCOPE_LOCK() std::lock_guard<std::mutex> lock(s_prog_info_mutex);
 
 namespace RoR {
 namespace ModCache {
@@ -46,16 +49,31 @@ namespace ModCache {
 
 enum InitState { INIT_PENDING, INIT_RUNNING, INIT_DONE, INIT_FAILED };
 
-static State              s_state;
-static Json::Value        s_json;
-static Stats              s_stats;
-static InitState          s_init_state;
-static std::thread        s_init_thread;
-static std::mutex         s_init_mutex;
-static std::string        s_cache_dir;
-static std::string        s_user_dir;
+// Init thread data
+static Json::Value               s_json;
+static Stats                     s_stats;
+static State                     s_state;
+static std::thread               s_init_thread;
+static std::string               s_cache_dir;
+static std::string               s_user_dir;
 
-void AsyncInit(bool force_regen);
+// Shared data
+static InitState                 s_init_state;
+static std::mutex                s_init_state_mutex;
+static ProgressInfo              s_prog_info;
+static std::mutex                s_prog_info_mutex;
+
+// Main thread data
+static bool                      s_init_finished;
+
+void        AsyncInit                (bool force_regen);
+void        RebuildFromScratch       ();
+bool        FlushJson                ();
+void        ProcessTruckfileBuffer   (RigDef::Parser& parser, char* data, size_t len);
+void        PurgeCacheDir            ();
+void        LoadJsonCacheFile        ();
+void        SetInitState             (InitState s);
+InitState   GetInitState             ();
 
 // ===== Public functions =====
 
@@ -64,17 +82,28 @@ Stats::Stats()
     memset(this, 0, sizeof(Stats));
 }
 
-bool IsInitialized()
+ProgressInfo::ProgressInfo()
 {
-    std::lock_guard<std::mutex> lock(s_init_mutex);
+    memset(this, 0, sizeof(ProgressInfo));
+}
 
-    return s_init_state == INIT_DONE;
+bool IsInitFinished()
+{
+    if (s_init_finished)
+    {
+        return true;
+    }
+
+    InitState state = GetInitState();
+    if (state == INIT_DONE || state == INIT_FAILED)
+    {
+        s_init_finished = true;
+    }
+    return s_init_finished;
 }
 
 void InitializeAsync(bool force_regen)
 {
-    std::lock_guard<std::mutex> lock(s_init_mutex);
-
     if (s_init_state != INIT_PENDING)
     {
         return;
@@ -84,6 +113,12 @@ void InitializeAsync(bool force_regen)
     //s_cache_dir = App::GetSysCacheDir();
     s_user_dir = App::GetSysUserDir();
     s_init_thread = std::thread(AsyncInit, force_regen);
+}
+
+ProgressInfo GetProgressInfo()
+{
+    PROGINFO_SCOPE_LOCK();
+    return s_prog_info;
 }
 
 // ===== File extension tests (the MacroMadness) =====
@@ -138,15 +173,9 @@ inline bool IsSpecialDir(const char* name)
 
 // ===== Private functions =====
 
-void  RebuildFromScratch     ();
-bool  FlushJson              ();
-void  ProcessTruckfileBuffer (RigDef::Parser& parser, char* data, size_t len);
-void  PurgeCacheDir          ();
-void  LoadJsonCacheFile      ();
-
 void AsyncInit(bool force_regen)
 {
-    s_init_state = INIT_RUNNING;
+    SetInitState( INIT_RUNNING);
     if (force_regen)
     {
         LOGSTREAM << "Performing full rebuild (forced).";
@@ -181,13 +210,29 @@ void AsyncInit(bool force_regen)
     else
     {
         LOGSTREAM << "FATAL: Invalid state: [" << s_state << "]. Exit.";
-        s_init_state = INIT_FAILED;
+        SetInitState( INIT_FAILED);
         s_state = MODCACHE_STATE_NOT_INIT;
     }
 }
 
+void SetInitState(InitState s)
+{
+    std::lock_guard<std::mutex> lock(s_init_state_mutex);
+    s_init_state = s;
+}
+
+InitState GetInitState()
+{
+    std::lock_guard<std::mutex> lock(s_init_state_mutex);
+    return s_init_state;
+}
+
 void LoadJsonCacheFile()
 {
+    {
+        PROGINFO_SCOPE_LOCK()
+        s_prog_info.title = "[ModCache] Detecting cache state ...";
+    }
     std::string cachefile_path = s_cache_dir + PATH_SLASH + CACHEFILE_NAME;
     if (! PlatformUtils::FileExists(cachefile_path))
     {
@@ -224,6 +269,10 @@ void LoadJsonCacheFile()
 
 void PurgeCacheDir()
 {
+    ProgressInfo info;
+    info.title = "[ModCache] Purging cache directory ...";
+    s_prog_info = info;
+
     tinydir_dir dir;
     tinydir_file file;
     tinydir_open(&dir, s_cache_dir.c_str());
@@ -260,6 +309,13 @@ const char* GetZipfileLocalPath(const char* full_path, int subdir_depth)
 
 void ProcessNewVehicleZip(const char* path, int subdir_depth)
 {
+    const char* zip_local_path = GetZipfileLocalPath(path, subdir_depth);
+    {
+        PROGINFO_SCOPE_LOCK()
+        sprintf(s_prog_info.label[0], "Package:");
+        sprintf(s_prog_info.info[0], "%s", zip_local_path);
+    }
+
     mz_zip_archive zip;
     memset(&zip, 0, sizeof(zip));
 
@@ -304,6 +360,11 @@ void ProcessNewVehicleZip(const char* path, int subdir_depth)
             continue;
         }
 
+        {
+            PROGINFO_SCOPE_LOCK()
+            sprintf(s_prog_info.label[1], "File:");
+            sprintf(s_prog_info.info[1], "%s", filename);
+        }
         RigDef::Parser parser;
         ProcessTruckfileBuffer(parser, (char*)raw_data, data_size);
         auto rig_def = parser.GetFile();
@@ -326,9 +387,14 @@ void ProcessNewVehicleZip(const char* path, int subdir_depth)
     }
     else
     {
-        const char* zip_localpath = GetZipfileLocalPath(path, subdir_depth);
-        s_json["vehicles"][zip_localpath] = json_zip;
+        s_json["vehicles"][zip_local_path] = json_zip;
         ++s_stats.vehicles_num_zips;
+    }
+
+    {
+        PROGINFO_SCOPE_LOCK()
+        s_prog_info.label[1][0] = 0; // Only erase line1, line0 won't last long...
+        s_prog_info.info [1][0] = 0;
     }
 }
 
@@ -438,10 +504,22 @@ void RebuildFromScratch()
     s_json["terrains"] = Json::objectValue;
     s_json["load_all"] = Json::objectValue;
 
-    //RebuildVehiclesRecursive(s_user_dir + PATH_SLASH + "vehicles", 0);
+    {
+        PROGINFO_SCOPE_LOCK()
+        s_prog_info.title = "[ModCache] Processing vehicle packages ...";
+    }
     RebuildVehiclesRecursive("c:/Users/Petr/Documents/Rigs of Rods 0.4/vehicles/", 0);
+    {
+        PROGINFO_SCOPE_LOCK()
+        s_prog_info.title = "[ModCache] Writing cachefile ...";
+        s_prog_info.label[0][0] = 0;
+        s_prog_info.label[1][0] = 0;
+        s_prog_info.info [0][0] = 0;
+        s_prog_info.info [1][0] = 0;
+    }
 
     s_state = FlushJson() ? MODCACHE_STATE_READY : MODCACHE_STATE_ERROR;
+    SetInitState(INIT_DONE);
 }
 
 } // namespace ModCache
