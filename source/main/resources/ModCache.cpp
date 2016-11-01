@@ -20,10 +20,12 @@
 #include "ModCache.h"
 
 #include "Application.h"
-#include "PlatformUtils.h"
-#include "TinyDir.h"
+#include "BeamData.h" // For authorinfo_t
 #include "MiniZ.h"
+#include "PlatformUtils.h"
 #include "RigDef_Parser.h"
+#include "TerrainManager.h"
+#include "TinyDir.h"
 
 #include <json/json.h>
 #include <sys/types.h>
@@ -49,6 +51,8 @@ namespace ModCache {
 
 enum InitState { INIT_PENDING, INIT_RUNNING, INIT_DONE, INIT_FAILED };
 
+enum ZipType { ZIPTYPE_TRUCK, ZIPTYPE_TERRN };
+
 // Init thread data
 static Json::Value               s_json;
 static Stats                     s_stats;
@@ -70,6 +74,7 @@ void        AsyncInit                (bool force_regen);
 void        RebuildFromScratch       ();
 bool        FlushJson                ();
 void        ProcessTruckfileBuffer   (RigDef::Parser& parser, char* data, size_t len);
+void        ProcessTerrn2Buffer      (Json::Value &json, void* data, size_t len);
 void        PurgeCacheDir            ();
 void        LoadJsonCacheFile        ();
 void        SetInitState             (InitState s);
@@ -158,6 +163,7 @@ MK_CHECK_EXT_FN(Boat,    {return (len > 5) && Dot(4) && B(3) && O(2) && A(1) && 
 MK_CHECK_EXT_FN(Machine, {return (len > 8) && Dot(7) && M(6) && A(5) && C(4) && H(3) && I(2) && N(1) && E(0)        ;})
 MK_CHECK_EXT_FN(Fixed,   {return (len > 6) && Dot(5) && F(4) && I(3) && X(2) && E(1) && D(0)                        ;})
 MK_CHECK_EXT_FN(Load,    {return (len > 5) && Dot(4) && L(3) && O(2) && A(1) && D(0)                                ;})
+MK_CHECK_EXT_FN(Terrn2,  {return (len > 7) && Dot(6) && T(5) && E(4) && R(3) && R(2) && N(1) && (filename[0] == '2');})
 
 inline bool CheckExtZip(const char* ext)
 {
@@ -307,7 +313,23 @@ const char* GetZipfileLocalPath(const char* full_path, int subdir_depth)
     return local_path;
 }
 
-void ProcessNewVehicleZip(const char* path, int subdir_depth)
+void StatsAddDud(ZipType zip_type)
+{
+    if (zip_type == ZIPTYPE_TRUCK)
+        ++s_stats.vehicles_num_duds;
+    else
+        ++s_stats.terrains_num_duds;
+}
+
+void StatsAddZip(ZipType zip_type)
+{
+    if (zip_type == ZIPTYPE_TRUCK)
+        ++s_stats.vehicles_num_zips;
+    else
+        ++s_stats.terrains_num_zips;
+}
+
+void ProcessNewZip(const char* path, int subdir_depth, ZipType zip_type)
 {
     const char* zip_local_path = GetZipfileLocalPath(path, subdir_depth);
     {
@@ -321,7 +343,7 @@ void ProcessNewVehicleZip(const char* path, int subdir_depth)
 
     if (mz_zip_reader_init_file(&zip, path, 0) == MZ_FALSE)
     {
-        ++s_stats.vehicles_num_duds;
+        StatsAddDud(zip_type);
         mz_zip_reader_end(&zip);
         return;
     }
@@ -329,7 +351,7 @@ void ProcessNewVehicleZip(const char* path, int subdir_depth)
     int num_files = (int)mz_zip_reader_get_num_files(&zip);
     if (num_files == 0)
     {
-        ++s_stats.vehicles_num_duds;
+        StatsAddDud(zip_type);
         mz_zip_reader_end(&zip);
         return;
     }
@@ -340,14 +362,18 @@ void ProcessNewVehicleZip(const char* path, int subdir_depth)
         char filename[ZIP_FILENAME_BUF_LEN] = "";
         unsigned num_chars = mz_zip_reader_get_filename(&zip, i, filename, ZIP_FILENAME_BUF_LEN) - 1;
 
-        const bool is_truckfile = CheckExtTruck    ( filename, num_chars) ||
-                                  CheckExtCar      ( filename, num_chars) ||
-                                  CheckExtAirplane ( filename, num_chars) ||
-                                  CheckExtBoat     ( filename, num_chars) ||
-                                  CheckExtMachine  ( filename, num_chars) ||
-                                  CheckExtLoad     ( filename, num_chars);
-
-        if (!is_truckfile)
+        if (zip_type == ZIPTYPE_TRUCK &&
+            !CheckExtTruck    ( filename, num_chars) &&
+            !CheckExtCar      ( filename, num_chars) &&
+            !CheckExtAirplane ( filename, num_chars) &&
+            !CheckExtBoat     ( filename, num_chars) &&
+            !CheckExtMachine  ( filename, num_chars) &&
+            !CheckExtLoad     ( filename, num_chars))
+        {
+            continue;
+        }
+        
+        if (zip_type == ZIPTYPE_TERRN && !CheckExtTerrn2(filename, num_chars))
         {
             continue;
         }
@@ -365,30 +391,39 @@ void ProcessNewVehicleZip(const char* path, int subdir_depth)
             sprintf(s_prog_info.label[1], "File:");
             sprintf(s_prog_info.info[1], "%s", filename);
         }
-        RigDef::Parser parser;
-        ProcessTruckfileBuffer(parser, (char*)raw_data, data_size);
-        auto rig_def = parser.GetFile();
+        
+        Json::Value json_def = Json::objectValue;
+        if (zip_type == ZIPTYPE_TRUCK)
+        {
+            RigDef::Parser parser;
+            ProcessTruckfileBuffer(parser, (char*)raw_data, data_size);
+            auto rig_def = parser.GetFile();
 
-        Json::Value json_rig = Json::objectValue;
-        json_rig["name"] = rig_def->name; // More to come...
+            json_def["name"] = rig_def->name; // More to come...
+        }
+        else
+        {
+            ProcessTerrn2Buffer(json_def, raw_data, data_size);
+        }
 
         if (json_zip.isNull())
         {
             json_zip = Json::objectValue;
         }
-        json_zip[filename] = json_rig;
+        json_zip[filename] = json_def;
     }
 
     mz_zip_reader_end(&zip);
 
     if (json_zip.isNull())
     {
-        ++s_stats.vehicles_num_duds;
+        StatsAddDud(zip_type);
     }
     else
     {
-        s_json["vehicles"][zip_local_path] = json_zip;
-        ++s_stats.vehicles_num_zips;
+        const char* zip_type_str = (zip_type == ZIPTYPE_TERRN) ? "terrains" : "vehicles";
+        s_json[zip_type_str][zip_local_path] = json_zip;
+        StatsAddZip(zip_type);
     }
 
     {
@@ -396,6 +431,33 @@ void ProcessNewVehicleZip(const char* path, int subdir_depth)
         s_prog_info.label[1][0] = 0; // Only erase line1, line0 won't last long...
         s_prog_info.info [1][0] = 0;
     }
+}
+
+void ProcessTerrn2Buffer(Json::Value &json, void* data, size_t len)
+{
+    TerrainManager tm;
+    Ogre::DataStreamPtr ds = Ogre::DataStreamPtr(OGRE_NEW Ogre::MemoryDataStream(data, len));
+    tm.loadTerrainConfigBasics(ds);
+
+    json["authors"] = Json::arrayValue;
+    int i = 0;
+    auto & authors = tm.GetAuthors();
+    auto itor_end = authors.end();
+    for (auto itor = authors.begin(); itor != itor_end; ++itor)
+    {
+        Json::Value author;
+        author["id"]    = itor->id;
+        author["email"] = itor->email;
+        author["name"]  = itor->name;
+        author["type"]  = itor->type;
+        json["authors"][i] = author;
+        ++i;
+    }
+
+    json["name"]        = tm.getTerrainName();
+    json["category_id"] = tm.getCategoryID();
+    json["guid"]        = tm.getGUID();
+    json["version"]     = tm.getVersion();
 }
 
 void ProcessTruckfileBuffer(RigDef::Parser& parser, char* data, size_t len)
@@ -442,7 +504,7 @@ void ProcessTruckfileBuffer(RigDef::Parser& parser, char* data, size_t len)
     parser.Finalize();
 }
 
-void RebuildVehiclesRecursive(std::string dir_path, int depth)
+void RebuildZipsRecursive(std::string dir_path, int depth, ZipType zip_type)
 {
     tinydir_dir dir;       memset(&dir,  0, sizeof(tinydir_dir ));
     tinydir_file file;     memset(&file, 0, sizeof(tinydir_file));
@@ -457,12 +519,12 @@ void RebuildVehiclesRecursive(std::string dir_path, int depth)
             if (! IsSpecialDir(file.name))
             {
                 ++s_stats.vehicles_num_dirs;
-                RebuildVehiclesRecursive(dir_path + PATH_SLASH + file.name, depth + 1);
+                RebuildZipsRecursive(dir_path + PATH_SLASH + file.name, depth + 1, zip_type);
             }
         }
         else if (file.is_reg && CheckExtZip(file.extension))
         {
-            ProcessNewVehicleZip(file.path, depth);
+            ProcessNewZip(file.path, depth, zip_type);
         }
         else
         {
@@ -508,7 +570,16 @@ void RebuildFromScratch()
         PROGINFO_SCOPE_LOCK()
         s_prog_info.title = "[ModCache] Processing vehicle packages ...";
     }
-    RebuildVehiclesRecursive("c:/Users/Petr/Documents/Rigs of Rods 0.4/vehicles/", 0);
+
+    RebuildZipsRecursive(s_user_dir + PATH_SLASH + "vehicles", 0, ZIPTYPE_TRUCK);
+
+    {
+        PROGINFO_SCOPE_LOCK()
+        s_prog_info.title = "[ModCache] Processing terrain packages ...";
+    }
+
+    RebuildZipsRecursive(s_user_dir + PATH_SLASH + "terrains", 0, ZIPTYPE_TERRN);
+
     {
         PROGINFO_SCOPE_LOCK()
         s_prog_info.title = "[ModCache] Writing cachefile ...";

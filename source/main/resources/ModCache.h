@@ -122,6 +122,11 @@ struct Stats
     int vehicles_num_duds;
     int vehicles_num_zips;
     int vehicles_num_dirs;
+
+    int terrains_num_junk;
+    int terrains_num_duds;
+    int terrains_num_zips;
+    int terrains_num_dirs;
 };
 
 struct ProgressInfo
