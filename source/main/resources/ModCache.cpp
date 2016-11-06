@@ -73,7 +73,7 @@ static bool                      s_init_finished;
 void        AsyncInit                (bool force_regen);
 void        RebuildFromScratch       ();
 bool        FlushJson                ();
-void        ProcessTruckfileBuffer   (RigDef::Parser& parser, char* data, size_t len);
+void        ProcessTruckfileBuffer   (Json::Value& json, void* data, size_t len);
 void        ProcessTerrn2Buffer      (Json::Value &json, void* data, size_t len);
 void        PurgeCacheDir            ();
 void        LoadJsonCacheFile        ();
@@ -395,11 +395,7 @@ void ProcessNewZip(const char* path, int subdir_depth, ZipType zip_type)
         Json::Value json_def = Json::objectValue;
         if (zip_type == ZIPTYPE_TRUCK)
         {
-            RigDef::Parser parser;
-            ProcessTruckfileBuffer(parser, (char*)raw_data, data_size);
-            auto rig_def = parser.GetFile();
-
-            json_def["name"] = rig_def->name; // More to come...
+            ProcessTruckfileBuffer(json_def, raw_data, data_size);
         }
         else
         {
@@ -460,48 +456,51 @@ void ProcessTerrn2Buffer(Json::Value &json, void* data, size_t len)
     json["version"]     = tm.getVersion();
 }
 
-void ProcessTruckfileBuffer(RigDef::Parser& parser, char* data, size_t len)
+void ProcessTruckfileBuffer(Json::Value& json_def, void* raw_data, size_t len)
 {
-    parser.Prepare();
+    std::vector<const char*> lines;
+    lines.reserve(5000);
 
-    char line_buf[RigDef::Parser::LINE_BUFFER_LENGTH] = "";
-    size_t line_start_pos = 0;
-    size_t i = 0;
-    for (;;) // Infinite
+    char* data = (char*)raw_data;
+    size_t pos = 0;
+    const char* line_start = data;
+    for (;;)
     {
-        if (data[i] == '\n' || data[i] == '\r') // EOL!
+        if (data[pos] == '\n')
         {
-            if (line_start_pos == i) // Empty line
+            data[pos] = 0;
+            if (pos != 0 && data[pos - 1] == '\r')
             {
-                parser.ProcessRawLine("");
+                data[pos - 1] = 0;
             }
-            else
+            lines.push_back(line_start);
+            ++pos;
+            if (pos == len)
             {
-                void* copy_src = reinterpret_cast<void*>(data + line_start_pos);
-                size_t copy_len = i - line_start_pos;
-                if (copy_len >= RigDef::Parser::LINE_BUFFER_LENGTH)
-                {
-                    copy_len = RigDef::Parser::LINE_BUFFER_LENGTH - 1; // Make space for \0 terminator
-                }
-                memcpy((void*)line_buf, copy_src, copy_len);
-                line_buf[copy_len] = '\0';
-                parser.ProcessRawLine(line_buf);
+                break;
             }
-
-            if ((data[i] == '\r') && (i+1 < len) && (data[i+1] == '\n')) // Windows newline
-            {
-                ++i;
-            }
+            line_start = data + pos;
         }
-
-        ++i;
-        if (i == len)
+        else
         {
-            break;
+            ++pos;
+            if (pos == len)
+            {
+                break;
+            }
         }
     }
 
+    RigDef::Parser parser;
+    parser.Prepare();
+    for (const char* line : lines)
+    {
+        parser.ProcessRawLine(line);
+    }
     parser.Finalize();
+    auto rig_def = parser.GetFile();
+
+    json_def["name"] = rig_def->name; // More to come...
 }
 
 void RebuildZipsRecursive(std::string dir_path, int depth, ZipType zip_type)
