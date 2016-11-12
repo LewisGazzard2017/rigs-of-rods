@@ -28,7 +28,7 @@ void App::CreateVdrTrack(std::string strack, TRACK* pTrack)
 	std::vector<OGRE_MESH>& meshes = pTrack->ogre_meshes;
 	std::string sMatCache = strack + ".matdef", sMatOrig = "_" + sMatCache,
 		sPathCache = PATHMANAGER::ShaderDir() + "/" + sMatCache, sPathOrig = gcom->TrkDir() +"objects/"+ sMatOrig;
-	//STUNTPORTbool hasMatOrig = boost::filesystem::exists(sPathOrig), hasMatCache = boost::filesystem::exists(sPathCache);
+	//STUNTPORTbool hasMatOrig = RoR::PlatformUtils::FileExists(sPathOrig), hasMatCache = RoR::PlatformUtils::FileExists(sPathCache);
 	//STUNTPORTbool bGenerate = 0, gen = !hasMatOrig && !hasMatCache || bGenerate;  // set 1 to force generate for new vdrift tracks
 
 
@@ -80,7 +80,7 @@ void App::CreateVdrTrack(std::string strack, TRACK* pTrack)
 	//  meshes  -------------
 	std::vector<Entity*> ents;
 	static int ii = 0;  int i;
-	for (i=0; i < meshes.size(); ++i)
+	for (i=0; i < (int)meshes.size(); ++i)
 	{
 		OGRE_MESH& msh = meshes[i];
 		if (msh.sky /*&& ownSky*/)  continue;

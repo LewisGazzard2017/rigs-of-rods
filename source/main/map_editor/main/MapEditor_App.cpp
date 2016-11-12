@@ -9,14 +9,15 @@
 #include "CScene.h"
 #include "MapEditor_Axes.h"
 #include "SplineRoad.h"
-#include "../paged-geom/PagedGeometry.h"
-#include "../ogre/common/WaterRTT.h"
-#include "../ogre/common/RenderBoxScene.h"
+#include "PagedGeometry.h"
+#include "WaterRTT.h"
+#include "RenderBoxScene.h"
 #include "MapEditor_Settings.h"
 #include "MapEditor_Track.h"
 #include "../shiny/Main/Factory.hpp"
 #include "../shiny/Platforms/Ogre/OgrePlatform.hpp"
 #include "../shiny/Platforms/Ogre/OgreMaterial.hpp"
+
 #include <OgreTerrainPaging.h>
 #include <OgreTerrainGroup.h>
 using namespace Ogre;

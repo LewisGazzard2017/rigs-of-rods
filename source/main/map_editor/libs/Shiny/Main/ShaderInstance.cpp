@@ -5,15 +5,17 @@
 #include <iostream>
 #include <fstream>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/bind.hpp>
+//STUNTPORT#include <boost/lexical_cast.hpp>
+//STUNTPORT#include <boost/algorithm/string.hpp>
+//STUNTPORT#include <boost/bind.hpp>
+//STUNTPORT
+//STUNTPORT#include <boost/filesystem.hpp>
 
-#include <boost/filesystem.hpp>
-
+#include "RoRPrerequisites.h"
 #include "Preprocessor.hpp"
 #include "Factory.hpp"
 #include "ShaderSet.hpp"
+#include "PlatformUtils.h"
 
 namespace
 {
@@ -47,9 +49,9 @@ namespace
 	std::string getFloat(sh::Language lang, int num_components)
 	{
 		if (lang == sh::Language_CG || lang == sh::Language_HLSL)
-			return (num_components == 1) ? "float" : "float" + boost::lexical_cast<std::string>(num_components);
+			return (num_components == 1) ? "float" : "float" + TOSTRING(num_components);
 		else
-			return (num_components == 1) ? "float" : "vec" + boost::lexical_cast<std::string>(num_components);
+			return (num_components == 1) ? "float" : "vec" + TOSTRING(num_components);
 	}
 
 	bool isCmd (const std::string& source, size_t pos, const std::string& cmd)
@@ -59,10 +61,12 @@ namespace
 
 	void writeDebugFile (const std::string& content, const std::string& filename)
 	{
+        /* /// STUNTPORT
 		boost::filesystem::path full_path(boost::filesystem::current_path());
 		std::ofstream of ((full_path / filename ).string().c_str() , std::ios_base::out);
 		of.write(content.c_str(), content.size());
 		of.close();
+        */
 	}
 }
 
@@ -95,7 +99,7 @@ namespace sh
 			{
 				componentStr2 = "";
 			}
-			res += "passthrough" + boost::lexical_cast<std::string>(current_passthrough) + componentStr + " = " + toAssign + componentStr2;
+			res += "passthrough" + TOSTRING(current_passthrough) + componentStr + " = " + toAssign + componentStr2;
 
 			current_component_left += components_at_once;
 			current_component_right += components_at_once;
@@ -141,7 +145,7 @@ namespace sh
 			for (int j = 0; j < components_at_once; ++j)
 				componentStr += getComponent(j + current_component);
 
-			res += "passthrough" + boost::lexical_cast<std::string>(current_passthrough) + "." + componentStr;
+			res += "passthrough" + TOSTRING(current_passthrough) + "." + componentStr;
 
 			current_component += components_at_once;
 
@@ -273,7 +277,7 @@ namespace sh
 				std::string arg = source.substr(start+1, end-(start+1));
 				parse(arg, properties);
 
-				int num = boost::lexical_cast<int>(arg);
+				int num = PARSEINT(arg);
 
 				// get the content of the inner block
 				std::string content = source.substr(end+1, block_end - (end+1));
@@ -310,12 +314,12 @@ namespace sh
 							std::string arg = addStr.substr(_start+1, _end-(_start+1));
 							parse(arg, properties);
 
-							int offset = boost::lexical_cast<int> (arg);
-							addStr.replace(pos2, (_end+1)-pos2, boost::lexical_cast<std::string>(i+offset));
+							int offset = PARSEINT(arg);
+							addStr.replace(pos2, (_end+1)-pos2, TOSTRING(i+offset));
 						}
 						else
 						{
-							addStr.replace(pos2, std::string("@shIterator").length(), boost::lexical_cast<std::string>(i));
+							addStr.replace(pos2, std::string("@shIterator").length(), TOSTRING(i));
 						}
 					}
 
@@ -341,8 +345,8 @@ namespace sh
 		std::string basePath = mParent->getBasePath();
 		size_t pos;
 
-		bool readCache = Factory::getInstance ().getReadSourceCache () && boost::filesystem::exists(
-					Factory::getInstance ().getCacheFolder () + "/" + mName);
+        std::string cache_path = Factory::getInstance ().getCacheFolder () + "/" + mName;
+		bool readCache = Factory::getInstance ().getReadSourceCache () && RoR::PlatformUtils::FileExists(cache_path.c_str());
 		bool writeCache = Factory::getInstance ().getWriteSourceCache ();
 
 
@@ -388,12 +392,12 @@ namespace sh
 				std::vector<std::string> args = extractMacroArguments (pos, source);
 				assert(args.size());
 
-				int index = boost::lexical_cast<int>(args[0]);
+				int index = PARSEINT(args[0]);
 
 				if (counters.find(index) == counters.end())
 					counters[index] = 0;
 
-				source.replace(pos, (end+1)-pos, boost::lexical_cast<std::string>(counters[index]++));
+				source.replace(pos, (end+1)-pos, TOSTRING(counters[index]++));
 			}
 
 			// parse passthrough declarations
@@ -413,7 +417,7 @@ namespace sh
 
 				Passthrough passthrough;
 
-				passthrough.num_components = boost::lexical_cast<int>(args[0]);
+				passthrough.num_components = PARSEINT(args[0]);
 				assert (passthrough.num_components != 0);
 
 				std::string passthroughName = args[1];
@@ -485,14 +489,14 @@ namespace sh
 				{
 					// not using newlines here, otherwise the line numbers reported by compiler would be messed up..
 					if (Factory::getInstance().getCurrentLanguage () == Language_CG || Factory::getInstance().getCurrentLanguage () == Language_HLSL)
-						result += ", out float4 passthrough" + boost::lexical_cast<std::string>(i) + " : TEXCOORD" + boost::lexical_cast<std::string>(i);
+						result += ", out float4 passthrough" + TOSTRING(i) + " : TEXCOORD" + TOSTRING(i);
 
 					/*
 					else
-						result += "out vec4 passthrough" + boost::lexical_cast<std::string>(i) + "; ";
+						result += "out vec4 passthrough" + TOSTRING(i) + "; ";
 						*/
 					else
-						result += "varying vec4 passthrough" + boost::lexical_cast<std::string>(i) + "; ";
+						result += "varying vec4 passthrough" + TOSTRING(i) + "; ";
 				}
 
 				source.replace(pos, std::string("@shPassthroughVertexOutputs").length(), result);
@@ -510,13 +514,13 @@ namespace sh
 				{
 					// not using newlines here, otherwise the line numbers reported by compiler would be messed up..
 					if (Factory::getInstance().getCurrentLanguage () == Language_CG || Factory::getInstance().getCurrentLanguage () == Language_HLSL)
-						result += ", in float4 passthrough" + boost::lexical_cast<std::string>(i) + " : TEXCOORD" + boost::lexical_cast<std::string>(i);
+						result += ", in float4 passthrough" + TOSTRING(i) + " : TEXCOORD" + TOSTRING(i);
 					/*
 					else
-						result += "in vec4 passthrough" + boost::lexical_cast<std::string>(i) + "; ";
+						result += "in vec4 passthrough" + TOSTRING(i) + "; ";
 						*/
 					else
-						result += "varying vec4 passthrough" + boost::lexical_cast<std::string>(i) + "; ";
+						result += "varying vec4 passthrough" + TOSTRING(i) + "; ";
 				}
 
 				source.replace(pos, std::string("@shPassthroughFragmentInputs").length(), result);
@@ -627,7 +631,16 @@ namespace sh
 		}
 
 		// convert any left-over @'s to #
-		boost::algorithm::replace_all(source, "@", "#");
+        for (;;)
+        {
+            size_t pos = source.find('@');
+            if (pos == std::string::npos)
+            {
+                break;
+            }
+            source[pos] = '#';
+        }
+		//STUNTPORT // // // //boost::algorithm::replace_all(source, "@", "#");
 
 		Platform* platform = Factory::getInstance().getPlatform();
 
@@ -639,9 +652,9 @@ namespace sh
 
 
 		if (type == GPT_Vertex)
-			mProgram = boost::shared_ptr<GpuProgram>(platform->createGpuProgram(GPT_Vertex, "", mName, profile, source, Factory::getInstance().getCurrentLanguage()));
+			mProgram = std::shared_ptr<GpuProgram>(platform->createGpuProgram(GPT_Vertex, "", mName, profile, source, Factory::getInstance().getCurrentLanguage()));
 		else if (type == GPT_Fragment)
-			mProgram = boost::shared_ptr<GpuProgram>(platform->createGpuProgram(GPT_Fragment, "", mName, profile, source, Factory::getInstance().getCurrentLanguage()));
+			mProgram = std::shared_ptr<GpuProgram>(platform->createGpuProgram(GPT_Fragment, "", mName, profile, source, Factory::getInstance().getCurrentLanguage()));
 
 
 		if (Factory::getInstance ().getShaderDebugOutputEnabled ())
@@ -676,7 +689,7 @@ namespace sh
 		return mUsedSamplers;
 	}
 
-	void ShaderInstance::setUniformParameters (boost::shared_ptr<Pass> pass, PropertySetGet* properties)
+	void ShaderInstance::setUniformParameters (std::shared_ptr<Pass> pass, PropertySetGet* properties)
 	{
 		for (UniformMap::iterator it = mUniformProperties.begin(); it != mUniformProperties.end(); ++it)
 		{
@@ -689,11 +702,19 @@ namespace sh
 		size_t start = source.find("(", pos);
 		size_t end = source.find(")", pos);
 		std::string args = source.substr(start+1, end-(start+1));
-		std::vector<std::string> results;
-		boost::algorithm::split(results, args, boost::is_any_of(","));
-		std::for_each(results.begin(), results.end(),
-			boost::bind(&boost::trim<std::string>,
-			_1, std::locale() ));
-		return results;
+		// // //std::vector<std::string> results;
+        Ogre::StringVector results = Ogre::StringUtil::split(args, ",");
+		// // //boost::algorithm::split(results, args, boost::is_any_of(","));
+		// // //std::for_each(results.begin(), results.end(),
+		// // //	boost::bind(&boost::trim<std::string>,
+		// // //	_1, std::locale() ));
+		// // //return results;
+        std::vector<std::string> ret;
+        for (Ogre::String& str:results)
+        {
+            Ogre::StringUtil::trim(str);
+            ret.push_back(str);
+        }
+        return ret;
 	}
 }

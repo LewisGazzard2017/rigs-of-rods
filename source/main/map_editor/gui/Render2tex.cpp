@@ -260,7 +260,7 @@ void App::SaveWaterDepth()
 		float wx = (fx-0.5f) * w, wz = -(fz-0.5f) * w;
 
 		fa = 0.f;  // fluid y pos
-		for (i=0; i < scn->sc->fluids.size(); ++i)
+		for (i=0; i < (int)scn->sc->fluids.size(); ++i)
 		{
 			const FluidBox& fb = scn->sc->fluids[i];
 			const float sizex = fb.size.x*0.5f, sizez = fb.size.z*0.5f;
@@ -426,8 +426,10 @@ void App::AlignTerToRoad()
 
 
 	//  clear bullet world
-	for (int i=0; i < road->vbtTriMesh.size(); ++i)
+	for (int i=0; i < (int)road->vbtTriMesh.size(); ++i)
+    {
 		delete road->vbtTriMesh[i];
+    }
 	road->vbtTriMesh.clear();
 	
 	for (int i = world->getNumCollisionObjects() - 1; i >= 0; i--)

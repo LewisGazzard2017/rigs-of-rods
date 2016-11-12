@@ -42,7 +42,7 @@ void CGui::CreateGUITweakMtr()
 		std::string sVal = pv->_getStringValue();
 		//? if (boost::is_alnum(sVal))  continue;
 		bool isStr = false;
-		for (int c=0; c < sVal.length(); ++c)  if (sVal[c] >= 'a' && sVal[c] <= 'z')
+		for (int c=0; c < (int)sVal.length(); ++c)  if (sVal[c] >= 'a' && sVal[c] <= 'z')
 			isStr = true;
 
 		if (!isStr)
@@ -62,7 +62,7 @@ void CGui::CreateGUITweakMtr()
 			for (int i=0; i < size; ++i)
 			{
 				String nameSi = name + ":" + toStr(size) + "." + toStr(i);  // size and id in name
-				float val = Ogre::StringConverter::parseReal(tokens[i]); //STUNTPORT boost::lexical_cast<float> (tokens[i]);
+				float val = Ogre::StringConverter::parseReal(tokens[i]); //STUNTPORT PARSEREAL  (tokens[i]);
 				int t = std::min(4,i);  const Colour& clr = clrsType[std::max(0,std::min(4,size-1))];
 
 				//  name text

@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <memory> // For shared_ptr
 
 #include "Factory.hpp"
 #include "ShaderSet.hpp"
@@ -89,7 +90,7 @@ namespace sh
 
 			for (PassVector::iterator it = passes->begin(); it != passes->end(); ++it)
 			{
-				boost::shared_ptr<Pass> pass = mMaterial->createPass (configuration, lodIndex);
+				std::shared_ptr<Pass> pass = mMaterial->createPass (configuration, lodIndex);
 				it->copyAll (pass.get(), this);
 
 				// texture samplers used in the shaders
@@ -158,7 +159,7 @@ namespace sh
 					if (  (foundVertex || foundFragment)
 							|| (((!useShaders || (!hasVertex || !hasFragment)) && allowFixedFunction) && texIt->hasProperty("create_in_ffp") && retrieveValue<BooleanValue>(texIt->getProperty("create_in_ffp"), this).get()))
 					{
-						boost::shared_ptr<TextureUnitState> texUnit = pass->createTextureUnitState (texIt->getName());
+						std::shared_ptr<TextureUnitState> texUnit = pass->createTextureUnitState (texIt->getName());
 						texIt->copyAll (texUnit.get(), context);
 
 						mTexUnits.push_back(texUnit);

@@ -123,7 +123,7 @@ void CGui::InitGui()
 
 
 	//  center mouse pos
-	app->mInputWrapper->setMouseVisible(app->bGuiFocus || !app->bMoveCam);
+//STUNTPORT	app->mInputWrapper->setMouseVisible(app->bGuiFocus || !app->bMoveCam);
 	gcom->GuiCenterMouse();
 	
 	//  hide all wnd  ---
@@ -633,13 +633,21 @@ void CGui::InitGui()
 		if (name != "sphere")
 		{
 			if (StringUtil::startsWith(name,"rock",false)||StringUtil::startsWith(name,"cave",false))
+            {
 				objListRck->addItem("#E0B070"+name);  // rocks
+            }
 			else 
-            std::string obj_filepath = sData+"/objects/"+ name + ".bullet";
-			if (RoR::PlatformUtils::FileExists(obj_filepath.c_str()))
-				objListDyn->addItem("#A0E0FF"+name);  // dynamic
-			else
-				objListSt->addItem("#C8C8C8"+name);
+            {
+                std::string obj_filepath = sData+"/objects/"+ name + ".bullet";
+			    if (RoR::PlatformUtils::FileExists(obj_filepath.c_str()))
+                {
+				    objListDyn->addItem("#A0E0FF"+name);  // dynamic
+                }
+			    else
+                {
+				    objListSt->addItem("#C8C8C8"+name);
+                }
+            }
 	}	}
 	
 	//  buildings  ----

@@ -1,8 +1,8 @@
 #include "MapEditor_Global.h"
 //#include "MapEditor_StringUtil.h"
 
-#include "configfile.h"
-#include "unittest.h"
+#include "MapEditor_ConfigFile.h"
+
 
 #include <fstream>
 #include <sstream>
@@ -374,7 +374,7 @@ string CONFIGFILE::Strip(string instr, char stripchar)
 	{
 		outstr = instr.substr(0, pos);
 	}
-	if (pos+1 < length)
+	if (pos+1 < (size_t)length)
 	{
 		outstr = outstr + instr.substr(pos+1, (length-pos)-1);
 	}
@@ -608,77 +608,4 @@ bool CONFIGVARIABLE::operator<(const CONFIGVARIABLE & other)
 	return (section + "." + name < other.section + "." + other.name);
 }
 
-QT_TEST(configfile_test)
-{
-	std::stringstream instream;
-	instream << "\n#comment on the FIRST LINE??\n\n"
-		"variable outside of=a section\n\n"
-		"test section numero UNO\n"
-		"look at me = 23.4\n\n"
-		"i'm so great=   BANANA\n"
-		"#break!\n\n"
-		"[ section    dos??]\n"
-		"why won't you = breeeak #trying to break it\n\n"
-		"what about ] # this malformed thing???\n"
-		"nope works = fine.\n"
-		"even vectors = 2.1,0.9,GAMMA\n"
-		"this is a duplicate = 0\n"
-		"this is a duplicate = 1\n"
-		"random = intermediary\n"
-		"this is a duplicate = 2\n";
-	
-	CONFIGFILE testconfig;
-	testconfig.Load(instream);
-	string tstr = "notfound";
-	QT_CHECK(testconfig.GetParam("variable outside of", tstr));
-	QT_CHECK_EQUAL(tstr, "a section");
-	tstr = "notfound";
-	QT_CHECK(testconfig.GetParam(".variable outside of", tstr));
-	QT_CHECK_EQUAL(tstr, "a section");
-	tstr = "notfound";
-	QT_CHECK(testconfig.GetParam("section    dos??.why won't you", tstr));
-	QT_CHECK_EQUAL(tstr, "breeeak");
-	tstr = "notfound";
-	QT_CHECK(testconfig.GetParam("variable outside of", tstr));
-	QT_CHECK_EQUAL(tstr, "a section");
-	tstr = "notfound";
-	QT_CHECK(testconfig.GetParam(".variable outside of", tstr));
-	QT_CHECK_EQUAL(tstr, "a section");
-	tstr = "notfound";
-	QT_CHECK(!testconfig.GetParam("nosection.novariable", tstr));
-	QT_CHECK_EQUAL(tstr, "notfound");
-	tstr = "notfound";
-	float vec[3];
-	QT_CHECK(testconfig.GetParam("what about.even vectors", vec));
-	QT_CHECK_EQUAL(vec[0], 2.1f);
-	QT_CHECK_EQUAL(vec[1], 0.9f);
-	QT_CHECK_EQUAL(vec[2], 0.f);
-	//testconfig.DebugPrint(std::cout);
-	
-	{
-		std::list <string> slist;
-		testconfig.GetSectionList(slist);
-		slist.sort();
-		std::list <string>::iterator i = slist.begin();
-		QT_CHECK_EQUAL(*i, "");
-		++i;
-		QT_CHECK_EQUAL(*i, "section    dos??");
-		++i;
-		QT_CHECK_EQUAL(*i, "test section numero UNO");
-		++i;
-		QT_CHECK_EQUAL(*i, "what about");
-		++i;
-		QT_CHECK(i == slist.end());
-	}
-	{
-		std::list <string> slist;
-		testconfig.GetParamList(slist, "test section numero UNO");
-		slist.sort();
-		std::list <string>::iterator i = slist.begin();
-		QT_CHECK_EQUAL(*i, "i'm so great");
-		++i;
-		QT_CHECK_EQUAL(*i, "look at me");
-		++i;
-		QT_CHECK(i == slist.end());
-	}
-}
+

@@ -1,11 +1,11 @@
 #include "MapEditor_Global.h"
 #include "Preprocessor.hpp"
 
-#include <boost/wave.hpp>
-#include <boost/wave/cpplexer/cpp_lex_token.hpp>
-#include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
-
-#include <boost/filesystem/fstream.hpp>
+//STUNTPORT    #include <boost/wave.hpp>
+//STUNTPORT    #include <boost/wave/cpplexer/cpp_lex_token.hpp>
+//STUNTPORT    #include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
+//STUNTPORT    
+//STUNTPORT    #include <boost/filesystem/fstream.hpp>
 
 /*
 	Almost exact copy of load_file_to_string policy found in
@@ -18,7 +18,7 @@
 namespace boost {
 namespace wave {
 namespace iteration_context_policies {
-
+    /* * * * STUNTPORT * * *
 	struct load_utf8_path_to_string
 	{
 		template <typename IterContextT>
@@ -55,6 +55,7 @@ namespace iteration_context_policies {
 			std::string instring;
 		};
 	};
+    */
 } } }
 
 namespace sh
@@ -64,8 +65,8 @@ namespace sh
 		std::stringstream returnString;
 
 		// current file position is saved for exception handling
-		boost::wave::util::file_position_type current_position;
-
+		//STUNTPORTboost::wave::util::file_position_type current_position;
+#if 0 //STUNTPORT
 		try
 		{
 			//  This token type is one of the central types used throughout the library.
@@ -146,7 +147,7 @@ namespace sh
 				<< "unexpected exception caught.";
 			throw std::runtime_error(error.str());
 		}
-
+#endif // #if 0 // STUNTPORT
 		return returnString.str();
 	}
 }

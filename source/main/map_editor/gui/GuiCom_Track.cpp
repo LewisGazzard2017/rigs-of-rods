@@ -5,7 +5,7 @@
 #include "SplineRoad.h"
 #include "MapEditor_PathManager.h"
 #include "SceneXml.h"
-#include "data/TracksXml.h"
+#include "TracksXml.h"
 #include "CData.h"
 #include "CScene.h"
 #include "MapEditor_App.h"

@@ -266,7 +266,7 @@ void CGuiCom::btnTrkView2(WP) {  pSet->tracks_view = 1;  ChangeTrackView();  }
 
 void CGuiCom::ChangeTrackView()
 {
-	bool full = pSet->tracks_view;
+	bool full = pSet->tracks_view == 1;
 
 	if (!imgPrv[0])  return;
 	imgPrv[0]->setVisible(!full);   imgTrkIco1->setVisible(full);
@@ -302,8 +302,10 @@ void CGuiCom::updTrkListDim()
 {
 	//  tracks list
 	//-------------------------------
-	if (!trkList)  return;
-	bool full = pSet->tracks_view;  int fi = full?1:0;
+    if (!trkList) { return; }
+
+	bool full = pSet->tracks_view = 1;
+    int fi = full?1:0;
 
 	int c, sum = 0, cnt = trkList->getColumnCount();
 	for (c=0; c < cnt-1; ++c)  if (pSet->colVis[1][c])  sum += colTrk[c];
@@ -326,40 +328,12 @@ void CGuiCom::updTrkListDim()
 	trkList->setCoord(xt, yt, sw + 8/*frame*/, 0.70/*height*/*wi.height);
 	imgTrkIco1->setCoord(xt + xico1+2, yico, 4*wico, wico);
 	imgTrkIco2->setCoord(xt + xico2+2, yico, 8*wico, wico);
-	#ifndef SR_EDITOR
-	bool hid = app->gui->panNetTrack && app->gui->panNetTrack->getVisible();
-	if (!hid)
-	#endif
+	
 		trkList->setVisible(true);
 
 	//  car list
 	//-------------------------------
-	#ifndef SR_EDITOR
-	full = pSet->cars_view;
-
-	sum = 0;  sw = 0;  cnt = app->gui->carList->getColumnCount();
-	for (c=0; c < cnt; ++c)  sum += app->gui->colCar[c];
-
-	for (c=0; c < cnt; ++c)
-	{
-		float wf = float(app->gui->colCar[c]) / sum * 0.23/*width*/ * wi.width * 0.97/*frame*/;
-		int w = c==cnt-1 ? (full ? 18 : 36) : (full || c < 2 || c==cnt-1 ? wf : 0);
-		app->gui->carList->setColumnWidthAt(c, w);
-		sw += w;
-	}
-
-	xt = 0.018*wi.width;  yt = 0.0242*wi.height, yico = yt - wico - 1;  //0.02*wi.height;
-	app->gui->carList->setCoord(xt, yt, sw + 8/*frame*/, 0.411/*height*/*wi.height);
-	#endif
 	
-	#ifndef SR_EDITOR
-	if (app->gui->panNetTrack)  {
-		Tbi trkTab = fTbi("TabTrack");
-		const IntCoord& tc = trkTab->getCoord();
-		app->gui->panNetTrack->setCoord(0, 0.82f*tc.height, tc.width*0.64f, 0.162f*tc.height);  }
-	#endif
-
-	#ifdef SR_EDITOR
 	const IntCoord& wp = app->mWndPick->getCoord();
 	//IntCoord ic(0.01*wp.width, 0.04*wp.height, 0.38*wp.width, 0.93*wp.height);
 	IntCoord ic(0.01*wp.width, 0.055*wp.height, 0.38*wp.width, 0.89*wp.height);
@@ -371,5 +345,5 @@ void CGuiCom::updTrkListDim()
 
 	float ih = 0.045f;
 	app->bckInput->setRealCoord(0.2f, 1.f-ih, 0.5f, ih);
-	#endif
+	
 }

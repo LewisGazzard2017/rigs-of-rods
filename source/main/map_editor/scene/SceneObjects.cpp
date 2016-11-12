@@ -10,6 +10,7 @@
 #include "MapEditor_ShapeData.h"
 #include "MapEditor_App.h"
 #include "CGui.h"
+
 #include <BulletCollision/CollisionDispatch/btCollisionObject.h>
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
 #include <LinearMath/btDefaultMotionState.h>

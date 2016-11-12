@@ -1,13 +1,14 @@
 #include "MapEditor_Global.h"
 #include "ShaderSet.hpp"
+#include "RoRPrerequisites.h"
 
 #include <fstream>
 #include <sstream>
 
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/functional/hash.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/filesystem.hpp>
+// STUNTPORT // #include <boost/algorithm/string/predicate.hpp>
+// STUNTPORT // #include <boost/functional/hash.hpp>
+// STUNTPORT // #include <boost/lexical_cast.hpp>
+// STUNTPORT // #include <boost/filesystem.hpp>
 
 #include "Factory.hpp"
 
@@ -28,9 +29,11 @@ namespace sh
 		std::ifstream stream(sourceFile.c_str(), std::ifstream::in);
 		std::stringstream buffer;
 
-		boost::filesystem::path p (sourceFile);
-		p = p.branch_path();
-		mBasePath = p.string();
+		//STUNTPORT boost::filesystem::path p (sourceFile);
+		//STUNTPORT p = p.branch_path();
+		//STUNTPORT mBasePath = p.string();
+
+        mBasePath = MapEditor_GetDirectoryPath(sourceFile);
 
 		buffer << stream.rdbuf();
 		stream.close();
@@ -60,19 +63,19 @@ namespace sh
 			{
 				if (tokenIsRecognized)
 				{
-					if (boost::starts_with(currentToken, "@shGlobalSetting"))
+					if (MapEditor_StrStartsWith(currentToken, "@shGlobalSetting"))
 					{
 						assert ((currentToken.find('(') != std::string::npos) && (currentToken.find(')') != std::string::npos));
 						size_t start = currentToken.find('(')+1;
 						mGlobalSettings.push_back(currentToken.substr(start, currentToken.find(')')-start));
 					}
-					else if (boost::starts_with(currentToken, "@shPropertyHasValue"))
+					else if (MapEditor_StrStartsWith(currentToken, "@shPropertyHasValue"))
 					{
 						assert ((currentToken.find('(') != std::string::npos) && (currentToken.find(')') != std::string::npos));
 						size_t start = currentToken.find('(')+1;
 						mPropertiesToExist.push_back(currentToken.substr(start, currentToken.find(')')-start));
 					}
-					else if (boost::starts_with(currentToken, "@shPropertyEqual"))
+					else if (MapEditor_StrStartsWith(currentToken, "@shPropertyEqual"))
 					{
 						assert ((currentToken.find('(') != std::string::npos) && (currentToken.find(')') != std::string::npos)
 								&& (currentToken.find(',') != std::string::npos));
@@ -80,7 +83,7 @@ namespace sh
 						size_t end = currentToken.find(',');
 						mProperties.push_back(currentToken.substr(start, end-start));
 					}
-					else if (boost::starts_with(currentToken, "@shProperty"))
+					else if (MapEditor_StrStartsWith(currentToken, "@shProperty"))
 					{
 						assert ((currentToken.find('(') != std::string::npos) && (currentToken.find(')') != std::string::npos));
 						size_t start = currentToken.find('(')+1;
@@ -130,7 +133,7 @@ namespace sh
 			return NULL;
 		if (mInstances.find(h) == mInstances.end())
 		{
-			ShaderInstance newInstance(this, mName + "_" + boost::lexical_cast<std::string>(h), properties);
+			ShaderInstance newInstance(this, mName + "_" + TOSTRING(h), properties);
 			if (!newInstance.getSupported())
 			{
 				mFailedToCompile.push_back(h);
@@ -143,7 +146,10 @@ namespace sh
 
 	size_t ShaderSet::buildHash (PropertySetGet* properties)
 	{
-		size_t seed = 0;
+		
+        
+        size_t seed = 0;
+        /*STUNTPORT ============
 		PropertySetGet* currentGlobalSettings = getCurrentGlobalSettings ();
 
 		for (std::vector<std::string>::iterator it = mProperties.begin(); it != mProperties.end(); ++it)
@@ -161,6 +167,7 @@ namespace sh
 			boost::hash_combine(seed, static_cast<bool>(v != ""));
 		}
 		boost::hash_combine(seed, static_cast<int>(Factory::getInstance().getCurrentLanguage()));
+        */ // STUNTPORT 
 		return seed;
 	}
 

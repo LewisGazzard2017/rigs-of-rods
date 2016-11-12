@@ -636,7 +636,7 @@ void App::editMouse()
 		//  selection, picked or new
 		std::set<int>::iterator it = vObjSel.begin();
 		int i = sel ? *it : iObjCur;
-		while (i == -1 || (i >= 0 && i < scn->sc->objects.size()))
+		while (i == -1 || (i >= 0 && i < (int)scn->sc->objects.size()))
 		{
 			Object& o = i == -1 ? objNew : scn->sc->objects[i];
 			bool upd1 = false;

@@ -145,7 +145,7 @@ void TerrainMaterial::Profile::createMaterial(const String& matName, const Terra
 	uint numUVMul = numLayers / 4;
 	if (numLayers % 4)
 		++numUVMul;
-	for (int i = 0; i < numUVMul; ++i)
+	for (int i = 0; i < (int)numUVMul; ++i)
 	{
 		int ii = i * 4;
 		sh::Vector4* uvMul = new sh::Vector4(

@@ -16,4 +16,12 @@ Source StuntRally commit:
 Layout of sources is loosely based on project file SR_Editor.vcproj   
 
 Several things were temporarily commented out. Look for 'STUNTPORT' in comments.
+
+BulletPhysics: version 2.81 (per StuntRally build instructions)
+  includes:
+    $bullet_dir/src
+    $bullet_dir/Extras/Serialize
+  libs:
+    
+  
      

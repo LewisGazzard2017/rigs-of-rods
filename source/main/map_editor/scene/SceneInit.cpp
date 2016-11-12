@@ -8,8 +8,8 @@
 #include "MapEditor_App.h"
 #include "CGui.h"
 #include "SplineRoad.h"
-#include "../road/PaceNotes.h"
-#include "../paged-geom/PagedGeometry.h"
+#include "PaceNotes.h"
+#include "PagedGeometry.h"
 #include "MapEditor_PathManager.h"
 #include "RenderConst.h"
 #include "btBulletCollisionCommon.h"
@@ -30,8 +30,8 @@
 #include <OgreMaterialManager.h>
 #include <OgreTextureManager.h>
 #include <OgreSceneNode.h>
-#include "../ogre/common/MessageBox/MessageBox.h"
-#include "../ogre/common/Instancing.h"
+#include "MessageBox.h"
+#include "Instancing.h"
 using namespace Ogre;
 
 
@@ -589,7 +589,7 @@ void App::BltUpdate(float dt)
 	world->stepSimulation(dt, maxSubsteps, fixedTimestep);
 	
 	///  objects - dynamic (props)  -------------------------------------------------------------
-	for (int i=0; i < scn->sc->objects.size(); ++i)
+	for (int i=0; i < (int)scn->sc->objects.size(); ++i)
 	{
 		Object& o = scn->sc->objects[i];
 		if (o.ms)

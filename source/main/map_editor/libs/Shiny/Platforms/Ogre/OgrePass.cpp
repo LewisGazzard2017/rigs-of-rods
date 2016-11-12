@@ -21,9 +21,9 @@ namespace sh
 		mPass = t->createPass();
 	}
 
-	boost::shared_ptr<TextureUnitState> OgrePass::createTextureUnitState (const std::string& name)
+	std::shared_ptr<TextureUnitState> OgrePass::createTextureUnitState (const std::string& name)
 	{
-		return boost::shared_ptr<TextureUnitState> (new OgreTextureUnitState (this, name));
+		return std::shared_ptr<TextureUnitState> (new OgreTextureUnitState (this, name));
 	}
 
 	void OgrePass::assignProgram (GpuProgramType type, const std::string& name)

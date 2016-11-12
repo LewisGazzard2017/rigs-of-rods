@@ -22,3 +22,9 @@ struct MapEditor_MouseMotionEvent {}; //SFO::MouseMotionEvent
 struct MapEditor_MouseButtonEvent {}; //SDL_MouseButtonEvent
 struct MapEditor_TextInputEvent   {}; //SDL_TextInputEvent
 
+// ============= replacements for boost ================
+
+std::string MapEditor_GetDirectoryPath(std::string const & dir_in);
+
+bool MapEditor_StrStartsWith(std::string haystack, std::string const & needle);
+

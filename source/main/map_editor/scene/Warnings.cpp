@@ -111,7 +111,7 @@ void CGui::WarningsCheck(const Scene* sc, const SplineRoad* road)
 		///-  road, checkpoints  -------------
 		int numChks = 0, iClosest=-1;  float stD = FLT_MAX;
 		bool mtrUsed[4]={0,0,0,0};
-		for (int i=0; i < road->mP.size(); ++i)
+		for (int i=0; i < (int)road->mP.size(); ++i)
 		{
 			const SplinePoint& p = road->mP[i];
 			if (p.chkR > 0.f && p.chkR < 1.f)

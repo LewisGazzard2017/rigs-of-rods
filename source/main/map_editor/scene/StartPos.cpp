@@ -59,7 +59,7 @@ void App::UpdStartPos()
 	Vector3 p1 = Axes::toOgre(scn->sc->startPos);
 	Quaternion q1 = Axes::toOgre(scn->sc->startRot);
 	ndCar->setPosition(p1);  ndCar->setOrientation(q1);
-	ndCar->setVisible(scn->road);  // hide before load
+	ndCar->setVisible(scn->road != nullptr);  // hide before load
 
 	ndStBox->setPosition(p1);  ndStBox->setOrientation(q1);
 	if (scn->road)

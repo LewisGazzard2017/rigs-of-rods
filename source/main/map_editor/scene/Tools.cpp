@@ -78,7 +78,7 @@ void CGui::ToolTracksWarnings()
 	LogO("ALL tracks warnings ---------\n");
 	logWarn = true;
 
-	for (int i=0; i < data->tracks->trks.size(); ++i)
+	for (int i=0; i < (int)data->tracks->trks.size(); ++i)
 	{	//  foreach track
 		string trk = data->tracks->trks[i].name, path = gcom->pathTrk[0] +"/"+ trk +"/";
 		/**/if (!(trk[0] >= 'A' && trk[0] <= 'Z'))  continue;
@@ -147,7 +147,7 @@ void CGui::ToolSceneXml()
 	ResourceGroupManager& rg = ResourceGroupManager::getSingleton();
 
 	int i,n;
-	for (i=0; i < data->tracks->trks.size(); ++i)
+	for (i=0; i < (int)data->tracks->trks.size(); ++i)
 	{	//  foreach track
 		string trk = data->tracks->trks[i].name, path = gcom->pathTrk[0] +"/"+ trk +"/";
 		Scene sc;  sc.LoadXml(path +"scene.xml");
@@ -209,7 +209,7 @@ void CGui::ToolSceneXml()
 		
 		///  road
 		int iLch = 0;
-		for (n=0; n < rd.mP.size(); ++n)
+		for (n=0; n < (int)rd.mP.size(); ++n)
 			if (rd.mP[n].chkR > 0.f && rd.mP[n].loop > 0)
 				++iLch;
 		//LogO("Road: " + trk + "  Lch " + toStr(iLch));

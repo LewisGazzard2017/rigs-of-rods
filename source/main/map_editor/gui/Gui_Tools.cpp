@@ -218,7 +218,7 @@ void CGui::btnScaleAll(WP)
 	}
 	
 	//  objs
-	for (int i=0; i < sc->objects.size(); ++i)
+	for (int i=0; i <(int) sc->objects.size(); ++i)
 	{
 		Object& o = sc->objects[i];
 		o.pos[0] *= sf;  o.pos[1] *= sf;

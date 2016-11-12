@@ -38,7 +38,7 @@ namespace sh
 	};
 
 
-
+#if 0 // STUNTPORT
 	class emit_custom_line_directives_hooks
 	:   public boost::wave::context_policies::default_preprocessing_hooks
 	{
@@ -62,7 +62,7 @@ namespace sh
 			return true;
 		}
 	};
-
+#endif // #if 0 //STUNTPORT
 
 }
 

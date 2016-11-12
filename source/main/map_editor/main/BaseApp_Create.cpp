@@ -1,33 +1,43 @@
+
+
+#include "BaseApp.h"
 #include "MapEditor_Global.h"
 #include "MapEditor_StringUtil.h"
-#include "MapEditor_Settings.h"
-#include "BaseApp.h"
 #include "MapEditor_App.h"
 #include "MapEditor_PathManager.h"
-#include "MapEditor_Localization.h"
+#include "MapEditor_Settings.h"
+#include "MyGUI_D3D11.h"
 #include "PlatformUtils.h"
+#include "PointerFix.h"
+#include "MapEditor_Localization.h"
 
+/*
 //STUNTPORT #include <boost/thread.hpp>
 //STUNTPORT #include <boost/filesystem.hpp>
-#include <OgreConfigFile.h>
-#if OGRE_VERSION >= MYGUI_DEFINE_VERSION(1, 9, 0) 
-#include <OgreOverlaySystem.h>
-#endif
-#include <OgreOverlay.h>
-#include <OgreOverlayElement.h>
-#include <OgreOverlayManager.h>
-#include <OgreTimer.h>
-#include "MyGUI_D3D11.h"
+
 //STUNTPORT #include "../sdl4ogre/sdlinputwrapper.hpp"
 //STUNTPORT #include "../sdl4ogre/sdlcursormanager.hpp"
 //STUNTPORT #include "../sdl4ogre/sdlwindowhelper.hpp"
-#include "PointerFix.h"
+*/
+
 #include <MyGUI_PointerManager.h>
 #include <MyGUI_Gui.h>
 #include <MyGUI_InputManager.h>
 #include <MyGUI_FactoryManager.h>
 #include <MyGUI_ImageBox.h>
 #include <MyGUI_TextBox.h>
+#include <OgreCamera.h>
+#include <OgreSceneManager.h>
+#include <OgreRoot.h>
+#include <OgreRenderWindow.h>
+#include <OgreOverlay.h>
+#include <OgreOverlayElement.h>
+#include <OgreOverlayManager.h>
+#include <OgreTimer.h>
+#include <OgreConfigFile.h>
+#if OGRE_VERSION >= MYGUI_DEFINE_VERSION(1, 9, 0) 
+#include <OgreOverlaySystem.h>
+#endif
 
 #include <thread>
 #include <chrono>
@@ -372,6 +382,7 @@ bool BaseApp::keyReleased( const MapEditor_KeyboardEvent &arg )
 		MyGUI::InputManager::getInstance().injectKeyRelease(MyGUI::KeyCode::Enum(mInputWrapper->sdl2OISKeyCode(arg.keysym.sym)));
 	return true;
     */
+    return true;
 }
 
 void BaseApp::textInput(const MapEditor_TextInputEvent &arg)
@@ -384,7 +395,7 @@ void BaseApp::textInput(const MapEditor_TextInputEvent &arg)
 	for (std::vector<unsigned long>::iterator it = unicode.begin(); it != unicode.end(); ++it)
 		MyGUI::InputManager::getInstance().injectKeyPress(MyGUI::KeyCode::None, *it);
     
-    --STUNTPORT--*/
+    --STUNTPORT-END-*/
 }
 
 

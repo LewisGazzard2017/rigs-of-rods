@@ -156,7 +156,8 @@ void Scene::UpdateFluidsId()
 	if (!pFluidsXml)  return;
 	
 	//  set fluids id from name
-	for (int i=0; i < fluids.size(); ++i)
+    int max = (int)fluids.size();
+	for (int i=0; i < max; ++i)
 	{
 		int id = pFluidsXml->flMap[fluids[i].name]-1;
 		fluids[i].id = id;

@@ -70,13 +70,9 @@ void CScene::UpdShaderParams()
 	mFactory->setGlobalSetting("water_refract", b2s(pSet->water_refract));
 
 
-#if !SR_EDITOR
-	mFactory->setGlobalSetting("soft_particles", b2s(pSet->all_effects && pSet->softparticles));
-	mFactory->setGlobalSetting("mrt_output", b2s(app->NeedMRTBuffer()));
-	mFactory->setGlobalSetting("debug_blend", b2s(false));
-#else
+
 	mFactory->setGlobalSetting("debug_blend", b2s(app->gui->bDebugBlend));
-#endif
+
 
 }
 

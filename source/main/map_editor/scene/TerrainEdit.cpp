@@ -20,7 +20,7 @@ using namespace Ogre;
 
 //  color factors for edit mode D,S,E,F
 const float App::brClr[4][3] = {
-	{0.3, 0.8, 0.1}, {0.2, 0.8, 0.6}, {0.6, 0.9, 0.6}, {0.4, 0.7, 1.0} };
+	{0.3f, 0.8f, 0.1f}, {0.2f, 0.8f, 0.6f}, {0.6f, 0.9f, 0.6f}, {0.4f, 0.7f, 1.0f} };
 
 
 void CGui::btnBrushPreset(WP img)

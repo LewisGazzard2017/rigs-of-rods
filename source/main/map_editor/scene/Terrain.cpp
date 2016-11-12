@@ -1,14 +1,15 @@
 #include "MapEditor_Global.h"
 #include "MapEditor_StringUtil.h"
 #include "RenderConst.h"
-#include "../common/ShapeData.h"
-#include "../common/GuiCom.h"
+#include "MapEditor_ShapeData.h"
+#include "GuiCom.h"
 #include "CScene.h"
 #include "SceneXml.h"
 #include "TerrainMaterial.h"
 #include "MapEditor_PathManager.h"
 #include "MapEditor_App.h"
 #include "MapEditor_Settings.h"
+
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 #include <BulletCollision/CollisionDispatch/btCollisionObject.h>
 #include <BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>

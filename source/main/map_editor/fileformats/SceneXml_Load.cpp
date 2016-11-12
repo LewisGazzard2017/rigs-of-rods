@@ -364,7 +364,7 @@ bool Scene::LoadXml(String file, bool bTer)
 		while (u)
 		{
 			SGrassLayer g;
-			a = u->Attribute("on");			if (a)  g.on = s2i(a);  else  g.on = 1;
+			a = u->Attribute("on");			if (a)  g.on = (s2i(a) == 1);  else  g.on = true;
 			a = u->Attribute("mtr");		if (a)  g.material = String(a);
 			a = u->Attribute("clr");		if (a)  g.colorMap = String(a);
 			a = u->Attribute("dens");		if (a)  g.dens = s2r(a);
@@ -427,7 +427,7 @@ bool Scene::LoadXml(String file, bool bTer)
 		while (u)
 		{
 			PagedLayer l;
-			a = u->Attribute("on");			if (a)  l.on = s2i(a);  else  l.on = 1;
+			a = u->Attribute("on");			if (a)  l.on = (s2i(a) == 1);  else  l.on = true;
 			a = u->Attribute("name");		if (a)  l.name = String(a);
 			a = u->Attribute("dens");		if (a)  l.dens = s2r(a);
 			a = u->Attribute("minScale");	if (a)  l.minScale = s2r(a);
@@ -571,7 +571,8 @@ bool Scene::SaveXml(String file)
 	
 
 	TiXmlElement fls("fluids");
-		for (int i=0; i < fluids.size(); ++i)
+        int fluids_max = (int)fluids.size();
+		for (int i=0; i < fluids_max; ++i)
 		{
 			const FluidBox* fb = &fluids[i];
 			TiXmlElement fe("fluid");

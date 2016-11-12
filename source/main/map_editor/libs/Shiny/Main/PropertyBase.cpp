@@ -1,11 +1,13 @@
 #include "MapEditor_Global.h"
 #include "PropertyBase.hpp"
+#include "RoRPrerequisites.h"
 
 #include <vector>
 #include <iostream>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
+//STUNTPORT #include <boost/lexical_cast.hpp>
+//STUNTPORT #include <boost/algorithm/string.hpp>
+#include <OgreStringConverter.h>
 
 #include <fstream>
 
@@ -19,12 +21,14 @@ namespace sh
 
 	IntValue::IntValue(const std::string& in)
 	{
-		mValue = boost::lexical_cast<int>(in);
+        mValue = Ogre::StringConverter::parseInt(in);
+		//STUNTPORT_ORIG//mValue = boost::lexical_cast<int>(in);
 	}
 
 	std::string IntValue::serialize()
 	{
-		return boost::lexical_cast<std::string>(mValue);
+		//STUNTPORT ORIG//return TOSTRING(mValue);
+        return Ogre::StringConverter::toString(mValue);
 	}
 
 	// ------------------------------------------------------------------------------
@@ -96,12 +100,13 @@ namespace sh
 
 	FloatValue::FloatValue (const std::string& in)
 	{
-		mValue = boost::lexical_cast<float>(in);
+		mValue = Ogre::StringConverter::parseReal(in); //STUNTPORT ORIG//PARSEREAL (in);
 	}
 
 	std::string FloatValue::serialize ()
 	{
-		return boost::lexical_cast<std::string>(mValue);
+		//STUNTPORT_ORIG//return TOSTRING(mValue);
+        return Ogre::StringConverter::toString(mValue);
 	}
 
 	// ------------------------------------------------------------------------------
@@ -114,17 +119,18 @@ namespace sh
 
 	Vector2::Vector2 (const std::string& in)
 	{
-		std::vector<std::string> tokens;
-		boost::split(tokens, in, boost::is_any_of(" "));
+		// // //std::vector<std::string> tokens;
+		// // //boost::split(tokens, in, boost::is_any_of(" "));
+        Ogre::StringVector tokens = Ogre::StringUtil::split(in, " ");
 		assert ((tokens.size() == 2) && "Invalid Vector2 conversion");
-		mX = boost::lexical_cast<float> (tokens[0]);
-		mY = boost::lexical_cast<float> (tokens[1]);
+		mX = PARSEREAL (tokens[0]);
+		mY = PARSEREAL  (tokens[1]);
 	}
 
 	std::string Vector2::serialize ()
 	{
-		return boost::lexical_cast<std::string>(mX) + " "
-			+ boost::lexical_cast<std::string>(mY);
+		return TOSTRING(mX) + " "
+			+ TOSTRING(mY);
 	}
 
 	// ------------------------------------------------------------------------------
@@ -138,19 +144,20 @@ namespace sh
 
 	Vector3::Vector3 (const std::string& in)
 	{
-		std::vector<std::string> tokens;
-		boost::split(tokens, in, boost::is_any_of(" "));
+		// // //std::vector<std::string> tokens;
+		// // //boost::split(tokens, in, boost::is_any_of(" "));
+        Ogre::StringVector tokens = Ogre::StringUtil::split(in, " ");
 		assert ((tokens.size() == 3) && "Invalid Vector3 conversion");
-		mX = boost::lexical_cast<float> (tokens[0]);
-		mY = boost::lexical_cast<float> (tokens[1]);
-		mZ = boost::lexical_cast<float> (tokens[2]);
+		mX = PARSEREAL  (tokens[0]);
+		mY = PARSEREAL  (tokens[1]);
+		mZ = PARSEREAL  (tokens[2]);
 	}
 
 	std::string Vector3::serialize ()
 	{
-		return boost::lexical_cast<std::string>(mX) + " "
-			+ boost::lexical_cast<std::string>(mY) + " "
-			+ boost::lexical_cast<std::string>(mZ);
+		return TOSTRING(mX) + " "
+			+ TOSTRING(mY) + " "
+			+ TOSTRING(mZ);
 	}
 
 	// ------------------------------------------------------------------------------
@@ -165,21 +172,22 @@ namespace sh
 
 	Vector4::Vector4 (const std::string& in)
 	{
-		std::vector<std::string> tokens;
-		boost::split(tokens, in, boost::is_any_of(" "));
+		// // // std::vector<std::string> tokens;
+		// // // boost::split(tokens, in, boost::is_any_of(" "));
+        Ogre::StringVector tokens = Ogre::StringUtil::split(in, " ");
 		assert ((tokens.size() == 4) && "Invalid Vector4 conversion");
-		mX = boost::lexical_cast<float> (tokens[0]);
-		mY = boost::lexical_cast<float> (tokens[1]);
-		mZ = boost::lexical_cast<float> (tokens[2]);
-		mW = boost::lexical_cast<float> (tokens[3]);
+		mX = PARSEREAL  (tokens[0]);
+		mY = PARSEREAL  (tokens[1]);
+		mZ = PARSEREAL  (tokens[2]);
+		mW = PARSEREAL  (tokens[3]);
 	}
 
 	std::string Vector4::serialize ()
 	{
-		return boost::lexical_cast<std::string>(mX) + " "
-			+ boost::lexical_cast<std::string>(mY) + " "
-			+ boost::lexical_cast<std::string>(mZ) + " "
-			+ boost::lexical_cast<std::string>(mW);
+		return TOSTRING(mX) + " "
+			+ TOSTRING(mY) + " "
+			+ TOSTRING(mZ) + " "
+			+ TOSTRING(mW);
 	}
 
 	// ------------------------------------------------------------------------------

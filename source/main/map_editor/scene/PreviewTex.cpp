@@ -107,9 +107,9 @@ void PreviewTex::Clear(const uint8 b, const uint8 g, const uint8 r, const uint8 
 	uint8* pDest = static_cast<uint8*>(pixelBox.data);
 	 
 	register size_t j,i;
-	for (j = 0; j < ySize; ++j)
+	for (j = 0; j < (int)ySize; ++j)
 	{
-		for (i = 0; i < xSize; ++i)   // B,G,R,A
+		for (i = 0; i < (int)xSize; ++i)   // B,G,R,A
 		{	*pDest++ = b;  *pDest++ = g;  *pDest++ = r;  *pDest++ = a;  }
 
 		pDest += pixelBox.getRowSkip() * PixelUtil::getNumElemBytes(pixelBox.format);
@@ -158,9 +158,9 @@ bool PreviewTex::LoadTer(String sRgb, String sAa, float defA)
 		 
 		float fA = defA * 255.f;
 		register size_t j,i;
-		for (j = 0; j < ySize; ++j)
+		for (j = 0; j < (int)ySize; ++j)
 		{
-			for (i = 0; i < xSize; ++i)   // B,G,R,A
+			for (i = 0; i < (int)xSize; ++i)   // B,G,R,A
 			{	
 				ColourValue cR = pbR.getColourAt(i,j,0);
 				*pD++ = cR.b * 255.f;
@@ -206,9 +206,9 @@ bool PreviewTex::LoadTer(String sRgb, String sAa, float defA)
 		int aD = pb.getRowSkip() * PixelUtil::getNumElemBytes(pb.format);
 		 
 		register size_t j,i;
-		for (j = 0; j < ySize; ++j)
+		for (j = 0; j < (int)ySize; ++j)
 		{
-			for (i = 0; i < xSize; ++i)   // B,G,R,A
+			for (i = 0; i < (int)xSize; ++i)   // B,G,R,A
 			{	
 				ColourValue cR = pbR.getColourAt(i,j,0);
 				ColourValue cA = pbA.getColourAt(i,j,0);

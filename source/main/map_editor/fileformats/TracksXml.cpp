@@ -84,7 +84,8 @@ bool UserXml::SaveXml(string file)
 {
 	TiXmlDocument xml;	TiXmlElement root("tracks");
 
-	for (int i=0; i < trks.size(); ++i)
+    int max = (int)trks.size();
+	for (int i=0; i < max; ++i)
 	{
 		const UserTrkInfo& t = trks[i];
 		TiXmlElement trk("t");

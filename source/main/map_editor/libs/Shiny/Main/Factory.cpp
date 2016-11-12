@@ -1,14 +1,16 @@
 #include "MapEditor_Global.h"
 #include "Factory.hpp"
+#include "RoRPrerequisites.h"
 
 #include <stdexcept>
 #include <iostream>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
+//STUNTPORT //#include <boost/algorithm/string.hpp>
+//STUNTPORT //#include <boost/filesystem.hpp>
+//STUNTPORT //#include <boost/lexical_cast.hpp>
 
 #include "Platform.hpp"
+#include "PlatformUtils.h"
 #include "ScriptLoader.hpp"
 #include "ShaderSet.hpp"
 #include "MaterialInstanceTextureUnit.hpp"
@@ -54,7 +56,7 @@ namespace sh
 
 		try
 		{
-			if (boost::filesystem::exists (mPlatform->getCacheFolder () + "/lastModified.txt"))
+			if (RoR::PlatformUtils::FileExists (mPlatform->getCacheFolder () + "/lastModified.txt"))
 			{
 				std::ifstream file;
 				file.open(std::string(mPlatform->getCacheFolder () + "/lastModified.txt").c_str());
@@ -67,7 +69,7 @@ namespace sh
 					if (!getline(file, line))
 						assert(0);
 
-					int modified = boost::lexical_cast<int>(line);
+					int modified = PARSEINT(line);
 
 					mShadersLastModified[sourceFile] = modified;
 				}
@@ -140,7 +142,8 @@ namespace sh
 					newLod.setProperty (name, makeProperty(val));
 				}
 
-				mLodConfigurations[boost::lexical_cast<int>(it->first)] = newLod;
+                int pos = PARSEINT(it->first);
+				mLodConfigurations[pos] = newLod;
 			}
 		}
 
@@ -239,7 +242,7 @@ namespace sh
 		if (mPlatform->supportsShaderSerialization () && mReadMicrocodeCache && !removeBinaryCache)
 		{
 			std::string file = mPlatform->getCacheFolder () + "/" + mBinaryCacheName;
-			if (boost::filesystem::exists(file))
+			if (RoR::PlatformUtils::FileExists(file))
 			{
 				mPlatform->deserializeShaders (file);
 			}
@@ -636,10 +639,11 @@ namespace sh
 	bool Factory::removeCache(const std::string& pattern)
 	{
 		bool ret = false;
-		if ( boost::filesystem::exists(mPlatform->getCacheFolder())
-			 && boost::filesystem::is_directory(mPlatform->getCacheFolder()))
+		if ( RoR::PlatformUtils::FileExists(mPlatform->getCacheFolder())
+			 && RoR::PlatformUtils::FolderExists(mPlatform->getCacheFolder()))
 		{
-			boost::filesystem::directory_iterator end_iter;
+			/*STUNTPORT----------------
+            boost::filesystem::directory_iterator end_iter;
 			for( boost::filesystem::directory_iterator dir_iter(mPlatform->getCacheFolder()) ; dir_iter != end_iter ; ++dir_iter)
 			{
 				if (boost::filesystem::is_regular_file(dir_iter->status()) )
@@ -669,13 +673,15 @@ namespace sh
 					}
 				}
 			}
+            */ // // // // //
 		}
 		return ret;
 	}
 
 	bool Factory::reloadShaders()
 	{
-		mShaderSets.clear();
+		/* ==== STUNTPORT ====
+        mShaderSets.clear();
 		notifyConfigurationChanged();
 
 		bool removeBinaryCache = false;
@@ -758,6 +764,8 @@ namespace sh
 		mShadersLastModified = mShadersLastModifiedNew;
 
 		return removeBinaryCache;
+        */
+        return false;
 	}
 
 	void Factory::doMonitorShaderFiles()
@@ -773,7 +781,8 @@ namespace sh
 			std::string sourceAbsolute = mPlatform->getBasePath() + "/" + it->second->findChild("source")->getValue();
 			std::string sourceRelative = it->second->findChild("source")->getValue();
 
-			int lastModified = boost::filesystem::last_write_time (boost::filesystem::path(sourceAbsolute));
+			/* ---- STUNTPORT -----
+            int lastModified = boost::filesystem::last_write_time (boost::filesystem::path(sourceAbsolute));
 			if (mShadersLastModified.find(sourceRelative) != mShadersLastModified.end())
 			{
 				if (mShadersLastModified[sourceRelative] != lastModified)
@@ -782,6 +791,7 @@ namespace sh
 					break;
 				}
 			}
+            */
 		}
 		if (reload)
 			reloadShaders();

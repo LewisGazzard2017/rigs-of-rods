@@ -2,8 +2,9 @@
 #include <stdexcept>
 
 #include "OgreGpuProgram.hpp"
+#include "RoRPrerequisites.h"
 
-#include <boost/lexical_cast.hpp>
+//STUNTPORT#include <boost/lexical_cast.hpp>
 
 #include <OgreHighLevelGpuProgramManager.h>
 #include <OgreGpuProgramManager.h>
@@ -63,8 +64,8 @@ namespace sh
 		if (d->dataType == Ogre::GpuProgramParameters::ACDT_NONE)
 			mProgram->getDefaultParameters()->setNamedAutoConstant (name, t, 0);
 		else if (d->dataType == Ogre::GpuProgramParameters::ACDT_INT)
-			mProgram->getDefaultParameters()->setNamedAutoConstant (name, t, extraInfo == "" ? 0 : boost::lexical_cast<int>(extraInfo));
+			mProgram->getDefaultParameters()->setNamedAutoConstant (name, t, extraInfo == "" ? 0 : PARSEINT(extraInfo));
 		else if (d->dataType == Ogre::GpuProgramParameters::ACDT_REAL)
-			mProgram->getDefaultParameters()->setNamedAutoConstantReal (name, t, extraInfo == "" ? 0.f : boost::lexical_cast<float>(extraInfo));
+			mProgram->getDefaultParameters()->setNamedAutoConstantReal (name, t, extraInfo == "" ? 0.f : PARSEREAL (extraInfo));
 	}
 }

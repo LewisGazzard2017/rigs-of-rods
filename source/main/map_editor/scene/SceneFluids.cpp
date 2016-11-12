@@ -2,20 +2,15 @@
 #include "RenderConst.h"
 #include "MapEditor_StringUtil.h"
 #include "SceneXml.h"
-#include "data/FluidsXml.h"
+#include "FluidsXml.h"
 #include "CData.h"
 #include "MapEditor_ShapeData.h"
 #include "WaterRTT.h"
 #include "CScene.h"
-#ifdef SR_EDITOR
-	#include "MapEditor_App.h"
-	#include "MapEditor_Settings.h"
-	#include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
-#else
-	#include "../CGame.h"
-	#include "../../vdrift/game.h"
-	//#include "MapEditor_Settings.h"
-#endif
+#include "MapEditor_App.h"
+#include "MapEditor_Settings.h"
+
+#include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 #include <BulletCollision/CollisionDispatch/btCollisionObject.h>
 #include <BulletCollision/CollisionShapes/btBoxShape.h>
 #include <OgreManualObject.h>
@@ -42,7 +37,7 @@ void CScene::CreateFluids()
 	if (!mWaterRTT->mNdFluidsRoot)
 		mWaterRTT->mNdFluidsRoot = app->mSceneMgr->getRootSceneNode()->createChildSceneNode("FluidsRootNode");
 			
-	for (int i=0; i < sc->fluids.size(); ++i)
+	for (int i=0; i < (int)sc->fluids.size(); ++i)
 	{
 		FluidBox& fb = sc->fluids[i];
 		//  plane
@@ -76,7 +71,7 @@ void CScene::CreateFluids()
 
 void CScene::CreateBltFluids()
 {
-	for (int i=0; i < sc->fluids.size(); ++i)
+	for (int i=0; i < (int)sc->fluids.size(); ++i)
 	{
 		FluidBox& fb = sc->fluids[i];
 		const FluidParams& fp = sc->pFluidsXml->fls[fb.id];
@@ -123,7 +118,7 @@ void CScene::CreateBltFluids()
 
 void CScene::DestroyFluids()
 {
-	for (int i=0; i < vFlSMesh.size(); ++i)
+	for (int i=0; i < (int)vFlSMesh.size(); ++i)
 	{
 		vFlNd[i]->detachAllObjects();
 		app->mSceneMgr->destroyEntity(vFlEnt[i]);

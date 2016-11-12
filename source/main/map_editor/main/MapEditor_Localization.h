@@ -4,7 +4,8 @@
 
 #include <OgrePlatform.h>
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
-	#include <Winnls.h>  //<windows.h>
+	//STUNTPORT!! #include <Winnls.h>  //<windows.h>
+    // ~~~~~ this causes build fail "No target architecture" on Win10 / VS2015
 #endif
 
 

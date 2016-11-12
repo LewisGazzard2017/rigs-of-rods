@@ -17,6 +17,8 @@
 #include <MyGUI_TabControl.h>
 #include <MyGUI_FactoryManager.h>
 #include <MyGUI_ResourceTrueTypeFont.h>
+#include <OgreRenderWindow.h>
+
 using namespace MyGUI;
 using namespace Ogre;
 using namespace std;
@@ -126,7 +128,7 @@ void CGuiCom::GuiCenterMouse()
 {	
 	int xm = app->mWindow->getWidth()/2, ym = app->mWindow->getHeight()/2;
 
-	app->mInputWrapper->warpMouse(xm, ym);
+	//STUNTPORT//app->mInputWrapper->warpMouse(xm, ym); //TODO!!
 	InputManager::getInstance().injectMouseMove(xm, ym, 0);
 }
 

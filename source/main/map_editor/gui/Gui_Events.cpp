@@ -121,7 +121,7 @@ void CGui::tabGrLayers(Tab wp, size_t id)
 	#define _Cmb(cmb, str)  cmb->setIndexSelected( cmb->findItemIndexWith(str) );
 
 	btnGrassMtr->setCaption(gr->material);
-	for (int i=0; i < liGrs->getItemCount(); ++i)  // upd pick
+	for (int i=0; i < (int)liGrs->getItemCount(); ++i)  // upd pick
 		if (liGrs->getSubItemNameAt(1,i).substr(7) == gr->material)
 			liGrs->setIndexSelected(i);
 	_Cmb(cmbGrassClr, gr->colorMap);
@@ -180,7 +180,7 @@ void CGui::tabPgLayers(Tab wp, size_t id)
 	string s = lay.name.substr(0, lay.name.length()-5);
 
 	btnVeget->setCaption(s);
-	for (int i=0; i < liVeg->getItemCount(); ++i)  // upd pick
+	for (int i=0; i < (int)liVeg->getItemCount(); ++i)  // upd pick
 		if (liVeg->getSubItemNameAt(1,i).substr(7) == s)
 			liVeg->setIndexSelected(i);
 			
@@ -432,7 +432,7 @@ void CGui::toggleTopView()
 TerLayer* CGui::GetTerRdLay()
 {
 	if (idSurf < 4)  //  terrain
-	{	if (idSurf >= sc->td.layers.size())  // could change by on/off ter layers
+	{	if (idSurf >= (int)sc->td.layers.size())  // could change by on/off ter layers
 		{	idSurf = 0;  if (surfList)  surfList->setIndexSelected(idSurf);  }
 		return &sc->td.layersAll[sc->td.layers[idSurf]];
 	}
@@ -473,7 +473,7 @@ void CGui::UpdSurfList()
 
 	for (int n=0; n < 4; ++n)
 	{
-		String s = n >= app->scn->sc->td.layers.size() ? "" : StringUtil::replaceAll(
+		String s = n >= (int)app->scn->sc->td.layers.size() ? "" : StringUtil::replaceAll(
 			app->scn->sc->td.layersAll[app->scn->sc->td.layers[n]].texFile, "_d.jpg","");
 		surfList->setItemNameAt(n  , "#80FF00"+TR("#{Layer} ")+toStr(n+1)+"  "+ s);
 		surfList->setItemNameAt(n+4, "#FFB020"+TR("#{Road} ") +toStr(n+1)+"  "+ app->scn->road->sMtrRoad[n]);
@@ -560,7 +560,7 @@ void CGui::PickShow(EPick n, bool toggleVis)
 	}
 	if (n==P_Rd)  // upd pick road
 	{	UString s = btnRoad[idRdPick]->getCaption();
-		for (int i=0; i < liRd->getItemCount(); ++i)
+		for (int i=0; i < (int)liRd->getItemCount(); ++i)
 			if (liRd->getSubItemNameAt(1,i).substr(7) == s)
 				liRd->setIndexSelected(i);
 	}
