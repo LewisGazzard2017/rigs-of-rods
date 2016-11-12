@@ -1,6 +1,6 @@
 #include "MapEditor_Global.h"
 #include "cartire.h"
-#include "cardefs.h"
+//STUNTPORT #include "cardefs.h"
 //#include "MapEditor_StringUtil.h"
 
 
@@ -63,6 +63,7 @@ void CARTIRE::LookupSigmaHatAlphaHat(Dbl normalforce, Dbl & sh, Dbl & ah) const
 	}
 }
 
+#if 0 // STUNTPORT
 
 /// Return the friction vector calculated from the magic formula.
 /// HUB_VELOCITY is the velocity vector of the wheel's reference
@@ -218,7 +219,7 @@ MATHVECTOR<Dbl,3> CARTIRE::GetForce(
 	return outvec;
 }
 //-------------------------------------------------------------------------------------------------------------------------------
-
+#endif // #if 0 //STUNTPORT
 
 void CARTIRE::CalculateSigmaHatAlphaHat(int tablesize)
 {

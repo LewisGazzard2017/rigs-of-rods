@@ -1,15 +1,15 @@
 #include "MapEditor_Global.h"
 #include "vertexarray.h"
-#include "unittest.h"
+//STUNTPORT #include "unittest.h"
 #include "mathvector.h"
 #include "MapEditor_Quaternion.h"
-#include "matrix4.h"
+#include "MapEditor_Matrix4.h"
 
 //#include <map>
 //#include <cassert>
 
-QT_TEST(vertexarray_test)
-{
+//STUNTPORT QT_TEST(vertexarray_test)
+//STUNTPORT{
 /*	VERTEXARRAY testarray;
 	
 	const float * ptr;
@@ -85,7 +85,7 @@ QT_TEST(vertexarray_test)
 	QT_CHECK_EQUAL(ptrnum, 6);
 	QT_CHECK_EQUAL(ptri[1], 1);
 	QT_CHECK_EQUAL(ptri[4], 2);*/
-}
+//STUNTPORT}
 
 void VERTEXARRAY::SetNormals(float * newarray, size_t newarraycount)
 {
@@ -711,6 +711,7 @@ void VERTEXARRAY::Rotate(float a, float x, float y, float z)
     }
 }
 
+/*/STUNTPORT
 QT_TEST(vertexarray_buldfromfaces_test)
 {	
 	std::vector <VERTEXARRAY::TRIFLOAT> verts;
@@ -777,5 +778,5 @@ QT_TEST(vertexarray_buldfromfaces_test)
 	varray.GetFaces(tempint, tempnum);
 	QT_CHECK(tempfloat != NULL);
 	QT_CHECK_EQUAL(tempnum,36);
-}
+}*/
 

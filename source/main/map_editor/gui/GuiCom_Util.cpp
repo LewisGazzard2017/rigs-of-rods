@@ -7,7 +7,7 @@
 #include "MapEditor_App.h"
 #include "CGui.h"
 #include "MapEditor_Settings.h"
-#include "../../sdl4ogre/sdlinputwrapper.hpp"
+//STUNTPORT#include "../../sdl4ogre/sdlinputwrapper.hpp"
 #include <MyGUI_InputManager.h>
 #include <MyGUI_Widget.h>
 #include <MyGUI_EditBox.h>

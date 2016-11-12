@@ -4,7 +4,7 @@
 #include "SceneXml.h"
 #include "CData.h"
 #include "TracksXml.h"
-#include "../common/data/BltObjects.h"
+#include "BltObjects.h"
 #include "MapEditor_PathManager.h"
 #include "SplineRoad.h"
 

@@ -7,13 +7,14 @@
 #include <exception>
 #include <fstream>
 
-#include <boost/filesystem.hpp>
+//STUNTPORT#include <boost/filesystem.hpp>
 
 namespace sh
 {
 	void ScriptLoader::loadAllFiles(ScriptLoader* c, const std::string& path)
 	{
-		for ( boost::filesystem::recursive_directory_iterator end, dir(path); dir != end; ++dir )
+		/* === STUNTPORT ===
+        for ( boost::filesystem::recursive_directory_iterator end, dir(path); dir != end; ++dir )
 		{
 			boost::filesystem::path p(*dir);
 			if(p.extension() == c->mFileEnding)
@@ -22,7 +23,7 @@ namespace sh
 				std::ifstream in((*dir).path().string().c_str(), std::ios::binary);
 				c->parseScript(in);
 			}
-		}
+		}                    */
 	}
 
 	ScriptLoader::ScriptLoader(const std::string& fileEnding)

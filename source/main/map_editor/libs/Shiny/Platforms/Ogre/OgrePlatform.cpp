@@ -79,10 +79,10 @@ namespace sh
 		return true;
 	}
 
-	boost::shared_ptr<Material> OgrePlatform::createMaterial (const std::string& name)
+	std::shared_ptr<Material> OgrePlatform::createMaterial (const std::string& name)
 	{
 		OgreMaterial* material = new OgreMaterial(name, mResourceGroup);
-		return boost::shared_ptr<Material> (material);
+		return std::shared_ptr<Material> (material);
 	}
 
 	void OgrePlatform::destroyGpuProgram(const std::string &name)
@@ -90,14 +90,14 @@ namespace sh
 		Ogre::HighLevelGpuProgramManager::getSingleton().remove(name);
 	}
 
-	boost::shared_ptr<GpuProgram> OgrePlatform::createGpuProgram (
+	std::shared_ptr<GpuProgram> OgrePlatform::createGpuProgram (
 		GpuProgramType type,
 		const std::string& compileArguments,
 		const std::string& name, const std::string& profile,
 		const std::string& source, Language lang)
 	{
 		OgreGpuProgram* prog = new OgreGpuProgram (type, compileArguments, name, profile, source, convertLang(lang), mResourceGroup);
-		return boost::shared_ptr<GpuProgram> (static_cast<GpuProgram*>(prog));
+		return std::shared_ptr<GpuProgram> (static_cast<GpuProgram*>(prog));
 	}
 
 	Ogre::Technique* OgrePlatform::handleSchemeNotFound (
@@ -191,4 +191,4 @@ namespace sh
 			throw std::runtime_error ("unsupported property type for shared parameter \"" + name + "\"");
 		params->setNamedConstant(name, v);
 	}
-}
+} // namespace sh

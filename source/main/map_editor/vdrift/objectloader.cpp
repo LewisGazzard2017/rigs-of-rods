@@ -6,10 +6,7 @@
 #include <fstream>
 #include "texture.h"
 #include "reseatable_reference.h"
-#include "track.h"
-#ifndef SR_EDITOR
-	#include "../ogre/CGame.h"
-#endif
+#include "MapEditor_Track.h"
 
 
 OBJECTLOADER::OBJECTLOADER(
@@ -247,7 +244,7 @@ std::pair <bool,bool> OBJECTLOADER::ContinueObjectLoad(	TRACK* track,
 		OGRE_MESH om;
 		om.found = true;
 		om.sky = skybox;
-		om.alpha = transparent_blend;
+		om.alpha = (transparent_blend == 1);
 
 		om.newMtr = bNewMtr;
 		om.name = model_name;

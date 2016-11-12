@@ -7,7 +7,7 @@
 #include "MapEditor_App.h"
 #include "CGui.h"
 #include "SplineRoad.h"
-#include "../ogre/common/MessageBox/MessageBox.h"
+#include "MessageBox.h"
 using namespace MyGUI;
 using namespace Ogre;
 

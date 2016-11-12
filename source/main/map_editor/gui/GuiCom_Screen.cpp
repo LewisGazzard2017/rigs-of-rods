@@ -2,16 +2,10 @@
 #include "MapEditor_StringUtil.h"
 #include "MapEditor_GuiDefs.h"
 #include "GuiCom.h"
-#ifndef SR_EDITOR
-	#include "../CGame.h"
-	#include "../SplitScreen.h"
-	#include "../vdrift/settings.h"
-#else
-	#include "MapEditor_App.h"
-	#include "MapEditor_Settings.h"
-	#include "CGui.h"
-#endif
-#include "SDL_video.h"
+#include "MapEditor_App.h"
+#include "MapEditor_Settings.h"
+#include "CGui.h"
+//STUNTPORT#include "SDL_video.h"
 #include <OgreRoot.h>
 #include <OgreRenderWindow.h>
 #include <MyGUI_Widget.h>
@@ -47,6 +41,7 @@ void CGuiCom::btnResChng(WP)
 	pSet->windowx = w;
 	pSet->windowy = h;
 
+    /* ----- STUNTPORT ------
 	Uint32 flags = SDL_GetWindowFlags(app->mSDLWindow);
 	if (flags & SDL_WINDOW_MAXIMIZED)  // Can't change size of a maximized window
 		SDL_RestoreWindow(app->mSDLWindow);
@@ -62,6 +57,7 @@ void CGuiCom::btnResChng(WP)
 		SDL_SetWindowFullscreen(app->mSDLWindow, SDL_WINDOW_FULLSCREEN);
 	}else
 		SDL_SetWindowSize(app->mSDLWindow, pSet->windowx, pSet->windowy);
+        */
 }
 
 
@@ -198,10 +194,12 @@ void CGuiCom::ResizeOptWnd()
 
 void CGuiCom::chkVidFullscr(Ck*)
 {
+    /* ========= STUNTPORT =============
 	SDL_SetWindowFullscreen(app->mSDLWindow, pSet->fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
 	#ifndef SR_EDITOR
 	app->bRecreateHUD = true;
 	#endif
+    */
 }
 
 void CGuiCom::chkVidVSync(Ck*)

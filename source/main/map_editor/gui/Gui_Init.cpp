@@ -11,6 +11,7 @@
 #include "MultiList2.h"
 #include "MapEditor_GuiSlider.h"
 #include "PlatformUtils.h"
+#include "RenderBoxScene.h"
 
 //STUNTPORT #include <boost/filesystem.hpp>
 //STUNTPORT #include "../sdl4ogre/sdlinputwrapper.hpp"
@@ -18,7 +19,7 @@
 #include <MyGUI_InputManager.h>
 #include <OgreTimer.h>
 #include <OgreRenderWindow.h>
-//STUNTPORT #include "../ogre/common/RenderBoxScene.h"
+
 using namespace MyGUI;
 using namespace Ogre;
 using namespace std;
@@ -635,7 +636,7 @@ void CGui::InitGui()
 				objListRck->addItem("#E0B070"+name);  // rocks
 			else 
             std::string obj_filepath = sData+"/objects/"+ name + ".bullet";
-			if (RoR::PlatformUtils::FileExists(obj_filepath))
+			if (RoR::PlatformUtils::FileExists(obj_filepath.c_str()))
 				objListDyn->addItem("#A0E0FF"+name);  // dynamic
 			else
 				objListSt->addItem("#C8C8C8"+name);

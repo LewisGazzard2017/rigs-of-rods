@@ -4,7 +4,7 @@
 #include "MapEditor_GuiDefs.h"
 #include "CData.h"
 #include "SceneXml.h"
-#include "../ogre/common/data/FluidsXml.h"
+#include "FluidsXml.h"
 #include "GuiCom.h"
 #include "CScene.h"
 #include "MapEditor_Settings.h"
@@ -20,8 +20,8 @@
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 #include <BulletCollision/CollisionDispatch/btCollisionObject.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
-#include "../sdl4ogre/sdlinputwrapper.hpp"
-#include "../sdl4ogre/sdlcursormanager.hpp"
+//STUNTPORT#include "../sdl4ogre/sdlinputwrapper.hpp"
+//STUNTPORT#include "../sdl4ogre/sdlcursormanager.hpp"
 using namespace MyGUI;
 using namespace Ogre;
 
@@ -30,8 +30,9 @@ using namespace Ogre;
 //  Key Press
 //---------------------------------------------------------------------------------------------------------------
 
-bool App::keyPressed(const SDL_KeyboardEvent &arg)
+bool App::keyPressed(const MapEditor_KeyboardEvent &arg)
 {
+#if 0 // STUNTPORT
 	SDL_Scancode skey = arg.keysym.scancode;
 	#define key(a)  SDL_SCANCODE_##a
 	
@@ -667,6 +668,7 @@ bool App::keyPressed(const SDL_KeyboardEvent &arg)
 		//  rivers
 		///case key(A):	if (bEdit()){  SetEdMode(ED_Rivers);  UpdEditWnds();  }	break;
 	}
+#endif // #if 0 // STUNTPORT
 
 	return true;
 }

@@ -1,6 +1,6 @@
 #include "MapEditor_Global.h"
 #include "par.h"
-#include "track.h"
+#include "MapEditor_Track.h"
 
 #include "configfile.h"
 #include "reseatable_reference.h"
@@ -9,7 +9,7 @@
 #include <functional>
 #include <algorithm>
 #include "MapEditor_StringUtil.h"
-#include "game.h"  // for tires map
+//STUNTPORT#include "game.h"  // for tires map
 
 #include <list>
 #include <map>

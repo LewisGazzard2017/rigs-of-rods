@@ -8,7 +8,7 @@
 #include "CGui.h"
 #include "SplineRoad.h"
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
-#include "../sdl4ogre/sdlinputwrapper.hpp"
+//STUNTPORT  #include "../sdl4ogre/sdlinputwrapper.hpp"
 #include <OgreCamera.h>
 #include <OgreSceneNode.h>
 #include <OgreManualObject.h>
@@ -21,7 +21,6 @@
 #include <MyGUI_Window.h>
 using namespace Ogre;
 using namespace MyGUI;
-
 
 //  Update  input, info
 //---------------------------------------------------------------------------------------------------------------
@@ -63,7 +62,8 @@ bool App::frameRenderingQueued(const FrameEvent& evt)
 			gui->panStatus->setVisible(false);
 	}
 
-	#define isKey(a)  mInputWrapper->isKeyDown(SDL_SCANCODE_##a)
+	//STUNTPORT #define isKey(a)  mInputWrapper->isKeyDown(SDL_SCANCODE_##a)
+#define isKey(a) false
 	const Real q = (shift ? 0.05 : ctrl ? 4.0 :1.0) * 20 * evt.timeSinceLastFrame;
 
 
@@ -71,7 +71,7 @@ bool App::frameRenderingQueued(const FrameEvent& evt)
 	if (pSet->inputBar)
 	{
 		// TODO: This is definitely not bullet-proof.
-		const int Kmax = SDL_SCANCODE_SLEEP;  // last key
+		const int Kmax = 666;//STUNTPORTSDL_SCANCODE_SLEEP;  // last key
 		static float tkey[Kmax+1] = {0.f,};  // key delay time
 		int i;
 		static bool first=true;
@@ -80,16 +80,23 @@ bool App::frameRenderingQueued(const FrameEvent& evt)
 			for (i=Kmax; i > 0; --i)  tkey[i] = 0.f;
 		}
 		String ss = "   ";
+        /*STUNTPORT
 		//  pressed
 		for (i=Kmax; i > 0; --i)
 			if  (mInputWrapper->isKeyDown(SDL_Scancode(i)))
 				tkey[i] = 0.2f;  // min time to display
+        */
 
 		//  modif
-		const static int
-			lc = SDL_SCANCODE_LCTRL,  rc = SDL_SCANCODE_RCTRL,
-			la = SDL_SCANCODE_LALT,   ra = SDL_SCANCODE_RALT,
-			ls = SDL_SCANCODE_LSHIFT, rs = SDL_SCANCODE_RSHIFT;
+		//STUNTPORTconst static int
+		//STUNTPORT	lc = SDL_SCANCODE_LCTRL,  rc = SDL_SCANCODE_RCTRL,
+		//STUNTPORT	la = SDL_SCANCODE_LALT,   ra = SDL_SCANCODE_RALT,
+		//STUNTPORT	ls = SDL_SCANCODE_LSHIFT, rs = SDL_SCANCODE_RSHIFT;
+
+        const static int
+        	lc = 999999, rc = 99999999,
+        	la = 999999, ra = 99999999,
+        	ls = 999999, rs = 99999999;
 
 		if (tkey[lc] > 0.f || tkey[rc] > 0.f)	ss += "#D0F0D0Ctrl  ";
 		if (tkey[la] > 0.f || tkey[ra] > 0.f)	ss += "#D0F0D0Alt  ";
@@ -107,9 +114,9 @@ bool App::frameRenderingQueued(const FrameEvent& evt)
 			{	tkey[i] -= evt.timeSinceLastFrame;  //dec time
 				if (i!=lc && i!=la && i!=ls && i!=rc && i!=ra && i!=rs)
 				{
-					String s = String(SDL_GetKeyName(SDL_GetKeyFromScancode(static_cast<SDL_Scancode>(i))));
-					s = StringUtil::replaceAll(s, "Keypad", "#FFFFC0Num ");
-					ss += "#FFFFFF" + s + "  ";
+					//STUNTPORTString s = String(SDL_GetKeyName(SDL_GetKeyFromScancode(static_cast<SDL_Scancode>(i))));
+					//STUNTPORTs = StringUtil::replaceAll(s, "Keypad", "#FFFFC0Num ");
+					//STUNTPORTss += "#FFFFFF" + s + "  ";
 				}
 		}	}
 		

@@ -7,16 +7,16 @@
 #include "MapEditor_App.h"
 #include "CGui.h"
 #include "SplineRoad.h"
-#include "../road/PaceNotes.h"
-#include "../paged-geom/PagedGeometry.h"
+#include "PaceNotes.h"
+#include "PagedGeometry.h" // libs/PagedGeometry
 #include "MultiList2.h"
-#include "../ogre/common/RenderBoxScene.h"
+#include "RenderBoxScene.h"
 #include <BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h>
 //#include <LinearMath/btDefaultMotionState.h>
 //#include <BulletDynamics/Dynamics/btRigidBody.h>
 #include "../shiny/Main/Factory.hpp"
-#include "../sdl4ogre/sdlinputwrapper.hpp"
-#include "../paged-geom/GrassLoader.h"
+//STUNTPORT #include "../sdl4ogre/sdlinputwrapper.hpp"
+#include "GrassLoader.h"
 #include <MyGUI.h>
 #include <OgreTerrain.h>
 #include <OgreTerrainGroup.h>
@@ -95,7 +95,7 @@ bool App::frameEnded(const FrameEvent& evt)
 	}
 	
 	///  input
-	mInputWrapper->capture(false);
+	//STUNTPORT mInputWrapper->capture(false);
 
 	//  road pick
 	SplineRoad* road = scn->road;
@@ -290,6 +290,7 @@ bool App::frameStarted(const Ogre::FrameEvent& evt)
 	mRotX = 0; mRotY = 0;  mRotKX = 0; mRotKY = 0;  mTrans = Vector3::ZERO;
 	#define  isKey(a)  mInputWrapper->isKeyDown(SDL_SCANCODE_##a)
 
+    /*STUNTPORT
 	//  Move,Rot camera
 	if (bCam())
 	{
@@ -307,7 +308,7 @@ bool App::frameStarted(const Ogre::FrameEvent& evt)
 	  alt = mInputWrapper->isModifierHeld(SDL_Keymod(KMOD_ALT));
 	 ctrl = mInputWrapper->isModifierHeld(SDL_Keymod(KMOD_CTRL));
 	shift = mInputWrapper->isModifierHeld(SDL_Keymod(KMOD_SHIFT));
-
+    */
 	 // speed multiplers
 	moveMul = 1;  rotMul = 1;
 	if(shift){	moveMul *= 0.2;	 rotMul *= 0.4;	}  // 16 8, 4 3, 0.5 0.5

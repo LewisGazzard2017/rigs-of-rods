@@ -1,6 +1,6 @@
-#include "pch.h"
+
 #include "aabb_space_partitioning.h"
-#include "unittest.h"
+//STUNTPORT #include "unittest.h"
 
 QT_TEST(aabb_space_partitioning_test)
 {

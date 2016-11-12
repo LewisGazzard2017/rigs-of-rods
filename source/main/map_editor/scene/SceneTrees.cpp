@@ -3,23 +3,29 @@
 #include "RenderConst.h"
 #include "CData.h"
 #include "SceneXml.h"
-#include "data/BltObjects.h"
+#include "BltObjects.h"
 #include "MapEditor_ShapeData.h"
 #include "CScene.h"
-#include "../../road/SplineBase.h"
+#include "SplineBase.h"
 #include "GuiCom.h"
 #include "MapEditor_App.h"
 #include "MapEditor_Settings.h"
 #include "MapEditor_PathManager.h"
-#include "../../paged-geom/GrassLoader.h"
-#include "../../paged-geom/BatchPage.h"
-#include "../../paged-geom/WindBatchPage.h"
-#include "../../paged-geom/ImpostorPage.h"
-#include "../../paged-geom/TreeLoader2D.h"
-#include "../../paged-geom/MersenneTwister.h"
+
+
+
+// Libs/PagedGeometry
+#include "GrassLoader.h"
+#include "BatchPage.h"
+#include "WindBatchPage.h"
+#include "ImpostorPage.h"
+#include "TreeLoader2D.h"
+#include "MersenneTwister.h"
+
 #include <OgreTimer.h>
 #include <OgreTerrain.h>
 #include <OgreSubMesh.h>
+
 using namespace Ogre;
 
 
@@ -130,7 +136,7 @@ void CScene::CreateTrees()
 		grass = new PagedGeometry(cam, sc->grPage);  //30
 		
 		// create dir if not exist
-		boost::filesystem::create_directory(sCache);
+		//STUNTPORT boost::filesystem::create_directory(sCache);
 		grass->setTempDir(sCache + "/");
 		
 		grass->addDetailLevel<GrassPage>(sc->grDist * pSet->grass_dist);
@@ -179,7 +185,7 @@ void CScene::CreateTrees()
 		bool imp = pSet->use_imposters || (!pSet->use_imposters && pSet->imposters_only);
 		
 		// create dir if not exist
-		boost::filesystem::create_directory(sCache);
+		//STUNTPORTboost::filesystem::create_directory(sCache);
 		trees->setTempDir(sCache + "/");
 
 		//ImpostorPage* ipg = 0;

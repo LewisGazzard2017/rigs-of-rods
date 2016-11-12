@@ -3,19 +3,14 @@
 #include "RenderConst.h"
 #include "SceneXml.h"
 #include "CScene.h"
-#ifdef SR_EDITOR
-	#include "MapEditor_App.h"
-	#include "CGui.h"
-	#include "MapEditor_Settings.h"
-	#include "SplineRoad.h"
-#else
-	#include "../CGame.h"
-	#include "MapEditor_Settings.h"
-	#include "SplineRoad.h"
-	#include "../SplitScreen.h"
-#endif
-#include "../../paged-geom/PagedGeometry.h"
-#include "../../paged-geom/GrassLoader.h"
+
+#include "MapEditor_App.h"
+#include "CGui.h"
+#include "MapEditor_Settings.h"
+#include "SplineRoad.h"
+
+#include "PagedGeometry.h"// libs/PagedGeometry
+#include "GrassLoader.h"  // libs/PagedGeometry
 
 #include <OgreTimer.h>
 #include <OgreTerrain.h>

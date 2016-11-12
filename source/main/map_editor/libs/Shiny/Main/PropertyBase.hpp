@@ -206,7 +206,7 @@ namespace sh
 		{
 			// if string type is requested and value is not string, use serialize method to convert to string
 			T* ptr = new T (value->serialize()); // note that T is always StringValue here, but we can't use it here
-			value = boost::shared_ptr<PropertyValue> (static_cast<PropertyValue*>(ptr));
+			value = std::shared_ptr<PropertyValue> (static_cast<PropertyValue*>(ptr));
 			return *ptr;
 		}
 

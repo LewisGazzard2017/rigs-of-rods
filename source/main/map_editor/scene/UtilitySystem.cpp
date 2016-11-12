@@ -3,11 +3,13 @@
 #include "MapEditor_Settings.h"
 #include "MapEditor_App.h"
 #include "CGui.h"
-#include <boost/filesystem.hpp>
+#include "PlatformUtils.h" // STUNTPORT++
+//STUNTPORT#include <boost/filesystem.hpp>
 #include <Ogre.h>
 #ifndef _WIN32
 #include <dirent.h>
 #endif
+#include <cstdlib>
 using namespace Ogre;
 
 
@@ -106,18 +108,26 @@ void CGui::GetMaterialsMat(String filename, bool clear, String type)
 
 ///  system file, dir
 //-----------------------------------------------------------------------------------------------------------
-namespace bfs = boost::filesystem;
+//STUNTPORTnamespace bfs = boost::filesystem;
 
 
 bool CGui::Rename(String from, String to)
 {
-	try
-	{	if (bfs::exists(from.c_str()))
-			bfs::rename(from.c_str(), to.c_str());
-	}
-	catch (const bfs::filesystem_error & ex)
+	//STUNTPORTtry
+	//STUNTPORT{	if (bfs::exists(from.c_str()))
+			//STUNTPORTbfs::rename(from.c_str(), to.c_str());
+	//STUNTPORT}
+	//STUNTPORTcatch (const bfs::filesystem_error & ex)
+
+    if (! RoR::PlatformUtils::FileExists(from))
+    {
+        return true;
+    }
+
+    int res = rename(from.c_str(), to.c_str());
+    if (res != 0)
 	{
-		String s = "Error: Renaming file " + from + " to " + to + " failed ! \n" + ex.what();
+		String s = "Error: Renaming file " + from + " to " + to + " failed ! \n" + toStr(res);
 		strFSerrors += "\n" + s;
 		LogO(s);
 		return false;
@@ -127,6 +137,7 @@ bool CGui::Rename(String from, String to)
 
 bool CGui::Delete(String file)
 {
+    /*STUNTPORT
 	try
 	{	bfs::remove(file.c_str());
 	}
@@ -137,11 +148,13 @@ bool CGui::Delete(String file)
 		LogO(s);
 		return false;
 	}
+    */
 	return true;
 }
 
 bool CGui::DeleteDir(String dir)
 {
+    /*STUNTPORT
 	try
 	{	bfs::remove_all(dir.c_str());
 	}
@@ -152,11 +165,13 @@ bool CGui::DeleteDir(String dir)
 		LogO(s);
 		return false;
 	}
+    */
 	return true;
 }
 
 bool CGui::CreateDir(String dir)
 {
+    /*STUNTPORT
 	try
 	{	bfs::create_directory(dir.c_str());
 	}
@@ -167,11 +182,13 @@ bool CGui::CreateDir(String dir)
 		LogO(s);
 		return false;
 	}
+    */
 	return true;
 }
 
 bool CGui::Copy(String file, String to)
 {
+    /*STUNTPORT
 	try
 	{	if (bfs::exists(to.c_str()))
 			bfs::remove(to.c_str());
@@ -186,14 +203,17 @@ bool CGui::Copy(String file, String to)
 		LogO(s);
 		return false;
 	}
+    */
 	return true;
 }
 
 
 void App::UpdWndTitle()
 {
+    /*STUNTPORT
 	String s = String("SR Editor  track: ") + pSet->gui.track;
 	if (pSet->gui.track_user)  s += "  *user*";
 
 	SDL_SetWindowTitle(mSDLWindow, s.c_str());
+    */
 }

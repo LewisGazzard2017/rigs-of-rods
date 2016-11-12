@@ -1,7 +1,7 @@
-#include "pch.h"
+
 #include "aabb.h"
 #include "mathvector.h"
-#include "unittest.h"
+//STUNTPORT #include "unittest.h"
 
 void distribute(float frustum[][4])
 {
@@ -9,6 +9,8 @@ void distribute(float frustum[][4])
 	for (int n = 0; n < 4; ++n)
 		frustum[i][n] = frustum[0][n];
 }
+
+/* STUNTPORT
 
 QT_TEST(aabb_test)
 {
@@ -93,3 +95,5 @@ QT_TEST(aabb_test)
 		QT_CHECK(!box1.Intersect(AABB<float>::FRUSTUM(plane)));
 	}
 }
+
+*/

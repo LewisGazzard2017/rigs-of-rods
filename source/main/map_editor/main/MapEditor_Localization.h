@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <locale.h>
-#include <boost/algorithm/string.hpp>
 
 #include <OgrePlatform.h>
 #if OGRE_PLATFORM == OGRE_PLATFORM_WIN32
@@ -46,7 +45,10 @@ static std::string getSystemLanguage()
 	if (locstr.size() > 2)
 	{
 		locstr = locstr.substr(0, 2);
-		boost::to_lower(locstr);
+		for (int i = 0; i < locstr.length(); ++i)
+        {
+            locstr[i] = tolower(locstr[i]);
+        }
 	}
 	return locstr;
 }
