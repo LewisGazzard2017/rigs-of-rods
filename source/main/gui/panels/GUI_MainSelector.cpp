@@ -33,6 +33,7 @@
 #include "SkinManager.h"
 #include "RoRFrameListener.h"
 #include "MainThread.h"
+#include "ModCache.h"
 
 #include <MyGUI.h>
 
@@ -195,7 +196,7 @@ void CLASS::EventKeyButtonPressed_Main(MyGUI::WidgetPtr _sender, MyGUI::KeyCode 
         else
             newitem++;
 
-        //Annd fixed :3
+
         if (iid == 0 && _key == MyGUI::KeyCode::ArrowUp)
         {
             newitem = (int)m_Model->getItemCount() - 1;
@@ -347,12 +348,28 @@ struct sort_search_results
     }
 };
 
+typedef std::map<ModCache::Entry::Category, int> CategoryUsageMap;
+
+inline void AddCategoryUsage(CategoryUsageMap& map, ModCache::Entry* entry, size_t cur_timestamp)
+{
+    ++map[entry->category];
+    ++map[ModCache::Entry::SPECIAL_ALL];
+
+    if ((cur_timestamp - entry->added_timestamp) < CACHE_FILE_FRESHNESS)
+    {
+        ++map[ModCache::Entry::SPECIAL_FRESH];
+    }
+}
+
 void CLASS::UpdateGuiData()
 {
-    std::map<int, int> mCategoryUsage;
+    if (! ModCache::IsInitFinished())
+    {
+        return;
+    }
+
     m_Type->removeAllItems();
     m_Model->removeAllItems();
-    m_entries.clear();
 
     if (m_loader_type == LT_SKIN)
     {
@@ -380,70 +397,60 @@ void CLASS::UpdateGuiData()
         m_Cancel->setEnabled(true);
     }
 
-    int ts = getTimeStamp();
-    std::vector<CacheEntry>* entries = RoR::App::GetCacheSystem()->getEntries();
-    std::sort(entries->begin(), entries->end(), sort_entries<CacheEntry>());
-    for (std::vector<CacheEntry>::iterator it = entries->begin(); it != entries->end(); it++)
+    CategoryUsageMap category_usage;
+    size_t cur_timestamp = (size_t) getTimeStamp();
+
+    // Update terrains
+    m_terrain_entries.clear();
+    for (ModCache::TerrainEntry& terrn : *ModCache::GetTerrains())
     {
-        // category hidden
-        /*if (it->categoryid == CacheSystem::CID_Unsorted)
-        continue;
-        */
-        //printf("category: %d\n", it->categoryid);
-        bool add = false;
-        if (it->fext == "terrn2")
-            add = (m_loader_type == LT_Terrain);
-        else if (it->fext == "truck")
-            add = (m_loader_type == LT_AllBeam || m_loader_type == LT_Vehicle || m_loader_type == LT_Truck || m_loader_type == LT_Network || m_loader_type == LT_NetworkWithBoat);
-        else if (it->fext == "car")
-            add = (m_loader_type == LT_AllBeam || m_loader_type == LT_Vehicle || m_loader_type == LT_Car || m_loader_type == LT_Network || m_loader_type == LT_NetworkWithBoat);
-        else if (it->fext == "boat")
-            add = (m_loader_type == LT_AllBeam || m_loader_type == LT_Boat || m_loader_type == LT_NetworkWithBoat);
-        else if (it->fext == "airplane")
-            add = (m_loader_type == LT_AllBeam || m_loader_type == LT_Airplane || m_loader_type == LT_Network || m_loader_type == LT_NetworkWithBoat);
-        else if (it->fext == "trailer")
-            add = (m_loader_type == LT_AllBeam || m_loader_type == LT_Trailer || m_loader_type == LT_Extension);
-        else if (it->fext == "train")
-            add = (m_loader_type == LT_AllBeam || m_loader_type == LT_Train);
-        else if (it->fext == "load")
-            add = (m_loader_type == LT_AllBeam || m_loader_type == LT_Load || m_loader_type == LT_Extension);
+        AddCategoryUsage(category_usage, &terrn, cur_timestamp);
 
-        if (!add)
-            continue;
-
-        // remove invalid category ID's
-        if (it->categoryid >= CacheSystem::CID_Max)
-            it->categoryid = -1;
-
-        // category unsorted
-        if (it->categoryid == -1)
-            it->categoryid = CacheSystem::CID_Unsorted;
-
-        mCategoryUsage[it->categoryid]++;
-
-        // category all
-        mCategoryUsage[CacheSystem::CID_All]++;
-
-        // category fresh
-        if (ts - it->addtimestamp < CACHE_FILE_FRESHNESS)
-            mCategoryUsage[CacheSystem::CID_Fresh]++;
-
-        m_entries.push_back(*it);
+        m_terrain_entries.push_back(&terrn);
     }
-    int tally_categories = 0, current_category = 0;
-    std::map<int, Category_Entry>* cats = RoR::App::GetCacheSystem()->getCategories();
 
-    std::vector<std::pair<int, Category_Entry>> sorted_cats(cats->begin(), cats->end());
-    std::sort(sorted_cats.begin(), sorted_cats.end(), sort_cats<int, Category_Entry>());
+    // Update softbodies
+    const bool take_truck    = (m_loader_type == LT_AllBeam || m_loader_type == LT_Vehicle || m_loader_type == LT_Truck || m_loader_type == LT_Network || m_loader_type == LT_NetworkWithBoat);
+    const bool take_car      = (m_loader_type == LT_AllBeam || m_loader_type == LT_Vehicle || m_loader_type == LT_Car || m_loader_type == LT_Network || m_loader_type == LT_NetworkWithBoat);
+    const bool take_boat     = (m_loader_type == LT_AllBeam || m_loader_type == LT_Boat || m_loader_type == LT_NetworkWithBoat);
+    const bool take_airplane = (m_loader_type == LT_AllBeam || m_loader_type == LT_Airplane || m_loader_type == LT_Network || m_loader_type == LT_NetworkWithBoat);
+    const bool take_trailer  = (m_loader_type == LT_AllBeam || m_loader_type == LT_Trailer || m_loader_type == LT_Extension);
+    const bool take_train    = (m_loader_type == LT_AllBeam || m_loader_type == LT_Train);
+    const bool take_load     = (m_loader_type == LT_AllBeam || m_loader_type == LT_Load || m_loader_type == LT_Extension);
 
-    for (std::vector<std::pair<int, Category_Entry>>::iterator itc = sorted_cats.begin(); itc != sorted_cats.end(); itc++)
+    for (ModCache::SoftbodyEntry& softbody: *ModCache::GetSoftbodies())
     {
-        if (mCategoryUsage[itc->second.number] > 0)
+        if ((softbody.file_ext == "truck"     && !take_truck   ) ||
+            (softbody.file_ext == "car"       && !take_car     ) ||
+            (softbody.file_ext == "boat"      && !take_boat    ) ||
+            (softbody.file_ext == "airplane"  && !take_airplane) ||
+            (softbody.file_ext == "trailer"   && !take_trailer ) ||
+            (softbody.file_ext == "train"     && !take_train   ) ||
+            (softbody.file_ext == "load"      && !take_load    ))
+        {
+            continue; // Skip
+        }
+
+        AddCategoryUsage(category_usage, &softbody, cur_timestamp);
+
+        m_softbody_entries.push_back(&softbody);
+    }
+
+    int tally_categories = 0, current_category = 0;
+    ModCache::CategoryInfoMap& cats = ModCache::GetCategories();
+
+    std::vector<std::pair<int, ModCache::CategoryInfo> > sorted_cats(cats.begin(), cats.end());
+    std::sort(sorted_cats.begin(), sorted_cats.end(), sort_cats<int, ModCache::CategoryInfo>());
+
+    for (std::vector<std::pair<int, ModCache::CategoryInfo>>::iterator itc = sorted_cats.begin(); itc != sorted_cats.end(); itc++)
+    {
+        if (category_usage[itc->second.id] > 0)
             tally_categories++;
     }
-    for (std::vector<std::pair<int, Category_Entry>>::iterator itc = sorted_cats.begin(); itc != sorted_cats.end(); itc++)
+    
+    for (std::vector<std::pair<int, ModCache::CategoryInfo>>::iterator itc = sorted_cats.begin(); itc != sorted_cats.end(); itc++)
     {
-        int num_elements = mCategoryUsage[itc->second.number];
+        int num_elements = category_usage[itc->second.id];
         if (num_elements > 0)
         {
             Ogre::UTFString title = _L("unknown");
@@ -452,7 +459,7 @@ void CLASS::UpdateGuiData()
                 title = _L(itc->second.title.c_str());
             }
             Ogre::UTFString txt = U("[") + TOUTFSTRING(++current_category) + U("/") + TOUTFSTRING(tally_categories) + U("] (") + TOUTFSTRING(num_elements) + U(") ") + title;
-            m_Type->addItem(convertToMyGUIString(txt), itc->second.number);
+            m_Type->addItem(convertToMyGUIString(txt), itc->second.id);
         }
     }
     if (tally_categories > 0)
@@ -470,20 +477,20 @@ void CLASS::UpdateGuiData()
     }
 }
 
-size_t CLASS::SearchCompare(Ogre::String searchString, CacheEntry* ce)
+size_t CLASS::SearchCompare(Ogre::String searchString, ModCache::Entry* ce)
 {
     if (searchString.find(":") == Ogre::String::npos)
     {
         // normal search
 
         // the name
-        Ogre::String dname_lower = ce->dname;
+        Ogre::String dname_lower = ce->name;
         Ogre::StringUtil::toLowerCase(dname_lower);
         if (dname_lower.find(searchString) != Ogre::String::npos)
             return dname_lower.find(searchString);
 
         // the filename
-        Ogre::String fname_lower = ce->fname;
+        Ogre::String fname_lower = ce->filename;
         Ogre::StringUtil::toLowerCase(fname_lower);
         if (fname_lower.find(searchString) != Ogre::String::npos)
             return 100 + fname_lower.find(searchString);
@@ -497,7 +504,7 @@ size_t CLASS::SearchCompare(Ogre::String searchString, CacheEntry* ce)
         // the authors
         if (!ce->authors.empty())
         {
-            std::vector<AuthorInfo>::const_iterator it;
+            std::vector<ModCache::AuthorInfo>::const_iterator it;
             for (it = ce->authors.begin(); it != ce->authors.end(); it++)
             {
                 // author name
@@ -521,24 +528,12 @@ size_t CLASS::SearchCompare(Ogre::String searchString, CacheEntry* ce)
         if (v.size() < 2)
             return Ogre::String::npos; //invalid syntax
 
-        if (v[0] == "hash")
-        {
-            Ogre::String hash = ce->hash;
-            Ogre::StringUtil::toLowerCase(hash);
-            return hash.find(v[1]);
-        }
-        else if (v[0] == "guid")
-        {
-            Ogre::String guid = ce->guid;
-            Ogre::StringUtil::toLowerCase(guid);
-            return guid.find(v[1]);
-        }
         else if (v[0] == "author")
         {
             // the authors
             if (!ce->authors.empty())
             {
-                std::vector<AuthorInfo>::const_iterator it;
+                std::vector<ModCache::AuthorInfo>::const_iterator it;
                 for (it = ce->authors.begin(); it != ce->authors.end(); it++)
                 {
                     // author name
@@ -556,14 +551,9 @@ size_t CLASS::SearchCompare(Ogre::String searchString, CacheEntry* ce)
             }
             return Ogre::String::npos;
         }
-        else if (v[0] == "wheels")
-        {
-            Ogre::String wheelsStr = TOUTFSTRING(ce->wheelcount) + "x" + TOUTFSTRING(ce->propwheelcount);
-            return wheelsStr.find(v[1]);
-        }
         else if (v[0] == "file")
         {
-            Ogre::String fn = ce->fname;
+            Ogre::String fn = ce->filename;
             Ogre::StringUtil::toLowerCase(fn);
             return fn.find(v[1]);
         }
@@ -586,14 +576,25 @@ void CLASS::OnCategorySelected(int categoryID)
 
     if (categoryID == CacheSystem::CID_SearchResults)
     {
-        std::vector<std::pair<CacheEntry*, size_t>> search_results;
-        search_results.reserve(m_entries.size());
+        std::vector<std::pair<ModCache::Entry*, size_t> > search_results;
 
-        for (auto it = m_entries.begin(); it != m_entries.end(); it++)
+        if (m_loader_type == LT_Terrain)
         {
-            size_t score = SearchCompare(search_cmd, &(*it));
-            if (score != Ogre::String::npos)
-                search_results.push_back(std::make_pair(&(*it), score));
+            for (ModCache::TerrainEntry* terrn : m_terrain_entries)
+            {
+                size_t score = SearchCompare(search_cmd, terrn);
+                if (score != Ogre::String::npos)
+                    search_results.push_back(std::make_pair(terrn, score));
+            }
+        }
+        else
+        {
+            for (ModCache::SoftbodyEntry* sbody : m_softbody_entries)
+            {
+                size_t score = SearchCompare(search_cmd, sbody);
+                if (score != Ogre::String::npos)
+                    search_results.push_back(std::make_pair(sbody, score));
+            }
         }
 
         std::stable_sort(search_results.begin(), search_results.end(), sort_search_results());
@@ -601,14 +602,14 @@ void CLASS::OnCategorySelected(int categoryID)
         for (auto it = search_results.begin(); it != search_results.end(); it++)
         {
             counter++;
-            Ogre::String txt = TOSTRING(counter) + ". " + it->first->dname;
+            Ogre::String txt = TOSTRING(counter) + ". " + it->first->name;
             try
             {
-                m_Model->addItem(txt, it->first->number);
+                m_Model->addItem(txt, it->first->category);
             }
             catch (...)
             {
-                m_Model->addItem("ENCODING ERROR", it->first->number);
+                m_Model->addItem("ENCODING ERROR", it->first->category);
             }
         }
     }
@@ -699,8 +700,7 @@ void CLASS::OnSelectionDone()
 
     m_selection_done = true;
 
-    m_selected_entry->usagecounter++;
-    // TODO: Save the modified value of the usagecounter
+
 
     if (m_loader_type != LT_SKIN)
     {

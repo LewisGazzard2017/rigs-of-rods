@@ -146,7 +146,6 @@ SceneMouse*          GetSceneMouse();
 GUIManager*          GetGuiManager();
 Console*             GetConsole();
 InputEngine*         GetInputEngine();
-CacheSystem*         GetCacheSystem();
 MainThread*          GetMainThreadLogic();
 
 State                GetActiveAppState();

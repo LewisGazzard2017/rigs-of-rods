@@ -343,7 +343,6 @@ SceneMouse*            GetSceneMouse         () { return g_scene_mouse;}
 GUIManager*            GetGuiManager         () { return g_gui_manager;}
 Console*               GetConsole            () { return g_gui_manager->GetConsole();}
 InputEngine*           GetInputEngine        () { return g_input_engine;}
-CacheSystem*           GetCacheSystem        () { return g_cache_system;}
 MainThread*            GetMainThreadLogic    () { return g_main_thread_logic;}
 
 // Instance management

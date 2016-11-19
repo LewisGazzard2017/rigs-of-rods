@@ -36,12 +36,6 @@
 // 60*60*24 = one day
 #define CACHE_FILE_FRESHNESS 86400
 
-struct Category_Entry
-{
-    Ogre::String title; //!< Category title
-    int number;         //!< Category number
-};
-
 struct AuthorInfo
 {
     int id;
@@ -56,10 +50,10 @@ class CacheEntry
 public:
 
     /** default constructor resets the data. */
-    CacheEntry();
+	//CacheEntry();
 
-    Ogre::String minitype;              //!< type of preview picture, either png or dds
-    Ogre::String fname;                 //!< filename
+	//Ogre::String minitype;              //!< type of preview picture, either png or dds **** useless
+	/*Ogre::String fname;                 //!< filename
     Ogre::String fname_without_uid;     //!< filename
     Ogre::String dname;                 //!< name parsed from the file
     
@@ -82,7 +76,7 @@ public:
     bool deleted;                       //!< is this mod deleted?
     int usagecounter;                   //!< how much it was used already
     std::vector<AuthorInfo> authors;    //!< authors
-    Ogre::String filecachename;         //!< preview image filename
+	///Ogre::String filecachename;			//!< preview image filename *** used
 
     // following all TRUCK detail information:
     Ogre::String description;
@@ -107,9 +101,9 @@ public:
     int flexbodiescount;
     int materialflarebindingscount;
     int soundsourcescount;
-    int managedmaterialscount;
+	int managedmaterialscount;*/
 
-    float truckmass;
+	/*float truckmass;
     float loadmass;
     float minrpm;
     float maxrpm;
@@ -119,13 +113,13 @@ public:
     bool forwardcommands;
     bool importcommands;
     bool rollon;
-    bool rescuer;
+	bool rescuer;*/
 
-    int driveable;
-    int numgears;
-    char enginetype;
-    std::vector<Ogre::String> sectionconfigs;
-    std::set<Ogre::String> materials;
+	//int driveable; **** useless ***** Ogre::UTFString driveableStr[5] = { _L("Non-Driveable"), _L("Truck"), _L("Airplane"), _L("Boat"), _L("Machine") };
+	//int numgears; // useless
+	//char enginetype;
+	//std::vector<Ogre::String> sectionconfigs;
+	//std::set<Ogre::String> materials;
 
 };
 

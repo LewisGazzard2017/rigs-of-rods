@@ -59,7 +59,12 @@
                     "truckfiles": {
                         "example1.truck": {
                             "name": str,
-                            ... TODO ...
+                            "thumb_img_path": str,
+                            "modules": array,
+
+                            "driveable": int,
+                            "engine_type": int,
+                            "num_gears": int,
                         }
                     }
                 }
@@ -71,7 +76,8 @@
                     "terrains": {
                         "example1.terrn2": {
                             "name": str,
-                            ... TODO ...
+                            "filename": str,
+                            "thumb_img_path": str,
                         }
                     }
                 }
@@ -82,6 +88,10 @@
             }
         }
 */
+
+#include <vector>
+#include <string>
+#include <map>
 
 namespace RoR {
 namespace ModCache {
@@ -96,16 +106,6 @@ enum State
     MODCACHE_STATE_FORCED,    //< Forced rebuild
     MODCACHE_STATE_ERROR,     //< Error while processing
     MODCACHE_STATE_READY
-};
-
-struct Entry
-{
-    enum Type
-    {
-        TYPE_UNKNOWN,
-        TYPE_SOFTBODY,
-        TYPE_TERRAIN
-    };
 };
 
 struct Stats
@@ -141,9 +141,98 @@ struct ProgressInfo
     const char* title;
 };
 
-void           InitializeAsync(bool force_regen);
-bool           IsInitFinished();
-ProgressInfo   GetProgressInfo();
+struct AuthorInfo
+{
+    std::string name;
+    std::string email;
+};
+
+struct Entry
+{
+    /// These are the category numbers from the repository. do not modify them!
+    enum Category
+    {
+        UNKNOWN             = 0,
+
+        OTHER_LAND_VEHICLES = 108,
+
+        STREET_CARS         = 146,
+        LIGHT_RACING_CARS   = 147,
+        OFFROAD_CARS        = 148,
+        FANTASY_CARS        = 149,
+        BIKES               = 150,
+        CRAWLERS            = 155,
+
+        TOWERCRANES         = 152,
+        MOBILE_CRANES       = 153,
+        OTHER_CRANES        = 154,
+
+        BUSES               = 107,
+        TRACTORS            = 151,
+        FORKLIFTS           = 156,
+        FANTASY_TRUCKS      = 159,
+        TRANSPORT_TRUCKS    = 160,
+        RACING_TRUCKS       = 161,
+        OFFROAD_TRUCKS      = 162,
+
+        BOATS               = 110,
+        SUBMARINE           = 875,
+
+        HELICOPTERS         = 113,
+        AIRCRAFT            = 114,
+
+        TRAILERS            = 117,
+        OTHER_LOADS         = 118,
+        CONTAINER           = 859,
+
+        ADDON_TERRAINS      = 129,
+        OFFICIAL_TERRAINS   = 5000, ///< Note: not in repository
+        NIGHT_TERRAINS      = 5001, ///< Note: not in repository
+
+        SPECIAL_UNSORTED    = 9990,
+        SPECIAL_ALL         = 9991,
+        SPECIAL_FRESH       = 9992,
+        SPECIAL_HIDDEN      = 9993,
+    };
+
+    std::string             name;
+    std::string             filename;
+    std::string             description;
+    std::string             thumb_img_name;
+    Category                category;
+    size_t                  added_timestamp;
+    std::vector<AuthorInfo> authors;
+};
+
+struct SoftbodyEntry: public Entry
+{
+    std::list<std::string> modules;
+    char                   engine_type;
+    int                    driveable;
+    int                    num_gears;
+    std::string            file_ext;
+};
+
+struct TerrainEntry: public Entry
+{
+};
+
+struct CategoryInfo // Required for old SelectorGUI
+{
+    CategoryInfo(Entry::Category c, std::string n): id(c), title(n) {}
+
+    Entry::Category id;
+    std::string title;
+};
+
+typedef std::map<Entry::Category, CategoryInfo> CategoryInfoMap; // Required for old SelectorGUI
+
+void                         InitializeAsync(bool force_regen);
+bool                         IsInitFinished();
+ProgressInfo                 GetProgressInfo();
+std::vector<SoftbodyEntry>*  GetSoftbodies();
+std::vector<TerrainEntry>*   GetTerrains();
+CategoryInfoMap&             GetCategories();
 
 } // namespace ModCache
 } // namespace RoR

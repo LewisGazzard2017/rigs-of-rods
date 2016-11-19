@@ -27,6 +27,7 @@
 
 #include "ForwardDeclarations.h"
 #include "GUI_MainSelectorLayout.h"
+#include "ModCache.h"
 
 namespace RoR {
 namespace GUI {
@@ -71,22 +72,23 @@ private:
     void OnCategorySelected(int categoryID);
     void OnEntrySelected(int entryID);
     void OnSelectionDone();
-    size_t SearchCompare(Ogre::String searchString, CacheEntry* ce);
+    size_t SearchCompare(Ogre::String searchString, ModCache::Entry* entry);
 
     void UpdateControls(CacheEntry* entry);
     void SetPreviewImage(Ogre::String texture);
     void FrameEntered(float dt);
 
-    CacheEntry* m_selected_entry;
-    LoaderType m_loader_type;
-    Ogre::String m_preview_image_texture;
-    Skin* m_selected_skin;
-    bool m_selection_done;
-    std::vector<CacheEntry> m_entries;
-    std::vector<Ogre::String> m_vehicle_configs;
-    std::vector<Skin *> m_current_skins;
-    bool m_keys_bound;
-    RoR::SkinManager* m_skin_manager;
+    CacheEntry*                            m_selected_entry;
+    LoaderType                             m_loader_type;
+    Ogre::String                           m_preview_image_texture;
+    Skin*                                  m_selected_skin;
+    bool                                   m_selection_done;
+    std::vector<Ogre::String>              m_vehicle_configs;
+    std::vector<Skin *>                    m_current_skins;
+    bool                                   m_keys_bound;
+    RoR::SkinManager*                      m_skin_manager;
+    std::vector<ModCache::TerrainEntry*>   m_terrain_entries;
+    std::vector<ModCache::SoftbodyEntry*>  m_softbody_entries;
 };
 
 } // namespace GUI

@@ -49,26 +49,40 @@ namespace ModCache {
 
 // ===== Declarations =====
 
-enum InitState { INIT_PENDING, INIT_RUNNING, INIT_DONE, INIT_FAILED };
+enum InitState
+{
+    INIT_PENDING,
+    INIT_RUNNING,
+    INIT_DONE,
+    INIT_FAILED
+};
 
-enum ZipType { ZIPTYPE_TRUCK, ZIPTYPE_TERRN };
+enum ZipType
+{
+    ZIPTYPE_INVALID,
+    ZIPTYPE_TRUCK,
+    ZIPTYPE_TERRN
+};
 
 // Init thread data
-static Json::Value               s_json;
-static Stats                     s_stats;
-static State                     s_state;
-static std::thread               s_init_thread;
-static std::string               s_cache_dir;
-static std::string               s_user_dir;
+static Json::Value                s_json;
+static Stats                      s_stats;
+static State                      s_state;
+static std::thread                s_init_thread;
+static std::string                s_cache_dir;
+static std::string                s_user_dir;
 
 // Shared data
-static InitState                 s_init_state;
-static std::mutex                s_init_state_mutex;
-static ProgressInfo              s_prog_info;
-static std::mutex                s_prog_info_mutex;
+static InitState                  s_init_state;
+static std::mutex                 s_init_state_mutex;
+static ProgressInfo               s_prog_info;
+static std::mutex                 s_prog_info_mutex;
 
 // Main thread data
-static bool                      s_init_finished;
+static bool                       s_init_finished;
+static std::vector<SoftbodyEntry> s_softbodies;
+static std::vector<TerrainEntry>  s_terrains;
+CategoryInfoMap                   s_categories; // Required for old SelectorGUI
 
 void        AsyncInit                (bool force_regen);
 void        RebuildFromScratch       ();
@@ -124,6 +138,64 @@ ProgressInfo GetProgressInfo()
 {
     PROGINFO_SCOPE_LOCK();
     return s_prog_info;
+}
+
+std::vector<SoftbodyEntry>* GetSoftbodies()
+{
+    if (! s_init_finished)
+        return nullptr;
+    else
+        return &s_softbodies;
+}
+
+std::vector<TerrainEntry>* GetTerrains()
+{
+    if (! s_init_finished)
+        return nullptr;
+    else
+        return &s_terrains;
+}
+
+#define PUT_CATEGORY(_ID_, _NAME_) s_categories.insert(std::make_pair(_ID_, CategoryInfo(_ID_, _NAME_)));
+
+CategoryInfoMap& GetCategories()
+{
+    if (s_categories.empty())
+    {
+        PUT_CATEGORY( Entry::UNKNOWN            , "~Unknown~");
+        PUT_CATEGORY( Entry::OTHER_LAND_VEHICLES, "Other Land Vehicles");
+        PUT_CATEGORY( Entry::STREET_CARS        , "Street Cars");
+        PUT_CATEGORY( Entry::LIGHT_RACING_CARS  , "Light Racing Cars");
+        PUT_CATEGORY( Entry::OFFROAD_CARS       , "Offroad Cars");
+        PUT_CATEGORY( Entry::FANTASY_CARS       , "Fantasy Cars");
+        PUT_CATEGORY( Entry::BIKES              , "Bikes");
+        PUT_CATEGORY( Entry::CRAWLERS           , "Crawlers");
+        PUT_CATEGORY( Entry::TOWERCRANES        , "Towercranes");
+        PUT_CATEGORY( Entry::MOBILE_CRANES      , "Mobile Cranes");
+        PUT_CATEGORY( Entry::OTHER_CRANES       , "Other cranes");
+        PUT_CATEGORY( Entry::BUSES              , "Buses");
+        PUT_CATEGORY( Entry::TRACTORS           , "Tractors");
+        PUT_CATEGORY( Entry::FORKLIFTS          , "Forklifts");
+        PUT_CATEGORY( Entry::FANTASY_TRUCKS     , "Fantasy Trucks");
+        PUT_CATEGORY( Entry::TRANSPORT_TRUCKS   , "Transport Trucks");
+        PUT_CATEGORY( Entry::RACING_TRUCKS      , "Racing Trucks");
+        PUT_CATEGORY( Entry::OFFROAD_TRUCKS     , "Offroad Trucks");
+        PUT_CATEGORY( Entry::BOATS              , "Boats");
+        PUT_CATEGORY( Entry::SUBMARINE          , "Submarine");
+        PUT_CATEGORY( Entry::HELICOPTERS        , "Helicopters");
+        PUT_CATEGORY( Entry::AIRCRAFT           , "Aircraft");
+        PUT_CATEGORY( Entry::TRAILERS           , "Trailers");
+        PUT_CATEGORY( Entry::OTHER_LOADS        , "Other Loads");
+        PUT_CATEGORY( Entry::CONTAINER          , "Container");
+        PUT_CATEGORY( Entry::ADDON_TERRAINS     , "Addon Terrains");
+        PUT_CATEGORY( Entry::OFFICIAL_TERRAINS  , "Official Terrains");
+        PUT_CATEGORY( Entry::NIGHT_TERRAINS     , "Night Terrains");
+        PUT_CATEGORY( Entry::SPECIAL_UNSORTED   , "Unsorted");
+        PUT_CATEGORY( Entry::SPECIAL_ALL        , "All");
+        PUT_CATEGORY( Entry::SPECIAL_FRESH      , "Fresh");
+        PUT_CATEGORY( Entry::SPECIAL_HIDDEN     , "Hidden");
+    }
+    return s_categories;
 }
 
 // ===== File extension tests (the MacroMadness) =====
@@ -317,7 +389,7 @@ void StatsAddDud(ZipType zip_type)
 {
     if (zip_type == ZIPTYPE_TRUCK)
         ++s_stats.vehicles_num_duds;
-    else
+    else if (zip_type == ZIPTYPE_TERRN)
         ++s_stats.terrains_num_duds;
 }
 
@@ -325,7 +397,7 @@ void StatsAddZip(ZipType zip_type)
 {
     if (zip_type == ZIPTYPE_TRUCK)
         ++s_stats.vehicles_num_zips;
-    else
+    else if (zip_type == ZIPTYPE_TERRN)
         ++s_stats.terrains_num_zips;
 }
 
@@ -397,7 +469,7 @@ void ProcessNewZip(const char* path, int subdir_depth, ZipType zip_type)
         {
             ProcessTruckfileBuffer(json_def, raw_data, data_size);
         }
-        else
+        else if (zip_type == ZIPTYPE_TERRN)
         {
             ProcessTerrn2Buffer(json_def, raw_data, data_size);
         }
