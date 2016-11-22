@@ -42,7 +42,7 @@ int OgreScriptBuilder::LoadScriptSection(const char* filename)
     DataStreamPtr ds;
     try
     {
-        ds = ResourceGroupManager::getSingleton().openResource(scriptFile, ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME);
+        ds = ResourceGroupManager::getSingleton().openResource(scriptFile, m_resource_group);
     }
     catch (Ogre::Exception e)
     {

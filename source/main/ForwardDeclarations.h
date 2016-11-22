@@ -54,6 +54,13 @@ namespace RoR
     }
 }
 
+namespace AngelScript
+{
+    class asIScriptEngine;
+    class asIScriptContext;
+    class asSMessageInfo;
+}
+
 namespace MyGUI
 {
     class  OgrePlatform;
@@ -96,9 +103,16 @@ namespace MOC
 
 namespace Ogre
 {
+    class ManualObject;
     class MovableText;
     class TerrainGroup;
     class ConfigFile;
+}
+
+namespace OIS
+{
+    class Keyboard;
+    class Mouse;
 }
 
 class AeroEngine;

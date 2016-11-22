@@ -29,6 +29,9 @@ protected:
     ATTRIBUTE_FIELD_WIDGET_NAME(GameMainMenuLayout, m_single_player, "single_player");
     MyGUI::Button* m_single_player;
 
+    ATTRIBUTE_FIELD_WIDGET_NAME(GameMainMenuLayout, m_single_player_sim2, "single_player_sim2");
+    MyGUI::Button* m_single_player_sim2;
+
     ATTRIBUTE_FIELD_WIDGET_NAME(GameMainMenuLayout, m_settings, "settings");
     MyGUI::Button* m_settings;
 

@@ -53,6 +53,7 @@ private:
     void eventMouseButtonClickSettingButton(MyGUI::WidgetPtr _sender);
     void eventMouseButtonClickAboutButton(MyGUI::WidgetPtr _sender);
     void eventMouseButtonClickExitButton(MyGUI::WidgetPtr _sender);
+    void eventMouseButtonClickSim2Button(MyGUI::WidgetPtr _sender);
     void eventMouseButtonClickMultiPlayerButton(MyGUI::WidgetPtr _sender);
 };
 

@@ -547,6 +547,7 @@ const char* AppStateToStr(int v)
     case App::APP_STATE_PRINT_VERSION_EXIT:  return "PRINT_VERSION_EXIT";
     case App::APP_STATE_SHUTDOWN:            return "SHUTDOWN";
     case App::APP_STATE_SIMULATION:          return "SIMULATION";
+    case App::APP_STATE_SIMULATION_G2:       return "SIMULATION_V2";
     default:                                 return "~invalid~";
     }
 }

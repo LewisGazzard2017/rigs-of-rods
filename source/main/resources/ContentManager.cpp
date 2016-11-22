@@ -90,7 +90,7 @@ DECLARE_RESOURCE_PACK( 22, PAGED,                 "paged",                "LoadB
 DECLARE_RESOURCE_PACK( 23, PARTICLES,             "particles",            "LoadBeforeMap");
 DECLARE_RESOURCE_PACK( 24, PSSM,                  "pssm",                 "LoadBeforeMap");
 DECLARE_RESOURCE_PACK( 25, RTSHADER,              "rtshader",             "General");
-DECLARE_RESOURCE_PACK( 26, SCRIPTS,               "scripts",              "LoadBeforeMap");
+DECLARE_RESOURCE_PACK( 26, SCRIPTS,               "scripts",              "PackedScripts");
 DECLARE_RESOURCE_PACK( 27, SOUNDS,                "sounds",               "General");
 DECLARE_RESOURCE_PACK( 28, SUNBURN,               "sunburn",              "LoadBeforeMap");
 DECLARE_RESOURCE_PACK( 29, TEXTURES,              "textures",             "LoadBeforeMap");
@@ -391,3 +391,4 @@ void ContentManager::InitManagedMaterials()
     ResourceGroupManager::getSingleton().addResourceLocation(managed_materials_dir, "FileSystem", "ManagedMats");
     ResourceGroupManager::getSingleton().initialiseResourceGroup("ManagedMats");
 }
+

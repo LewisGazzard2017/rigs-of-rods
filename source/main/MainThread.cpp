@@ -342,6 +342,24 @@ void MainThread::Go()
                 App::SetPendingAppState(App::APP_STATE_MAIN_MENU);
             }
         }
+        else if (App::GetPendingAppState() == App::APP_STATE_SIMULATION_G2)
+        {
+            if (m_sim.Prepare())
+            {
+                App::SetActiveAppState(App::APP_STATE_SIMULATION_G2);
+                App::SetPendingAppState(App::APP_STATE_NONE);
+                App::GetGuiManager()->ReflectGameState();
+                m_sim.EnterLoop();
+
+                // Restore
+                RoR::App::GetOgreSubsystem()->GetViewport()->setCamera(gEnv->mainCamera);
+                App::SetPendingAppState(App::APP_STATE_MAIN_MENU);
+            }
+            else
+            {
+                App::SetPendingAppState(App::APP_STATE_MAIN_MENU);
+            }
+        }
         else if (App::GetPendingAppState() == App::APP_STATE_CHANGE_MAP)
         {
             //Sim -> change map -> sim

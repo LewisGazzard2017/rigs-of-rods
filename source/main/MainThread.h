@@ -32,6 +32,7 @@
 #include "RoRPrerequisites.h"
 
 #include <map>
+#include <Simulation.h>
 
 class GameScript;
 
@@ -83,6 +84,7 @@ protected:
     bool              m_base_resource_loaded;
     bool              m_is_mumble_created;
     RoRFrameListener* m_frame_listener;
+    Simulation        m_sim;
 
     std::map<std::string, bool> isLoadedMap;
 };

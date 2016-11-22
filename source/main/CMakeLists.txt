@@ -27,6 +27,7 @@ set( SOURCE_FILES
   GlobalEnvironment.h
   MainThread.{h,cpp}
   RoRPrerequisites.h
+  Simulation.{h,cpp}
   audio/Sound.{h,cpp}
   audio/SoundManager.{h,cpp}
   audio/SoundScriptManager.{h,cpp}

@@ -36,9 +36,15 @@
 class OgreScriptBuilder : public AngelScript::CScriptBuilder, public ZeroedMemoryAllocator
 {
 public:
+    OgreScriptBuilder(): m_resource_group(Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME) {}
+
     Ogre::String getHash() { return hash; };
+    void SetResourceGroup(Ogre::String rg) { m_resource_group = rg; }
+    void ResetResourceGroup() { m_resource_group = Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME; }
+
 protected:
     Ogre::String hash;
+    Ogre::String m_resource_group;
     int LoadScriptSection(const char* filename);
 };
 

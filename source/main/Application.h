@@ -42,6 +42,7 @@ enum State
     APP_STATE_MAIN_MENU,
     APP_STATE_CHANGE_MAP,         ///< Enter main menu & immediatelly launch singleplayer map selector.
     APP_STATE_SIMULATION,
+    APP_STATE_SIMULATION_G2,      ///< a.k.a. NextSim
     APP_STATE_SHUTDOWN,
     APP_STATE_PRINT_HELP_EXIT,
     APP_STATE_PRINT_VERSION_EXIT,

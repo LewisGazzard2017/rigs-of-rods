@@ -44,6 +44,7 @@ CLASS::CLASS()
     MyGUI::WindowPtr win = dynamic_cast<MyGUI::WindowPtr>(mMainWidget);
 
     m_single_player->eventMouseButtonClick += MyGUI::newDelegate(this, &CLASS::eventMouseButtonClickSelectTerrainButton);
+    m_single_player_sim2->eventMouseButtonClick += MyGUI::newDelegate(this, &CLASS::eventMouseButtonClickSim2Button);
     m_rig_editor->eventMouseButtonClick += MyGUI::newDelegate(this, &CLASS::eventMouseButtonClickRigEditorButton);
     m_settings->eventMouseButtonClick += MyGUI::newDelegate(this, &CLASS::eventMouseButtonClickSettingButton);
     m_about->eventMouseButtonClick += MyGUI::newDelegate(this, &CLASS::eventMouseButtonClickAboutButton);
@@ -51,6 +52,7 @@ CLASS::CLASS()
     m_multi_player->eventMouseButtonClick += MyGUI::newDelegate(this, &CLASS::eventMouseButtonClickMultiPlayerButton);
 
     m_single_player->setCaption(_L("Singleplayer"));
+    m_single_player_sim2->setCaption(_L("Singleplayer (NextSim)"));
     m_rig_editor->setCaption(_L("Rig-Editor"));
     m_settings->setCaption(_L("Settings"));
     m_about->setCaption(_L("About"));
@@ -102,6 +104,12 @@ void CLASS::eventMouseButtonClickSelectTerrainButton(MyGUI::WidgetPtr _sender)
     {
         App::SetPendingAppState(App::APP_STATE_SIMULATION);
     }
+}
+
+void CLASS::eventMouseButtonClickSim2Button(MyGUI::WidgetPtr _sender)
+{
+    this->Hide();
+    App::SetPendingAppState(App::APP_STATE_SIMULATION_G2);
 }
 
 void CLASS::eventMouseButtonClickSettingButton(MyGUI::WidgetPtr _sender)

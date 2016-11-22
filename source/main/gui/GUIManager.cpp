@@ -385,7 +385,7 @@ void GUIManager::ReflectGameState()
         m_impl->panel_MpClientList       .SetVisible(mp_state == App::MP_STATE_CONNECTED);
         return;
     }
-    if (app_state == App::APP_STATE_SIMULATION)
+    if (app_state == App::APP_STATE_SIMULATION || app_state == App::APP_STATE_SIMULATION_G2)
     {
         m_impl->panel_TopMenubar         .SetVisible(true);
         m_impl->panel_TopMenubar         .ReflectMultiplayerState();
