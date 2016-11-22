@@ -290,7 +290,7 @@ void SplineRoad::SetChecks()
 {
 	///  add checkpoints  * * *
 	mChks.clear();  iChkId1 = 0;
-	for (int i=0; i < mP.size(); ++i)  //=getNumPoints
+	for (size_t i=0; i < mP.size(); ++i)  //=getNumPoints
 	{
 		if (mP[i].chkR > 0.f)
 		{

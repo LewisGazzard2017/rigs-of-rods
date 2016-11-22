@@ -210,7 +210,7 @@ void CGui::btnScaleAll(WP)
 	app->scn->road->bSelChng = true;
 	
 	//  fluids
-	for (int i=0; i < sc->fluids.size(); ++i)
+	for (size_t i=0; i < sc->fluids.size(); ++i)
 	{
 		FluidBox& fb = sc->fluids[i];
 		fb.pos.x *= sf;  fb.pos.z *= sf;

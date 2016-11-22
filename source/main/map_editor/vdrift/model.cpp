@@ -75,6 +75,7 @@ void MODEL::ClearListID()
 	generatedlistid = false;
 }
 
+
 bool MODEL::WriteToFile(const std::string & filepath)
 {
 	const std::string magic = "OGLVARRAYV01";
@@ -83,9 +84,13 @@ bool MODEL::WriteToFile(const std::string & filepath)
 		return false;
 	
 	fileout.write(magic.c_str(), magic.size());
-	joeserialize::BinaryOutputSerializer s(fileout);
-	return Serialize(s);
+	//STUNTPORT joeserialize::BinaryOutputSerializer s(fileout);
+	//STUNTPORT return Serialize(s);
+
+    return false; // STUNTPORT HACK
 }
+
+
 
 bool MODEL::ReadFromFile(const std::string & filepath, std::ostream & error_output, bool generatelistid)
 {
@@ -131,14 +136,16 @@ bool MODEL::ReadFromFile(const std::string & filepath, std::ostream & error_outp
 	std::stringstream memfile;
 	memfile.rdbuf()->pubsetbuf(&buffer[0],length);*/
 	
-	joeserialize::BinaryInputSerializer s(filein);
+	//STUNTPORT joeserialize::BinaryInputSerializer s(filein);
 	//joeserialize::BinaryInputSerializer s(memfile);
-	if (!Serialize(s))
+	/*STUNTPORT 
+    if (!Serialize(s))
 	{
 		error_output << "Serialization error: " << filepath << std::endl;
 		Clear();
 		return false;
 	}
+    */
 	
 	if (verbose) std::cout << filepath << ": generating metrics" << std::endl;
 	
@@ -153,6 +160,7 @@ bool MODEL::ReadFromFile(const std::string & filepath, std::ostream & error_outp
 	
 	return true;
 }
+
 
 void MODEL::SetVertexArray(const VERTEXARRAY & newmesh)
 {

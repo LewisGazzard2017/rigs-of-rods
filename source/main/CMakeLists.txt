@@ -284,8 +284,9 @@ set( SOURCE_FILES
   map_editor/vdrift/model.{h,cpp}
   map_editor/vdrift/model_joe03.{h,cpp}
   map_editor/vdrift/objectloader.{h,cpp}
-  map_editor/vdrift/aabb_space_partitioning.{h,cpp}
-  map_editor/vdrift/aabb.{h,cpp}      
+  map_editor/vdrift/aabb_space_partitioning.h
+  map_editor/vdrift/aabb.{h,cpp}
+  map_editor/vdrift/endian_utility.h      
   map_editor/vdrift/par.{h,cpp}
   map_editor/vdrift/roadpatch.{h,cpp}
   map_editor/vdrift/roadstrip.{h,cpp}

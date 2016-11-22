@@ -304,7 +304,8 @@ void CGuiCom::updTrkListDim()
 	//-------------------------------
     if (!trkList) { return; }
 
-	bool full = pSet->tracks_view = 1;
+	bool full = true;
+    pSet->tracks_view = 1;
     int fi = full?1:0;
 
 	int c, sum = 0, cnt = trkList->getColumnCount();

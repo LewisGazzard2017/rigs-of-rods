@@ -7,7 +7,7 @@ using std::ios_base;
 #include <cassert>
 
 #include "endian_utility.h"
-#include "unittest.h"
+
 
 
 bool JOEPACK::LoadPack(const string & fn)
@@ -147,16 +147,4 @@ int JOEPACK::Pack_fread(void * buffer, const unsigned int size, const unsigned i
 	}
 }
 
-QT_TEST(joepack_test)
-{
-	JOEPACK p;
-	QT_CHECK(p.LoadPack("data/test/test1.jpk"));
-	QT_CHECK(p.Pack_fopen("testlist.txt"));
-	char buf[1000];
-	unsigned int chars = p.Pack_fread(buf, 1, 999);
-	QT_CHECK_EQUAL(chars, 16);
-	buf[chars] = '\0';
-	string comparisonstr = "This is\na test.\n";
-	string filestr = buf;
-	QT_CHECK_EQUAL(buf,comparisonstr);
-}
+

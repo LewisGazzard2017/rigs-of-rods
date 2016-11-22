@@ -342,7 +342,7 @@ void CScene::CreateTrees()
 				
 				//  check if in fluids  ------------
 				float fa = 0.f;  // depth
-				for (int fi=0; fi < sc->fluids.size(); ++fi)
+				for (size_t fi=0; fi < sc->fluids.size(); ++fi)
 				{
 					const FluidBox& fb = sc->fluids[fi];
 					if (fb.pos.y - pos.y > 0.f)  // dont check when above fluid, ..or below its size-

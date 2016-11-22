@@ -541,13 +541,13 @@ void SplineRoad::Paste(bool reverse)
 	if (!bHitTer || iChosen==-1 || mPc.size()==0)  return;
 	
 	Vector3 c(0,0,0);  // center of sel points
-	for (int i=0; i < mPc.size(); ++i)
+	for (size_t i=0; i < mPc.size(); ++i)
 		c += mPc[i].pos;
 	c *= 1.f / Real(mPc.size());
 	c.y = 0.f;  //c xz only
 
 	vSel.clear();
-	for (int i=0; i < mPc.size(); ++i)
+	for (size_t i=0; i < mPc.size(); ++i)
 	{
 		newP = mPc[i];  // [!reverse ? i : mPc.size()-1-i];
 		newP.pos += posHit - c;  // move center to hit pos

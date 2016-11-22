@@ -710,7 +710,7 @@ void BatchedGeometry::SubBatch::_buildIdentiryOrientation(const QueuedMesh &queu
    VertexBufferBinding *destBinds = dstVertexData->vertexBufferBinding;
 
    // For each vertex buffer
-   for (unsigned short ibuffer = 0, bufCnt = destBinds->getBufferCount(); ibuffer < bufCnt; ++ibuffer)
+   for (unsigned short ibuffer = 0, bufCnt = (unsigned short) destBinds->getBufferCount(); ibuffer < bufCnt; ++ibuffer)
    {
       if (ibuffer < sourceBinds->getBufferCount()) // destanation buffer index smaller than source buffers count
       {

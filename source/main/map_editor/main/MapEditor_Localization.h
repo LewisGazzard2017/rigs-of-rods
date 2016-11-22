@@ -46,7 +46,7 @@ static std::string getSystemLanguage()
 	if (locstr.size() > 2)
 	{
 		locstr = locstr.substr(0, 2);
-		for (int i = 0; i < locstr.length(); ++i)
+		for (size_t i = 0; i < locstr.length(); ++i)
         {
             locstr[i] = tolower(locstr[i]);
         }

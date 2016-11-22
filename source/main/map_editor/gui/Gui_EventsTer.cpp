@@ -37,7 +37,7 @@ void CGui::tabTerLayer(Tab wp, size_t id)
 	btnTexDiff->setCaption(s);  // no _d.jpg
 	cmbTexNorm->setIndexSelected( cmbTexNorm->findItemIndexWith(l->texNorm) );
 
-	for (int i=0; i < liTex->getItemCount(); ++i)  /// upd pick
+	for (size_t i=0; i < liTex->getItemCount(); ++i)  /// upd pick
 		if (liTex->getSubItemNameAt(1,i).substr(7) == s)
 			liTex->setIndexSelected(i);
 
@@ -324,14 +324,14 @@ void CGui::btnScaleTerH(WP)
 	app->scn->road->bSelChng = true;
 	
 	//  fluids
-	for (int i=0; i < sc->fluids.size(); ++i)
+	for (size_t i=0; i < sc->fluids.size(); ++i)
 	{
 		FluidBox& fb = sc->fluids[i];
 		fb.pos.y *= sf;  fb.size.y *= sf;
 	}
 	
 	//  objs h
-	for (int i=0; i < sc->objects.size(); ++i)
+	for (size_t i=0; i < sc->objects.size(); ++i)
 	{
 		Object& o = sc->objects[i];
 		o.pos[2] *= sf;

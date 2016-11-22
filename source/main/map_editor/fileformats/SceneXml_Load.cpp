@@ -753,7 +753,7 @@ bool Scene::SaveXml(String file)
 
 
 	TiXmlElement objs("objects");
-		for (i=0; i < objects.size(); ++i)
+		for (i=0; i < (int) objects.size(); ++i)
 		{
 			const Object* o = &objects[i];
 			TiXmlElement oe("o");

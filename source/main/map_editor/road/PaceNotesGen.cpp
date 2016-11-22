@@ -479,7 +479,7 @@ void PaceNotes::Rebuild(SplineRoad* road, Scene* sc, bool reversed)
 			);/**/
 			
 			//~~~  check all jumps for dist
-			for (int j=0; j < vJ.size(); ++j)
+			for (size_t j=0; j < vJ.size(); ++j)
 			{
 				PaceNote& p = vPN[vJ[j]];
 				float d = pos.squaredDistance(p.pos);
@@ -528,7 +528,7 @@ void PaceNotes::Rebuild(SplineRoad* road, Scene* sc, bool reversed)
 		PaceNote& p = vPN[i];
 		float fa = 0.f;  // depth
 		const float up = 3.f;
-		for (int fi=0; fi < sc->fluids.size(); ++fi)
+		for (size_t fi=0; fi < sc->fluids.size(); ++fi)
 		{
 			const FluidBox& fb = sc->fluids[fi];
 			if (fb.pos.y+up - p.pos.y > 0.f)  // dont check above
