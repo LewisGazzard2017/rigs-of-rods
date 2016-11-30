@@ -48,7 +48,7 @@
 
 using namespace RoR;
 
-#define AS_SimPrepare_FN_PROTOTYPE "bool SimPrepare()"
+#define AS_SimPrepare_FN_PROTOTYPE "bool SimPrepare(SimContext@ ctx)"
 #define AS_SimUpdate_FN_PROTOTYPE  "bool SimUpdate(SimContext@ ctx, uint dt_milis)"
 #define AS_SimCleanup_FN_PROTOTYPE "void SimCleanup()"
 
@@ -77,13 +77,12 @@ void GfxContext::CheckAndInit()
     if (m_is_initialized)
         return; // Already initialized
 
-    App::GetContentManager()->AddResourcePack(ContentManager::ResourcePack::CUBEMAPS); // Sky boxes
+    App::GetContentManager()->AddResourcePack(ContentManager::ResourcePack::TEXTURES); // Skybox (dds)
     App::GetContentManager()->AddResourcePack(ContentManager::ResourcePack::MATERIALS); // RoR default skybox material
     Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
     m_scene_mgr = App::GetOgreSubsystem()->GetOgreRoot()->createSceneManager(Ogre::ST_GENERIC, "sim2_scene_manager");
     m_scene_mgr->setAmbientLight(Ogre::ColourValue::White);
-    m_scene_mgr->setSkyBox(true, "tracks/skyboxcol", 100, true); // RoR default sky box
 
     m_camera = m_scene_mgr->createCamera("sim2_camera");
     m_camera->setAutoAspectRatio(true);
@@ -99,8 +98,10 @@ void GfxContext::CopyLogicData(LogicContext* logic_ctx)
     // ## Must be quick: just copy data, no processing (that's the job of gfx task!)
 
     // Camera
-    m_data.camera_pos = logic_ctx->GetCamPos();
-    m_data.camera_rot = logic_ctx->GetCamRot();
+    m_data.camera_pos        = logic_ctx->GetCamPos();
+    m_data.camera_rot        = logic_ctx->GetCamRot();
+    m_data.camera_lookat_pos = logic_ctx->GetCamLookAtPos();
+    m_data.camera_lookat_set = logic_ctx->IsCamLookAtSet();
 
     // Actors
     m_data.actors_added.clear();
@@ -135,11 +136,30 @@ bool GfxContext::Prepare()
     {
         this->CheckAndInit();
 
-        m_viewport = RoR::App::GetOgreSubsystem()->GetViewport();//App::GetOgreSubsystem()->GetRenderWindow()->addViewport(nullptr);
+        m_viewport = RoR::App::GetOgreSubsystem()->GetViewport();
         int viewport_width = m_viewport->getActualWidth();
         m_viewport->setBackgroundColour(Ogre::ColourValue::Black);
         m_camera->setAspectRatio(m_viewport->getActualHeight() / viewport_width);
         m_viewport->setCamera(m_camera);
+
+        // Demo scene - ground
+        Ogre::Plane ground_plane(Ogre::Vector3::UNIT_Y, 0);
+        m_ground_mesh = Ogre::MeshManager::getSingleton().createPlane(
+            "sim2_ground_mesh",
+            Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
+            ground_plane,
+            1500, 1500, 20, 20,
+            true,
+            1, 5, 5,
+            Ogre::Vector3::UNIT_Z);
+
+        m_ground_node = m_scene_mgr->getRootSceneNode()->createChildSceneNode();
+        m_ground_entity = m_scene_mgr->createEntity(m_ground_mesh);
+        m_ground_entity->setMaterialName("asphalt"); // Built-in managed material
+        m_ground_node->attachObject(m_ground_entity);
+
+        // Demo scene - sky
+        m_scene_mgr->setSkyBox(true, "tracks/skyboxcol", 100, true); // RoR default sky box
 
         return true;
     }
@@ -154,7 +174,14 @@ void GfxContext::Update()
 {
     // Camera
     m_camera->setPosition(m_data.camera_pos);
-    m_camera->setOrientation(m_data.camera_rot);
+    if (m_data.camera_lookat_set)
+    {
+        m_camera->lookAt(m_data.camera_lookat_pos);
+    }
+    else
+    {
+        m_camera->setOrientation(m_data.camera_rot);
+    }
 
     // Removed actors (not updated anymore)
     for (Actor* removed_actor : m_data.actors_removed)
@@ -193,9 +220,7 @@ void GfxContext::Update()
 
 ActorGfx::ActorGfx(Actor* actor, Ogre::SceneManager* scene_mgr)
 {
-    // ## Simple debug visualization
-    // ## - ActorGfx knows all node positions (copied from ActorLogic)
-    // ## - MeshDef specifies which node pairs should be visualized
+    // ## Simple debug visualization - wireframe
 
     node_positions = std::unique_ptr<Ogre::Vector3>(new Ogre::Vector3[actor->def->nodes.size()]);
     state = STATE_PREPARING;
@@ -235,7 +260,7 @@ ActorGfx::ActorGfx(Actor* actor, Ogre::SceneManager* scene_mgr)
 
 void ActorGfx::Update()
 {
-    // ## Simple debug visualization
+    // ## Simple debug visualization (wireframe)
     // ## - ActorGfx knows all node positions (copied from ActorLogic)
     // ## - MeshDef specifies which node pairs should be visualized
 
@@ -256,6 +281,8 @@ void ActorGfx::Update()
 // ============================= LogicContext ============================== //
 
 LogicContext::LogicContext():
+    m_cur_buffer_idx(0),
+    m_prev_buffer_idx(1),
     m_script_engine(nullptr),
     m_script_context(nullptr),
     m_script_setup_fn(nullptr),
@@ -268,11 +295,15 @@ LogicContext::LogicContext():
 
 void LogicContext::Reset()
 {
-    m_camera_pos       = Ogre::Vector3::ZERO;
-    m_camera_rot       = Ogre::Quaternion::IDENTITY;
-    m_keyboard_changed = false;
-    m_mouse_changed    = false;
-    m_is_stopped       = false;
+    m_camera_pos          = Ogre::Vector3::ZERO;
+    m_camera_lookat_pos   = Ogre::Vector3::ZERO;
+    m_camera_lookat_set   = false;
+    m_camera_rot          = Ogre::Quaternion::IDENTITY;
+    m_keyboard_changed    = false;
+    m_mouse_changed       = false;
+    m_exit_requested      = false;
+    m_cur_buffer_idx      = 0;
+    m_prev_buffer_idx     = 1;
 
     memset(m_key_states,  0, sizeof(m_key_states));
     memset(m_mouse_state, 0, sizeof(m_mouse_state));
@@ -289,7 +320,14 @@ bool LogicContext::Prepare()
     int res = m_script_context->Prepare(m_script_setup_fn);
     if (res != 0)
     {
-        m_err_msg << "[RoR|Script] Failed to setup context for 'SimPrepare': " << AsRetCodeToString(res);
+        m_err_msg << "Failed to setup context for 'SimPrepare': " << AsRetCodeToString(res);
+        return false;
+    }
+
+    res = m_script_context->SetArgObject(0, static_cast<void*>(this));
+    if (res != 0)
+    {
+        m_err_msg << "Failed to pass argument 0 'ctx' for 'SimPrepare()': " << AsRetCodeToString(res);
         return false;
     }
 
@@ -302,11 +340,17 @@ bool LogicContext::Prepare()
 
     if (m_script_context->GetReturnDWord() == 0) // 'SimSetup()' returned false => error
     {
-        m_err_msg << "[RoR|Script] Failure in script function 'SimSetup()'";
+        m_err_msg << "Failure in script function 'SimSetup()'";
         return false;
     }
 
     return true;
+}
+
+int AsIncludeCallback(const char *include, const char *from, AngelScript::CScriptBuilder *builder_ptr, void *userParam)
+{
+    auto* builder = static_cast<OgreScriptBuilder*>(builder_ptr);
+    return builder->AddSectionFromFile(include);
 }
 
 #define ON_ERROR_RETURN(_HELPER_)         \
@@ -355,17 +399,26 @@ bool LogicContext::CheckAndInit()
     obj.AddBehavior(AngelScript::asBEHAVE_RELEASE, "void f()", AngelScript::asMETHOD(LogicContext, DummyReleaseRef), AngelScript::asCALL_THISCALL);
     ON_ERROR_RETURN(helper);
 
-    obj.AddMethod("bool IsKeyDown()",      AngelScript::asMETHOD(LogicContext, IsKeyDown));
+    obj.AddMethod("void Quit()", AngelScript::asMETHOD(LogicContext, Quit));
     ON_ERROR_RETURN(helper);
-    obj.AddMethod("bool WasKeyPressed()",  AngelScript::asMETHOD(LogicContext, WasKeyPressed));
+    obj.AddMethod("bool IsKeyDown(int keycode)", AngelScript::asMETHOD(LogicContext, IsKeyDown));
+    ON_ERROR_RETURN(helper);
+    obj.AddMethod("bool HasKbChanged()", AngelScript::asMETHOD(LogicContext, HasKbChanged));
+    ON_ERROR_RETURN(helper);
+    obj.AddMethod("bool WasKeyPressed(int keycode)", AngelScript::asMETHOD(LogicContext, WasKeyPressed));
     ON_ERROR_RETURN(helper);
     obj.AddMethod("bool WasKeyReleased()", AngelScript::asMETHOD(LogicContext, WasKeyReleased));
     ON_ERROR_RETURN(helper);
-    obj.AddMethod("bool HasKbChanged()",   AngelScript::asMETHOD(LogicContext, HasKbChanged));
+    obj.AddMethod("void CameraLookAt(float x, float y, float z)", AngelScript::asMETHOD(LogicContext, CameraLookAt));
+    ON_ERROR_RETURN(helper);
+    obj.AddMethod("void SetCameraPosition(float x, float y, float z)", AngelScript::asMETHOD(LogicContext, SetCameraPosition));
+    ON_ERROR_RETURN(helper);
+    obj.AddMethod("void SetCameraOrientation(float x, float y, float z, float w)", AngelScript::asMETHOD(LogicContext, SetCameraOrientation));
     ON_ERROR_RETURN(helper);
 
     OgreScriptBuilder builder;
     builder.SetResourceGroup("PackedScripts");
+    builder.SetIncludeCallback(AsIncludeCallback, nullptr);
 
     res = builder.StartNewModule(m_script_engine, "sim");
     if (res != 0)
@@ -525,6 +578,36 @@ bool LogicContext::WasKeyReleased(int keycode)
         && (m_key_states[m_prev_buffer_idx][keycode] == 1);
 }
 
+void LogicContext::SetCameraPosition (float x, float y, float z)
+{
+    m_camera_pos.x = x;
+    m_camera_pos.y = y;
+    m_camera_pos.z = z;
+}
+
+void LogicContext::CameraLookAt (float x, float y, float z)
+{
+    m_camera_lookat_pos.x = x;
+    m_camera_lookat_pos.y = y;
+    m_camera_lookat_pos.z = z;
+    m_camera_lookat_set = true;
+}
+
+void LogicContext::SetCameraOrientation (float x, float y, float z, float w)
+{
+    m_camera_rot.x = x;
+    m_camera_rot.y = y;
+    m_camera_rot.z = z;
+    m_camera_rot.w = w;
+}
+
+void LogicContext::StartNewFrame()
+{
+    m_cur_buffer_idx = (m_cur_buffer_idx == 0) ? 1 : 0;
+    m_prev_buffer_idx = (m_prev_buffer_idx == 0) ? 1 : 0;
+    m_camera_lookat_set = false;
+}
+
 // ============================== Simulation =============================== //
 
 Simulation::Simulation():
@@ -568,7 +651,7 @@ void Simulation::EnterLoop()
     Ogre::Timer timer;
     size_t time_ms_last;
     size_t time_ms_cur = timer.getMilliseconds();
-    while (! m_logic_context.IsStopped())
+    while (! m_logic_context.WasExitRequested())
     {
         // Update time
         time_ms_last = time_ms_cur;
@@ -592,9 +675,6 @@ void Simulation::EnterLoop()
 
         // Wait for logic
         logic_task->join();
-
-        // -- TEST --
-        break; // Exit loop because shutdown isn't implemented yet.
     }
 
     // Cleanup

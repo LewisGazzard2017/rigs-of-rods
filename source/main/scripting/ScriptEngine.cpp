@@ -261,8 +261,10 @@ void ScriptEngine::init()
     //AngelScript::RegisterScriptString(engine);
     //AngelScript::RegisterScriptStringUtils(engine);
 
+    AsSetupHelper helper(engine);
+
     // register some Ogre objects like the vector3 and the quaternion
-    registerOgreObjects(engine);
+    RegisterOgreObjects(&helper);
 
     // Register the local storage object.
     // This needs to be done after the registration of the ogre objects!
@@ -1175,6 +1177,17 @@ void AsObjectRegProxy::AddMethod(const char* decl, const AngelScript::asSFuncPtr
     {
         m_setup_helper->SetError(id_or_error) << "RegisterObjectMethod("<<m_object_name<<", "<<decl
             <<") failed, message: " << AsRegMethodErrorToString(id_or_error);
+    }
+}
+
+void AsObjectRegProxy::AddProperty(const char* decl, int byte_offset)
+{
+    m_setup_helper->ResetError();
+    int result = m_setup_helper->GetEngine()->RegisterObjectProperty(m_object_name.c_str(), m_object_name.c_str(), byte_offset);
+    if (result < 0)
+    {
+        m_setup_helper->SetError(result) << "RegisterObjectProperty("<<m_object_name<<", "<<decl
+            <<") failed, message: " << AsRetCodeToString(result);
     }
 }
 

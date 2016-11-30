@@ -27,22 +27,7 @@
 
 #pragma once
 
-#include <angelscript.h>
-#include <Ogre.h>
+class AsSetupHelper; // Forward decl.
 
-#include "RoRPrerequisites.h"
-
-// This function will register the following objects with the scriptengine:
-//    - Ogre::Vector3
-//    - Ogre::Radian
-//    - Ogre::Degree
-//    - Ogre::Quaternion
-void registerOgreObjects(AngelScript::asIScriptEngine* engine);
-
-// The following functions shouldn't be called directly!
-// Use the registerOgreObjects function above instead.
-void registerOgreVector3(AngelScript::asIScriptEngine* engine);
-void registerOgreRadian(AngelScript::asIScriptEngine* engine);
-void registerOgreDegree(AngelScript::asIScriptEngine* engine);
-void registerOgreQuaternion(AngelScript::asIScriptEngine* engine);
+bool RegisterOgreObjects(AsSetupHelper* helper);
 

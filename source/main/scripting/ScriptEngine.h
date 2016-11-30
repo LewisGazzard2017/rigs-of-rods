@@ -61,6 +61,9 @@ public:
 
     void AddBehavior(AngelScript::asEBehaviours behaviour, const char *declaration, const AngelScript::asSFuncPtr &funcPointer, AngelScript::asDWORD callConv = AngelScript::asCALL_THISCALL);
     void AddMethod(const char* decl, const AngelScript::asSFuncPtr &func_ptr, AngelScript::asDWORD call_conv = AngelScript::asCALL_THISCALL);
+    void AddProperty(const char* decl, int byte_offset);
+
+    AsSetupHelper* GetHelper() { return m_setup_helper; }
 
 protected:
     AsSetupHelper* m_setup_helper;

@@ -192,9 +192,15 @@ protected:
     std::list<ActorGfx> m_actors;
     bool                m_is_initialized;
 
+    Ogre::SceneNode*    m_ground_node;
+    Ogre::MeshPtr       m_ground_mesh; ///< Demo
+    Ogre::Entity*       m_ground_entity;
+
     struct
     {
         Ogre::Vector3     camera_pos;
+        bool              camera_lookat_set;
+        Ogre::Vector3     camera_lookat_pos;
         Ogre::Quaternion  camera_rot;
         std::list<Actor*> actors_added;
         std::list<Actor*> actors_removed;
@@ -210,25 +216,33 @@ public:
 
     LogicContext();
 
-    bool        Prepare();
-    bool        Update(size_t dt_milis);
-    void        StartNewFrame() { m_cur_buffer_idx = (m_cur_buffer_idx == 0) ? 1 : 0; }
-    bool        IsStopped() { return m_is_stopped; }
-    void        Cleanup();
-    std::string GetError() { return m_err_msg.str(); }
+    bool        Prepare          ();
+    bool        Update           (size_t dt_milis);
+    void        StartNewFrame    ();
+    bool        WasExitRequested () { return m_exit_requested; }
+    void        Cleanup          ();
+    std::string GetError         () { return m_err_msg.str(); }
+
+    // AngelScript utils
+    void DummyAddRef          () {}; ///< For AngelScript to be happy
+    void DummyReleaseRef      () {}; ///< For AngelScript to be happy
 
     // AngelScript interface
-    void ScriptMsgCallback(const AngelScript::asSMessageInfo* msg);
-    bool IsKeyDown(int keycode);
-    bool WasKeyPressed(int keycode);
-    bool WasKeyReleased(int keycode);
-    bool HasKbChanged() { return m_keyboard_changed; }
-    void DummyAddRef() {}; ///< For AngelScript to be happy
-    void DummyReleaseRef() {}; ///< For AngelScript to be happy
+    void Quit                 () { m_exit_requested = true; } ///< Exit to main menu
+    void ScriptMsgCallback    (const AngelScript::asSMessageInfo* msg);
+    bool IsKeyDown            (int keycode);
+    bool WasKeyPressed        (int keycode);
+    bool WasKeyReleased       (int keycode);
+    bool HasKbChanged         () { return m_keyboard_changed; }
+    void SetCameraPosition    (float x, float y, float z); ///< Only effective in free-look and similar modes.
+    void CameraLookAt         (float x, float y, float z); ///< Only effective in free-look and similar modes.
+    void SetCameraOrientation (float x, float y, float z, float w); ///< Quaternion; Only effective in free-look and similar modes.
 
     char*                  GetCurKeyStates()  { return m_key_states[m_cur_buffer_idx]; }
     MouseState&            GetCurMouseState() { return m_mouse_state[m_cur_buffer_idx]; }
     Ogre::Vector3&         GetCamPos()        { return m_camera_pos; }
+    Ogre::Vector3&         GetCamLookAtPos()  { return m_camera_lookat_pos; }
+    bool                   IsCamLookAtSet()   { return m_camera_lookat_set; }
     Ogre::Quaternion&      GetCamRot()        { return m_camera_rot; }
     std::list<ActorLogic>& GetActors()        { return m_actors; }
 
@@ -240,7 +254,7 @@ protected:
 
     // State
     std::stringstream     m_err_msg;
-    bool                  m_is_stopped;
+    bool                  m_exit_requested;
     bool                  m_is_initialized;
     // Input
     size_t                m_cur_buffer_idx; ///< Data buffer index: 0/1
@@ -251,6 +265,8 @@ protected:
     bool                  m_mouse_changed;
     // Simulation
     Ogre::Vector3         m_camera_pos;
+    Ogre::Vector3         m_camera_lookat_pos;
+    bool                  m_camera_lookat_set; ///< Was `CameraLookAt()` called this frame?
     Ogre::Quaternion      m_camera_rot;
     std::list<ActorLogic> m_actors;
     // Scripting

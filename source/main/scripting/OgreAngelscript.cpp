@@ -24,9 +24,23 @@
 /// @date   31th of July 2009
 
 #include "OgreAngelscript.h"
+#include "ScriptEngine.h" // For helpers
+
+#include <angelscript.h>
+#include <OgreVector3.h>
+#include <OgreQuaternion.h>
 
 using namespace Ogre;
 using namespace AngelScript;
+
+#define LOGSTREAM Ogre::LogManager::getSingleton().stream() << "[RoR|Scripting] "
+
+#define ON_ERROR_RETURN(_HELPER_)          \
+    if (_HELPER_->CheckError())            \
+    {                                      \
+        LOGSTREAM << _HELPER_->GetError(); \
+        return false;                      \
+    }
 
 // helper/wrapper functions first
 
@@ -157,84 +171,88 @@ static void QuaternionInitConstructorScaler(float s, Quaternion* self)
     new(self) Quaternion(s, s, s, s);
 }
 
+// Forward decl.
+bool RegisterOgreVector3(AsObjectRegProxy& proxy, AsSetupHelper* helper);
+void registerOgreRadian(AngelScript::asIScriptEngine* engine);
+void registerOgreDegree(AngelScript::asIScriptEngine* engine);
+void registerOgreQuaternion(AngelScript::asIScriptEngine* engine);
+
+
+
 // main registration method
-void registerOgreObjects(AngelScript::asIScriptEngine* engine)
+bool RegisterOgreObjects(AsSetupHelper* helper)
 {
-    int r;
+    // Register object types first - methods have circular dependencies
+    AsObjectRegProxy as_degree (helper, "degree", sizeof(Ogre::Degree), asOBJ_VALUE | asOBJ_POD | asOBJ_APP_CLASS_CA | asOBJ_APP_CLASS_ALLFLOATS);
+    ON_ERROR_RETURN(helper);
+    AsObjectRegProxy as_radian (helper, "radian", sizeof(Ogre::Radian), asOBJ_VALUE | asOBJ_POD | asOBJ_APP_CLASS_CA | asOBJ_APP_CLASS_ALLFLOATS);
+    ON_ERROR_RETURN(helper);
+    AsObjectRegProxy as_vector3(helper, "vector3", sizeof(Ogre::Vector3), asOBJ_VALUE | asOBJ_POD | asOBJ_APP_CLASS_CA | asOBJ_APP_CLASS_ALLFLOATS);
+    ON_ERROR_RETURN(helper);
+    AsObjectRegProxy as_quat(helper, "quaternion", sizeof(Ogre::Quaternion), asOBJ_VALUE | asOBJ_POD | asOBJ_APP_CLASS_CA | asOBJ_APP_CLASS_ALLFLOATS);
+    ON_ERROR_RETURN(helper);
 
-    // We start by registering some data types, so angelscript knows that they exist
+    if (! RegisterOgreVector3(as_vector3, helper))
+        return false;
 
-    // Ogre::Degree
-    r = engine->RegisterObjectType("degree", sizeof(Degree), asOBJ_VALUE | asOBJ_POD | asOBJ_APP_CLASS_CA | asOBJ_APP_CLASS_ALLFLOATS);
-    MYASSERT( r >= 0 );
+    registerOgreRadian(helper->GetEngine());
+    registerOgreDegree(helper->GetEngine());
+    registerOgreQuaternion(helper->GetEngine());
 
-    // Ogre::Radian
-    r = engine->RegisterObjectType("radian", sizeof(Radian), asOBJ_VALUE | asOBJ_POD | asOBJ_APP_CLASS_CA | asOBJ_APP_CLASS_ALLFLOATS);
-    MYASSERT( r >= 0 );
-
-    // Ogre::Vector3
-    r = engine->RegisterObjectType("vector3", sizeof(Ogre::Vector3), asOBJ_VALUE | asOBJ_POD | asOBJ_APP_CLASS_CA | asOBJ_APP_CLASS_ALLFLOATS);
-    MYASSERT( r >= 0 );
-
-    // Ogre::Quaternion
-    r = engine->RegisterObjectType("quaternion", sizeof(Quaternion), asOBJ_VALUE | asOBJ_POD | asOBJ_APP_CLASS_CA | asOBJ_APP_CLASS_ALLFLOATS);
-    MYASSERT( r >= 0 );
-
-    registerOgreRadian(engine);
-    registerOgreDegree(engine);
-    registerOgreVector3(engine);
-    registerOgreQuaternion(engine);
+    return true;
 }
 
 // register Ogre::Vector3
-void registerOgreVector3(AngelScript::asIScriptEngine* engine)
+bool RegisterOgreVector3(AsObjectRegProxy& proxy, AsSetupHelper* helper)
 {
-    int r;
-
     // Register the object properties
-    r = engine->RegisterObjectProperty("vector3", "float x", offsetof(Ogre::Vector3, x));
-    MYASSERT( r >= 0 );
-    r = engine->RegisterObjectProperty("vector3", "float y", offsetof(Ogre::Vector3, y));
-    MYASSERT( r >= 0 );
-    r = engine->RegisterObjectProperty("vector3", "float z", offsetof(Ogre::Vector3, z));
-    MYASSERT( r >= 0 );
+    proxy.AddProperty("float x", offsetof(Ogre::Vector3, x));
+    ON_ERROR_RETURN(helper);
+    proxy.AddProperty("float y", offsetof(Ogre::Vector3, y));
+    ON_ERROR_RETURN(helper);
+    proxy.AddProperty("float z", offsetof(Ogre::Vector3, z));
+    ON_ERROR_RETURN(helper);
 
     // Register the object constructors
-    r = engine->RegisterObjectBehaviour("vector3", asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(Vector3DefaultConstructor), asCALL_CDECL_OBJLAST);
-    MYASSERT( r >= 0 );
-    r = engine->RegisterObjectBehaviour("vector3", asBEHAVE_CONSTRUCT, "void f(float, float, float)", asFUNCTION(Vector3InitConstructor), asCALL_CDECL_OBJLAST);
-    MYASSERT( r >= 0 );
-    r = engine->RegisterObjectBehaviour("vector3", asBEHAVE_CONSTRUCT, "void f(const vector3 &in)", asFUNCTION(Vector3CopyConstructor), asCALL_CDECL_OBJLAST);
-    MYASSERT( r >= 0 );
-    r = engine->RegisterObjectBehaviour("vector3", asBEHAVE_CONSTRUCT, "void f(float)", asFUNCTION(Vector3InitConstructorScaler), asCALL_CDECL_OBJLAST);
-    MYASSERT( r >= 0 );
+    proxy.AddBehavior(asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(Vector3DefaultConstructor), asCALL_CDECL_OBJLAST);
+    ON_ERROR_RETURN(helper);
+    proxy.AddBehavior(asBEHAVE_CONSTRUCT, "void f(float, float, float)", asFUNCTION(Vector3InitConstructor), asCALL_CDECL_OBJLAST);
+    ON_ERROR_RETURN(helper);
+    proxy.AddBehavior(asBEHAVE_CONSTRUCT, "void f(const vector3 &in)", asFUNCTION(Vector3CopyConstructor), asCALL_CDECL_OBJLAST);
+    ON_ERROR_RETURN(helper);
+    proxy.AddBehavior(asBEHAVE_CONSTRUCT, "void f(float)", asFUNCTION(Vector3InitConstructorScaler), asCALL_CDECL_OBJLAST);
+    ON_ERROR_RETURN(helper);
 
     // Register the object operators
-    r = engine->RegisterObjectMethod("vector3", "float opIndex(int) const", asMETHODPR(Vector3, operator[], (size_t) const, float), asCALL_THISCALL);
-    MYASSERT( r >= 0 );
-    r = engine->RegisterObjectMethod("vector3", "vector3 &f(const vector3 &in)", asMETHODPR(Vector3, operator =, (const Vector3 &), Vector3&), asCALL_THISCALL);
-    MYASSERT( r >= 0 );
-    r = engine->RegisterObjectMethod("vector3", "bool opEquals(const vector3 &in) const", asMETHODPR(Vector3, operator==,(const Vector3&) const, bool), asCALL_THISCALL);
-    MYASSERT( r >= 0 );
+    proxy.AddMethod("float opIndex(int) const", asMETHODPR(Vector3, operator[], (size_t) const, float), asCALL_THISCALL);
+    ON_ERROR_RETURN(helper);
+    proxy.AddMethod("vector3 &f(const vector3 &in)", asMETHODPR(Vector3, operator =, (const Vector3 &), Vector3&), asCALL_THISCALL);
+    ON_ERROR_RETURN(helper);
+    proxy.AddMethod("bool opEquals(const vector3 &in) const", asMETHODPR(Vector3, operator==,(const Vector3&) const, bool), asCALL_THISCALL);
+    ON_ERROR_RETURN(helper);
 
-    r = engine->RegisterObjectMethod("vector3", "vector3 opAdd(const vector3 &in) const", asMETHODPR(Vector3, operator+,(const Vector3&) const, Vector3), asCALL_THISCALL);
-    MYASSERT( r >= 0 );
-    r = engine->RegisterObjectMethod("vector3", "vector3 opSub(const vector3 &in) const", asMETHODPR(Vector3, operator-,(const Vector3&) const, Vector3), asCALL_THISCALL);
-    MYASSERT( r >= 0 );
+    proxy.AddMethod("vector3 opAdd(const vector3 &in) const", asMETHODPR(Vector3, operator+,(const Vector3&) const, Vector3), asCALL_THISCALL);
+    ON_ERROR_RETURN(helper);
+    proxy.AddMethod("vector3 opSub(const vector3 &in) const", asMETHODPR(Vector3, operator-,(const Vector3&) const, Vector3), asCALL_THISCALL);
+    ON_ERROR_RETURN(helper);
 
-    r = engine->RegisterObjectMethod("vector3", "vector3 opMul(float) const", asMETHODPR(Vector3, operator*,(const float) const, Vector3), asCALL_THISCALL);
-    MYASSERT( r >= 0 );
-    r = engine->RegisterObjectMethod("vector3", "vector3 opMul(const vector3 &in) const", asMETHODPR(Vector3, operator*,(const Vector3&) const, Vector3), asCALL_THISCALL);
-    MYASSERT( r >= 0 );
-    r = engine->RegisterObjectMethod("vector3", "vector3 opDiv(float) const", asMETHODPR(Vector3, operator/,(const float) const, Vector3), asCALL_THISCALL);
-    MYASSERT( r >= 0 );
-    r = engine->RegisterObjectMethod("vector3", "vector3 opDiv(const vector3 &in) const", asMETHODPR(Vector3, operator/,(const Vector3&) const, Vector3), asCALL_THISCALL);
-    MYASSERT( r >= 0 );
+    proxy.AddMethod("vector3 opMul(float) const", asMETHODPR(Vector3, operator*,(const float) const, Vector3), asCALL_THISCALL);
+    ON_ERROR_RETURN(helper);
+    proxy.AddMethod("vector3 opMul(const vector3 &in) const", asMETHODPR(Vector3, operator*,(const Vector3&) const, Vector3), asCALL_THISCALL);
+    ON_ERROR_RETURN(helper);
+    proxy.AddMethod("vector3 opDiv(float) const", asMETHODPR(Vector3, operator/,(const float) const, Vector3), asCALL_THISCALL);
+    ON_ERROR_RETURN(helper);
+    proxy.AddMethod("vector3 opDiv(const vector3 &in) const", asMETHODPR(Vector3, operator/,(const Vector3&) const, Vector3), asCALL_THISCALL);
+    ON_ERROR_RETURN(helper);
 
-    r = engine->RegisterObjectMethod("vector3", "vector3 opAdd() const", asMETHODPR(Vector3, operator+,() const, const Vector3&), asCALL_THISCALL);
-    MYASSERT( r >= 0 );
-    r = engine->RegisterObjectMethod("vector3", "vector3 opSub() const", asMETHODPR(Vector3, operator-,() const, Vector3), asCALL_THISCALL);
-    MYASSERT( r >= 0 );
+    proxy.AddMethod("vector3 opAdd() const", asMETHODPR(Vector3, operator+,() const, const Vector3&), asCALL_THISCALL);
+    ON_ERROR_RETURN(helper);
+    proxy.AddMethod("vector3 opSub() const", asMETHODPR(Vector3, operator-,() const, Vector3), asCALL_THISCALL);
+    ON_ERROR_RETURN(helper);
+
+    // TODO: Finish later!
+    AngelScript::asIScriptEngine* engine = helper->GetEngine(); 
+    int r = 0;
 
     //r = engine->RegisterObjectMethod("vector3", "vector3 opMul(float, const vector3 &in)", asMETHODPR(Vector3, operator*,(const float, const Vector3&), Vector3), asCALL_THISCALL); MYASSERT( r >= 0 );
 
@@ -314,6 +332,8 @@ void registerOgreVector3(AngelScript::asIScriptEngine* engine)
 
     r = engine->RegisterObjectMethod("vector3", "bool isNaN() const", asMETHOD(Vector3,isNaN), asCALL_THISCALL);
     MYASSERT( r >= 0 );
+
+    return true;
 }
 
 void registerOgreRadian(AngelScript::asIScriptEngine* engine)
