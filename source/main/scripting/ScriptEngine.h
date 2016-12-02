@@ -34,6 +34,7 @@
 
 #include "InterThreadStoreVector.h"
 #include "Singleton.h"
+#include "AngelScriptUtils.h"
 
 #include "scriptdictionary/scriptdictionary.h"
 #include "scriptbuilder/scriptbuilder.h"
@@ -43,51 +44,6 @@
 #define SLOG(x) ScriptEngine::getSingleton().scriptLog->logMessage(x);
 
 class GameScript;
-
-// Helpers
-       const char* AsRetCodeToString(AngelScript::asERetCodes code);
-inline const char* AsRetCodeToString(int code) { return AsRetCodeToString(AngelScript::asERetCodes(code)); }
-       const char* AsMsgTypeToString(AngelScript::asEMsgType type);
-       const char* AsRegPropertyErrorToString(int code);
-       const char* AsRegMethodErrorToString(int ret_code);
-       bool        AsExecuteContext(AngelScript::asIScriptContext* ctx, AngelScript::asIScriptEngine* engine, std::string& err_msg);
-
-class AsSetupHelper;
-
-class AsObjectRegProxy
-{
-public:
-    AsObjectRegProxy(AsSetupHelper* A, const char* obj_name, int byte_size, AngelScript::asDWORD flags);
-
-    void AddBehavior(AngelScript::asEBehaviours behaviour, const char *declaration, const AngelScript::asSFuncPtr &funcPointer, AngelScript::asDWORD callConv = AngelScript::asCALL_THISCALL);
-    void AddMethod(const char* decl, const AngelScript::asSFuncPtr &func_ptr, AngelScript::asDWORD call_conv = AngelScript::asCALL_THISCALL);
-    void AddProperty(const char* decl, int byte_offset);
-
-    AsSetupHelper* GetHelper() { return m_setup_helper; }
-
-protected:
-    AsSetupHelper* m_setup_helper;
-    std::string    m_object_name;
-    size_t         m_typeid;
-};
-
-class AsSetupHelper
-{
-public:
-    AsSetupHelper(AngelScript::asIScriptEngine* engine);
-
-    void               ResetError();
-    std::stringstream& SetError(int err);
-    AngelScript::asIScriptEngine* GetEngine() { return m_engine; }
-    bool CheckError() { return m_last_err_code != 0; }
-    std::string GetError() { return m_last_err_msg.str(); }
-    void RegisterGlobalFn(const char *decl, const AngelScript::asSFuncPtr &fn_ptr, AngelScript::asDWORD conv);
-
-protected:
-    AngelScript::asIScriptEngine*    m_engine;
-    int                              m_last_err_code;
-    std::stringstream                m_last_err_msg;
-};
 
 /**
  *  @brief This class represents the angelscript scripting interface. It can load and execute scripts.

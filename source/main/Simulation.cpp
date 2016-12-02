@@ -390,31 +390,24 @@ bool LogicContext::CheckAndInit()
     AsSetupHelper helper(m_script_engine);
 
     helper.RegisterGlobalFn("void LogMessage(string)", AngelScript::asFUNCTION(AsLogMessage), AngelScript::asCALL_CDECL);
-    ON_ERROR_RETURN(helper);
 
     AsObjectRegProxy obj(&helper, "SimContext", 0, AngelScript::asOBJ_REF);
-    ON_ERROR_RETURN(helper);
     obj.AddBehavior(AngelScript::asBEHAVE_ADDREF,  "void f()", AngelScript::asMETHOD(LogicContext, DummyAddRef),     AngelScript::asCALL_THISCALL);
-    ON_ERROR_RETURN(helper);
     obj.AddBehavior(AngelScript::asBEHAVE_RELEASE, "void f()", AngelScript::asMETHOD(LogicContext, DummyReleaseRef), AngelScript::asCALL_THISCALL);
-    ON_ERROR_RETURN(helper);
 
     obj.AddMethod("void Quit()", AngelScript::asMETHOD(LogicContext, Quit));
-    ON_ERROR_RETURN(helper);
     obj.AddMethod("bool IsKeyDown(int keycode)", AngelScript::asMETHOD(LogicContext, IsKeyDown));
-    ON_ERROR_RETURN(helper);
     obj.AddMethod("bool HasKbChanged()", AngelScript::asMETHOD(LogicContext, HasKbChanged));
-    ON_ERROR_RETURN(helper);
     obj.AddMethod("bool WasKeyPressed(int keycode)", AngelScript::asMETHOD(LogicContext, WasKeyPressed));
-    ON_ERROR_RETURN(helper);
     obj.AddMethod("bool WasKeyReleased()", AngelScript::asMETHOD(LogicContext, WasKeyReleased));
-    ON_ERROR_RETURN(helper);
     obj.AddMethod("void CameraLookAt(float x, float y, float z)", AngelScript::asMETHOD(LogicContext, CameraLookAt));
-    ON_ERROR_RETURN(helper);
     obj.AddMethod("void SetCameraPosition(float x, float y, float z)", AngelScript::asMETHOD(LogicContext, SetCameraPosition));
-    ON_ERROR_RETURN(helper);
     obj.AddMethod("void SetCameraOrientation(float x, float y, float z, float w)", AngelScript::asMETHOD(LogicContext, SetCameraOrientation));
-    ON_ERROR_RETURN(helper);
+    if (helper.CheckErrors())
+    {
+        LOGSTREAM << "Errors while registering LogicContext interface, messages:\n" << helper.GetErrors();
+        return false;
+    }
 
     OgreScriptBuilder builder;
     builder.SetResourceGroup("PackedScripts");
