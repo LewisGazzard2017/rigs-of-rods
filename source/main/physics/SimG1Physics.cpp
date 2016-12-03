@@ -96,6 +96,8 @@
 // FOR EACH PHYSICS_STEP
 //   FOR EACH TRUCK
 //     Beam::calcForcesEulerPrepare
+//       Beam::forwardCommands()
+//       Beam::calcBeamsInterTruck()
 //     IF PREPARED
 //       THREADPOOL <-- {
 //         Beam::calcForcesEulerCompute
@@ -209,3 +211,6 @@ void G1Actor::TranslateOrigin(Ogre::Vector3 offset)
         m_nodes[i].rel_pos -= offset;
     }
 }
+
+
+

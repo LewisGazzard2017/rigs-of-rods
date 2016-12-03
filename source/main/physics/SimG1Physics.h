@@ -14,17 +14,26 @@ struct G1Node
     Ogre::Vector3 rel_pos;
 };
 
+// Intermediate results during beam calculation
+// OLD: local vars in Beam::calcBeams() + Beam::calcBeamsInterTruck()
+struct G1NodeCalc
+{
+
+};
+
 class G1Actor
 {
 public:
+    // Read/write: nodes
     void TranslateOrigin(Ogre::Vector3 offset);
+    // Read/write: nodes
     void BeginUpdate();
 
 private:
-    Ogre::Vector3       m_origin;
-    std::vector<G1Node> m_nodes;
-    Ogre::Vector3       m_avg_pos;
-    Ogre::Vector3       m_prev_avg_pos;
+    Ogre::Vector3         m_origin;
+    std::vector<G1Node>   m_nodes;
+    Ogre::Vector3         m_avg_pos;
+    Ogre::Vector3         m_prev_avg_pos;
 };
 
 class G1LogicContext
