@@ -55,6 +55,7 @@ set( SOURCE_FILES
   gameplay/SceneMouse.{h,cpp}
   gameplay/ScriptEvents.h
   gameplay/Scripting.h
+  gameplay/SimulationG1.{h,cpp}
   gameplay/Skin.{h,cpp}
   gameplay/SkinManager.{h,cpp}
   gameplay/TorqueCurve.{h,cpp}

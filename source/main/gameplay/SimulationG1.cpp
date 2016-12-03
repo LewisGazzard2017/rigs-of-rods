@@ -1,9 +1,9 @@
 
-#include "SimG1Physics.h"
+#include "SimulationG1.h"
 
 #include "BeamFactory.h"
 
-// ------------- PHYSICS UPDATE (THREADPOOL) --------------
+// ------------- PHYSICS UPDATE (w/THREADPOOL) --------------
 //
 // RoRFrameListener::frameStarted()
 //   BeamFactory::SyncWithSimThread()
@@ -211,6 +211,58 @@ void G1Actor::TranslateOrigin(Ogre::Vector3 offset)
         m_nodes[i].rel_pos -= offset;
     }
 }
+
+void G1Actor::UpdateBeams()
+{
+    for (G1Beam& beam : m_beams_intra)
+    {
+        const Ogre::Vector3 distance = beam.p1->rel_pos - beam.p2->rel_pos;
+        const float sq_length = distance.squaredLength();
+        const float inv_length = fast_invSqrt(sq_length);
+        const float cur_len = sq_length * inv_length;
+        const float cur_len_diff = cur_len - beam.base_len;
+
+        float spring = beam.spring;
+        float damp = beam.damp;
+
+        if (beam.is_shock1)
+        {
+            float interp_ratio;
+            bool process = true;
+            // ORIG: Following code interpolates between defined beam parameters and default beam parameters
+            const float max_len = beam.long_bound * beam.base_len;
+            const float min_len = beam.short_bound * beam.base_len;
+            if (cur_len_diff > max_len)
+                interp_ratio = cur_len_diff - max_len;
+            else if (cur_len_diff < min_len)
+                interp_ratio = -cur_len_diff - min_len;
+            else
+                process = false;
+
+            if (process)
+            {
+                // ORIG: Hard (normal) shock bump
+                float tspring = DEFAULT_SPRING;
+                float tdamp = DEFAULT_DAMP;
+
+                // ORIG: Skip camera, wheels or any other shocks which are not generated in a shocks or shocks2 section
+                if (beam.is_hydro || beam.is_invis_hydro)
+                {
+                    tspring = beam.shock->sbd_spring;
+                    tdamp = beam.shock->sbd_damp;
+                }
+
+                spring = (tspring - spring) * interp_ratio;
+                damp = (tdamp - damp) * interp_ratio;
+            }            
+        }
+        else if (beam.is_shock2)
+        {
+
+        }
+    }
+}
+
 
 
 

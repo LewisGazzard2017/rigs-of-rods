@@ -8,17 +8,41 @@
 
 #include <OgreVector3.h>
 
+// Forward
+struct G1Shock;
+
 struct G1Node
 {
     Ogre::Vector3 abs_pos;
     Ogre::Vector3 rel_pos;
 };
 
-// Intermediate results during beam calculation
-// OLD: local vars in Beam::calcBeams() + Beam::calcBeamsInterTruck()
-struct G1NodeCalc
+// Equals beam_t
+struct G1Beam
 {
+    G1Node*   p1;
+    G1Node*   p2;
+    float     base_len;
+    float     spring;
+    float     damp;
+    float     short_bound;
+    float     long_bound;
 
+    // Type bits
+    bool      is_shock1:1;      // Equals (beam_t::bounded == SHOCK1)
+    bool      is_shock2:1;      // Equals (beam_t::bounded == SHOCK2)
+    bool      is_hydro:1;       // Equals (beam_t::type == BEAM_HYDRO)
+    bool      is_invis_hydro:1; // Equals (beam_t::type == BEAM_INVISIBLE_HYDRO)
+
+    // < -- 64 Bytes -->
+
+    G1Shock*  shock;
+};
+
+struct G1Shock
+{
+    float sbd_spring; ///< SBD = `set_beam_defaults` directive from truckfile | used by both SHOCK1 and SHOCK2
+    float sbd_damp;   ///< SBD = `set_beam_defaults` directive from truckfile | used by both SHOCK1 and SHOCK2
 };
 
 class G1Actor
@@ -28,10 +52,14 @@ public:
     void TranslateOrigin(Ogre::Vector3 offset);
     // Read/write: nodes
     void BeginUpdate();
+    // Read: nodes, beams; Write: beams
+    void UpdateBeams();
 
 private:
     Ogre::Vector3         m_origin;
     std::vector<G1Node>   m_nodes;
+    std::vector<G1Beam>   m_beams_intra; ///< Only enabled
+    std::vector<G1Beam>   m_beams_disabled;
     Ogre::Vector3         m_avg_pos;
     Ogre::Vector3         m_prev_avg_pos;
 };
@@ -43,6 +71,7 @@ public:
     void PreUpdatePhysics();
 
 private:
+
     size_t              m_num_frames;
     float               m_sim_speed;      ///< slow motion < 1.0 < fast motion
     float               m_dt_remainder;   ///< Keeps track of the rounding error in the time step calculation
