@@ -225,7 +225,7 @@ void G1Actor::UpdateBeams()
         const float sq_length = distance.squaredLength();
         const float inv_length = fast_invSqrt(sq_length);
         const float cur_len = sq_length * inv_length;
-        const float cur_len_diff = cur_len - beam.base_len;
+        const float cur_len_diff = cur_len - beam.length;
 
         float spring = beam.spring;
         float damp = beam.damp;
@@ -246,7 +246,7 @@ void G1Actor::UpdateBeams()
             const float break_limit = (beam.long_bound > 0.f) ? beam.long_bound : SUPPORT_BEAM_LIMIT_DEFAULT;
 
             // If support beam is extended the originallength * break_limit, break and disable it
-            if (cur_len_diff > (beam.base_len * break_limit))
+            if (cur_len_diff > (beam.length * break_limit))
             {
                 beam.is_broken = true;
                 beam.is_disabled = true;
@@ -259,18 +259,104 @@ void G1Actor::UpdateBeams()
         }
 
         // Calculate beam's rate of change
+        // NEXTSIM: not sure what 'slen' means - possibly 'squared length'? ~ only_a_ptr, 12/2016    
         const Ogre::Vector3 v = beam.p1->velocity - beam.p2->velocity;
-        const float slen = 
+        float slen = -spring * (cur_len_diff * v.dotProduct(distance) * inv_length);
+        beam.stress = slen;
+
+        // Fast test for deformation
+        float len = std::abs(slen); // NEXTSIM: kept old name 'len' because not sure what the value is. ~ only_a_ptr, 12/2016    
+        if (len > beam.deform_thr_abs)
+        {
+            this->UpdateBeamDeform(beam, slen, len, cur_len_diff, spring);
+        }
+
+        // Finally update beam forces
+        const Ogre::Vector3 f = distance * (slen * inv_length);
+        beam.p1->forces += f;
+        beam.p2->forces -= f;
     }
 }
 
+void G1Actor::UpdateBeamDeform(G1Beam& beam, float& slen, float len, const float cur_len_diff, const float spring)
+{
+    if ((beam.is_normal || beam.is_invis) && !beam.is_shock1 && (spring != 0.f))
+    {
+        const bool compress = (slen > beam.deform_thr_compress && cur_len_diff < 0.f);
+        const bool expand   = (slen < beam.deform_thr_expand   && cur_len_diff > 0.f);
+        const float thr = (compress) ? beam.deform_thr_compress : beam.deform_thr_expand;
+        
+        if (compress || expand)
+        {
+            m_step_context.increase_coll_accuracy = true;
+            const float deform = cur_len_diff + (thr / spring) * (1.f - beam.plastic_coef);
+            const float old_len = beam.length;
+            beam.length += deform;
+            slen = slen - (slen - thr) * 0.5f;
+
+            if (compress)
+            {
+                len = slen;
+                beam.length = std::max(MIN_BEAM_LENGTH, beam.length);
+                if ((beam.length > 0.f) && (old_len > beam.length))
+                {
+                    beam.deform_thr_compress *= old_len / beam.length;
+                    const float deform_tmp = std::min(beam.deform_thr_compress, -beam.deform_thr_expand);
+                    beam.deform_thr_abs = std::min(deform_tmp, beam.strength);
+                }
+            }
+            else // expand
+            {
+                len = -slen;
+                if ((old_len > 0.f) && (beam.length > old_len))
+                {
+                    beam.deform_thr_expand *= beam.length / old_len;
+                    const float deform_tmp = std::min(beam.deform_thr_compress, -beam.deform_thr_expand);
+                    beam.deform_thr_abs = std::min(deform_tmp, beam.strength);
+                }
+                beam.strength -= deform * spring;
+            }
+        }
+
+        if (len > beam.strength)
+        {
+            this->UpdateBeamBreaking(beam, slen);
+        }
+    }
+}
+
+void G1Actor::UpdateBeamBreaking(G1Beam& beam, float& slen)
+{
+    // ORIG:
+    //Break the beam only when it is not connected to a node
+    //which is a part of a collision triangle and has 2 "live" beams or less connected to it.
+
+    const bool unable1 = beam.p1->is_contacter && m_softbody_graph.GetNumActiveNeighborBeams(beam.p1->pos) < 3;
+    const bool unable2 = beam.p2->is_contacter && m_softbody_graph.GetNumActiveNeighborBeams(beam.p2->pos) < 3;
+    if (!unable1 && !unable2)
+    {
+        slen = 0.f;
+        beam.is_disabled = true;
+        beam.is_broken = true;
+
+        // TODO: detacher groups
+    }
+    else
+    {
+        beam.strength = 2.f * beam.deform_thr_abs;
+    }
+
+    // TODO: check buoyant hull
+}
+
+// static
 void G1Actor::UpdateBeamShock1(G1Beam& beam, float cur_len_diff, float& spring, float& damp)
 {
     float interp_ratio;
     bool process = true;
     // ORIG: Following code interpolates between defined beam parameters and default beam parameters
-    const float max_len = beam.long_bound * beam.base_len;
-    const float min_len = beam.short_bound * beam.base_len;
+    const float max_len = beam.long_bound * beam.length;
+    const float min_len = beam.short_bound * beam.length;
     if (cur_len_diff > max_len)
         interp_ratio = cur_len_diff - max_len;
     else if (cur_len_diff < min_len)
@@ -296,6 +382,70 @@ void G1Actor::UpdateBeamShock1(G1Beam& beam, float cur_len_diff, float& spring, 
     }
 }
 
+void G1SoftbodyGraph::Calculate(std::vector<G1Node>& nodes, std::vector<G1Beam>& beams)
+{
+    // Temporary data storage
+    std::vector< std::vector< int > > nodetonodeconnections;
+    std::vector< std::vector< int > > nodebeamconnections;
 
+    nodetonodeconnections.resize(nodes.size(), std::vector<int>());
+    nodebeamconnections.resize(nodes.size(), std::vector<int>());
+
+    for (size_t i = 0; i < beams.size(); i++)
+    {
+        if (beams[i].p1 != nullptr && beams[i].p2 != nullptr && beams[i].p1->pos >= 0 && beams[i].p2->pos >= 0)
+        {
+            nodetonodeconnections[beams[i].p1->pos].push_back(beams[i].p2->pos);
+            nodebeamconnections[beams[i].p1->pos].push_back(i);
+            nodetonodeconnections[beams[i].p2->pos].push_back(beams[i].p1->pos);
+            nodebeamconnections[beams[i].p2->pos].push_back(i);
+        }
+    }
+
+    // Final data storage
+    m_node_info.resize(nodes.size());
+    for (size_t i = 0; i < nodes.size(); ++i)
+    {
+        m_node_info[i].beams_index = m_beams.size();
+        m_node_info[i].beams_count = nodebeamconnections[i].size();
+        for (int beam_id : nodebeamconnections[i])
+        {
+            m_beams.push_back(&beams[beam_id]);
+        }
+
+        m_node_info[i].nodes_index = m_nodes.size();
+        m_node_info[i].nodes_count = nodetonodeconnections[i].size();
+        for (int node_id : nodetonodeconnections[i])
+        {
+            m_nodes.push_back(&nodes[node_id]);
+        }
+    }
+}
+
+G1Node* G1SoftbodyGraph::GetNode(size_t index)
+{
+    return m_nodes[index];
+}
+
+G1Beam* G1SoftbodyGraph::GetBeam(size_t index)
+{
+    return m_beams[index];
+}
+
+size_t G1SoftbodyGraph::GetNumActiveNeighborBeams(int node_id)
+{
+    size_t count = 0;
+    NodeConn info = m_node_info[node_id];
+    size_t idx_max = info.nodes_index + info.nodes_count;
+    for (size_t idx = info.nodes_index; idx < idx_max; ++idx)
+    {
+        G1Beam* b = m_beams[idx];
+        if (!b->is_disabled && !b->is_shock1 && !b->is_shock2 && !b->is_rope && !b->is_support)
+        {
+            ++count;
+        }
+    }
+    return count;
+}
 
 
