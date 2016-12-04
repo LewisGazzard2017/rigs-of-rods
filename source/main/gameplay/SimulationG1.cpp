@@ -214,8 +214,13 @@ void G1Actor::TranslateOrigin(Ogre::Vector3 offset)
 
 void G1Actor::UpdateBeams()
 {
-    for (G1Beam& beam : m_beams_intra)
+    for (G1Beam& beam : m_beams)
     {
+        if (beam.is_disabled || beam.is_inter_actor)
+        {
+            continue;
+        }
+
         const Ogre::Vector3 distance = beam.p1->rel_pos - beam.p2->rel_pos;
         const float sq_length = distance.squaredLength();
         const float inv_length = fast_invSqrt(sq_length);
@@ -227,39 +232,67 @@ void G1Actor::UpdateBeams()
 
         if (beam.is_shock1)
         {
-            float interp_ratio;
-            bool process = true;
-            // ORIG: Following code interpolates between defined beam parameters and default beam parameters
-            const float max_len = beam.long_bound * beam.base_len;
-            const float min_len = beam.short_bound * beam.base_len;
-            if (cur_len_diff > max_len)
-                interp_ratio = cur_len_diff - max_len;
-            else if (cur_len_diff < min_len)
-                interp_ratio = -cur_len_diff - min_len;
-            else
-                process = false;
-
-            if (process)
-            {
-                // ORIG: Hard (normal) shock bump
-                float tspring = DEFAULT_SPRING;
-                float tdamp = DEFAULT_DAMP;
-
-                // ORIG: Skip camera, wheels or any other shocks which are not generated in a shocks or shocks2 section
-                if (beam.is_hydro || beam.is_invis_hydro)
-                {
-                    tspring = beam.shock->sbd_spring;
-                    tdamp = beam.shock->sbd_damp;
-                }
-
-                spring = (tspring - spring) * interp_ratio;
-                damp = (tdamp - damp) * interp_ratio;
-            }            
+            G1Actor::UpdateBeamShock1(beam, cur_len_diff, spring, damp);            
         }
         else if (beam.is_shock2)
         {
-
+            // TODO
         }
+        else if (beam.is_support && cur_len_diff > 0.f)
+        {
+            spring = 0.f;
+            damp *= 0.1f;
+            // If this is a supportbeam with a user set break limit, get the user set limit
+            const float break_limit = (beam.long_bound > 0.f) ? beam.long_bound : SUPPORT_BEAM_LIMIT_DEFAULT;
+
+            // If support beam is extended the originallength * break_limit, break and disable it
+            if (cur_len_diff > (beam.base_len * break_limit))
+            {
+                beam.is_broken = true;
+                beam.is_disabled = true;
+            }
+        }
+        else if (beam.is_rope && cur_len_diff < 0.f)
+        {
+            spring = 0.f;
+            damp *= 0.1f;
+        }
+
+        // Calculate beam's rate of change
+        const Ogre::Vector3 v = beam.p1->velocity - beam.p2->velocity;
+        const float slen = 
+    }
+}
+
+void G1Actor::UpdateBeamShock1(G1Beam& beam, float cur_len_diff, float& spring, float& damp)
+{
+    float interp_ratio;
+    bool process = true;
+    // ORIG: Following code interpolates between defined beam parameters and default beam parameters
+    const float max_len = beam.long_bound * beam.base_len;
+    const float min_len = beam.short_bound * beam.base_len;
+    if (cur_len_diff > max_len)
+        interp_ratio = cur_len_diff - max_len;
+    else if (cur_len_diff < min_len)
+        interp_ratio = -cur_len_diff - min_len;
+    else
+        process = false;
+
+    if (process)
+    {
+        // ORIG: Hard (normal) shock bump
+        float tspring = DEFAULT_SPRING;
+        float tdamp = DEFAULT_DAMP;
+
+        // ORIG: Skip camera, wheels or any other shocks which are not generated in a shocks or shocks2 section
+        if (beam.is_hydro || beam.is_invis_hydro)
+        {
+            tspring = beam.shock->sbd_spring;
+            tdamp = beam.shock->sbd_damp;
+        }
+
+        spring = (tspring - spring) * interp_ratio;
+        damp = (tdamp - damp) * interp_ratio;
     }
 }
 
