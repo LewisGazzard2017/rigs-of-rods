@@ -216,7 +216,7 @@ void G1Actor::UpdateBeams()
 {
     for (G1Beam& beam : m_beams)
     {
-        if (beam.is_disabled || beam.is_inter_actor)
+        if (beam.is_disabled)
         {
             continue;
         }
@@ -230,26 +230,29 @@ void G1Actor::UpdateBeams()
         float spring = beam.spring;
         float damp = beam.damp;
 
-        if (beam.is_shock1)
+        if (!beam.is_inter_actor)
         {
-            G1Actor::UpdateBeamShock1(beam, cur_len_diff, spring, damp);            
-        }
-        else if (beam.is_shock2)
-        {
-            // TODO
-        }
-        else if (beam.is_support && cur_len_diff > 0.f)
-        {
-            spring = 0.f;
-            damp *= 0.1f;
-            // If this is a supportbeam with a user set break limit, get the user set limit
-            const float break_limit = (beam.long_bound > 0.f) ? beam.long_bound : SUPPORT_BEAM_LIMIT_DEFAULT;
-
-            // If support beam is extended the originallength * break_limit, break and disable it
-            if (cur_len_diff > (beam.length * break_limit))
+            if (beam.is_shock1)
             {
-                beam.is_broken = true;
-                beam.is_disabled = true;
+                G1Actor::UpdateBeamShock1(beam, cur_len_diff, spring, damp);            
+            }
+            else if (beam.is_shock2 && beam.shock != nullptr)
+            {
+                // TODO
+            }
+            else if (beam.is_support && cur_len_diff > 0.f)
+            {
+                spring = 0.f;
+                damp *= 0.1f;
+                // If this is a supportbeam with a user set break limit, get the user set limit
+                const float break_limit = (beam.long_bound > 0.f) ? beam.long_bound : SUPPORT_BEAM_LIMIT_DEFAULT;
+
+                // If support beam is extended the originallength * break_limit, break and disable it
+                if (cur_len_diff > (beam.length * break_limit))
+                {
+                    beam.is_broken = true;
+                    beam.is_disabled = true;
+                }
             }
         }
         else if (beam.is_rope && cur_len_diff < 0.f)
@@ -261,7 +264,7 @@ void G1Actor::UpdateBeams()
         // Calculate beam's rate of change
         // NEXTSIM: not sure what 'slen' means - possibly 'squared length'? ~ only_a_ptr, 12/2016    
         const Ogre::Vector3 v = beam.p1->velocity - beam.p2->velocity;
-        float slen = -spring * (cur_len_diff * v.dotProduct(distance) * inv_length);
+        float slen = -spring * cur_len_diff - damp * v.dotProduct(distance) * inv_length;
         beam.stress = slen;
 
         // Fast test for deformation
@@ -288,7 +291,10 @@ void G1Actor::UpdateBeamDeform(G1Beam& beam, float& slen, float len, const float
         
         if (compress || expand)
         {
-            m_step_context.increase_coll_accuracy = true;
+            if (!beam.is_inter_actor)
+            {
+                m_step_context.increase_coll_accuracy = true;
+            }
             const float deform = cur_len_diff + (thr / spring) * (1.f - beam.plastic_coef);
             const float old_len = beam.length;
             beam.length += deform;
@@ -327,6 +333,11 @@ void G1Actor::UpdateBeamDeform(G1Beam& beam, float& slen, float len, const float
 
 void G1Actor::UpdateBeamBreaking(G1Beam& beam, float& slen)
 {
+    if (!beam.is_inter_actor)
+    {
+        m_step_context.increase_coll_accuracy = true;
+    }
+
     // ORIG:
     //Break the beam only when it is not connected to a node
     //which is a part of a collision triangle and has 2 "live" beams or less connected to it.
@@ -339,14 +350,14 @@ void G1Actor::UpdateBeamBreaking(G1Beam& beam, float& slen)
         beam.is_disabled = true;
         beam.is_broken = true;
 
-        // TODO: detacher groups
+        // TODO: detacher groups (disabled for inter-actor beams)
     }
     else
     {
         beam.strength = 2.f * beam.deform_thr_abs;
     }
 
-    // TODO: check buoyant hull
+    // TODO: check buoyant hull (disabled for inter-actor beams)
 }
 
 // static
@@ -380,6 +391,395 @@ void G1Actor::UpdateBeamShock1(G1Beam& beam, float cur_len_diff, float& spring, 
         spring = (tspring - spring) * interp_ratio;
         damp = (tdamp - damp) * interp_ratio;
     }
+}
+
+void G1Actor::UpdateBeamShock2(G1Beam& beam, float cur_len_diff, float& k, float& d)
+{
+    const float beams_lep = beam.length * 0.8f; // ORIG: name 'beamsLep' - meaning??
+    const float longbound_prelimit = beam.long_bound * beams_lep;
+    const float shortbound_prelimit = beam.short_bound * beams_lep;
+
+    float logafactor;
+    //shock extending since last cycle
+    if (beam.shock->last_len_diff < cur_len_diff)
+    {
+        //get outbound values
+        k = beam.shock->spring_out;
+        d = beam.shock->damp_out;
+        // add progression
+        if (beam.long_bound != 0.0f)
+        {
+            logafactor = cur_len_diff / (beam.long_bound * beam.length);
+            logafactor = logafactor * logafactor;
+        }
+        else
+        {
+            logafactor = 1.0f;
+        }
+        if (logafactor > 1.0f)
+            logafactor = 1.0f;
+        k = k + (beam.shock->spring_out_prog * k * logafactor);
+        d = d + (beam.shock->damp_out_prog * d * logafactor);
+    }
+    else
+    {
+        //shock compresssing since last cycle
+        //get inbound values
+        k = beam.shock->spring_in;
+        d = beam.shock->damp_in;
+        // add progression
+        if (beam.short_bound != 0.0f)
+        {
+            logafactor = cur_len_diff / (beam.short_bound * beam.length);
+            logafactor = logafactor * logafactor;
+        }
+        else
+        {
+            logafactor = 1.0f;
+        }
+        if (logafactor > 1.0f)
+            logafactor = 1.0f;
+        k = k + (beam.shock->spring_in_prog * k * logafactor);
+        d = d + (beam.shock->damp_in_prog * d * logafactor);
+    }
+    if (beam.shock->is_soft_bump)
+    {
+        // soft bump shocks
+        if (cur_len_diff > longbound_prelimit)
+        {
+            //reset to long_bound progressive values (oscillating beam workaround)
+            k = beam.shock->spring_out;
+            d = beam.shock->damp_out;
+            // add progression
+            if (beam.long_bound != 0.0f)
+            {
+                logafactor = cur_len_diff / (beam.long_bound * beam.L);
+                logafactor = logafactor * logafactor;
+            }
+            else
+            {
+                logafactor = 1.0f;
+            }
+            if (logafactor > 1.0f)
+                logafactor = 1.0f;
+            k = k + (beam.shock->spring_out_prog * k * logafactor);
+            d = d + (beam.shock->damp_out_prog * d * logafactor);
+            //add shortbump progression
+            if (beam.long_bound != 0.0f)
+            {
+                logafactor = ((cur_len_diff - longbound_prelimit) * 5.0f) / (beam.long_bound * beam.length);
+                logafactor = logafactor * logafactor;
+            }
+            else
+            {
+                logafactor = 1.0f;
+            }
+            if (logafactor > 1.0f)
+                logafactor = 1.0f;
+            k = k + (k + 100.0f) * beam.shock->spring_out_prog * logafactor;
+            d = d + (d + 100.0f) * beam.shock->damp_out_prog * logafactor;
+            if (beam.shock->last_len_diff > cur_len_diff)
+            // rebound mode..get new values
+            {
+                k = beam.shock->spring_in;
+                d = beam.shock->damp_in;
+            }
+        }
+        else if (cur_len_diff < shortbound_prelimit)
+        {
+            //reset to short_bound progressive values (oscillating beam workaround)
+            k = beam.shock->spring_in;
+            d = beam.shock->damp_in;
+            if (beam.short_bound != 0.0f)
+            {
+                logafactor = cur_len_diff / (beam.short_bound * beam.L);
+                logafactor = logafactor * logafactor;
+            }
+            else
+            {
+                logafactor = 1.0f;
+            }
+            if (logafactor > 1.0f)
+                logafactor = 1.0f;
+            k = k + (beam.shock->spring_in_prog * k * logafactor);
+            d = d + (beam.shock->damp_in_prog * d * logafactor);
+            //add shortbump progression
+            if (beam.short_bound != 0.0f)
+            {
+                logafactor = ((cur_len_diff - shortbound_prelimit) * 5.0f) / (beam.short_bound * beam.length);
+                logafactor = logafactor * logafactor;
+            }
+            else
+            {
+                logafactor = 1.0f;
+            }
+            if (logafactor > 1.0f)
+                logafactor = 1.0f;
+            k = k + (k + 100.0f) * beam.shock->spring_out_prog * logafactor;
+            d = d + (d + 100.0f) * beam.shock->damp_out_prog * logafactor;
+            if (beam.shock->last_len_diff < cur_len_diff)
+            // rebound mode..get new values
+            {
+                k = beam.shock->spring_out;
+                d = beam.shock->damp_out;
+            }
+        }
+        if (cur_len_diff > beam.long_bound * beam.L || cur_len_diff < -beam.short_bound * beam.L)
+        {
+            // block reached...hard bump in soft mode with 4x default damp_ing
+            if (k < beam.shock->sbd_spring)
+                k = beam.shock->sbd_spring;
+            if (d < beam.shock->sbd_damp)
+                d = beam.shock->sbd_damp;
+        }
+    }
+
+    if (beam.shock->is_normal)
+    {
+        if (cur_len_diff > beam.long_bound * beam.length || cur_len_diff < -beam.short_bound * beam.length)
+        {
+            if (beam.shock && !(beam.shock->is_trigger)) // this is NOT a trigger beam
+            {
+                // hard (normal) shock bump
+                k = beam.shock->sbd_spring;
+                d = beam.shock->sbd_damp;
+            }
+        }
+
+        if (beam.shock && (beam.shock->is_trigger) && beam.shock->is_trigger_enabled) // this is a trigger and it's enabled
+        {
+            if (cur_len_diff > beam.long_bound * beam.length || cur_len_diff < -beam.short_bound * beam.length) // that has hit boundary
+            {
+                beam.shock->trigger_switch_state -= PHYSICS_DT;
+                if (beam.shock->trigger_switch_state <= 0.0f) // emergency release for dead-switched trigger
+                    beam.shock->trigger_switch_state = 0.0f;
+                if (beam.shock->is_trig_blocker) // this is an enabled blocker and past boundary
+                {
+                    for (int scount = i + 1; scount <= i + beam.shock->trigger_cmdshort; scount++) // (cycle blockerbeamID +1) to (blockerbeamID + beams to lock)
+                    {
+                        if (beams[scount].shock && (beams[scount].shock->flags & SHOCK_FLAG_ISTRIGGER)) // don't mess anything up if the user set the number too big
+                        {
+                            if (triggerdebug && !beams[scount].shock->trigger_enabled && beam.shock->last_debug_state != 1)
+                            {
+                                LOG(" Trigger disabled. Blocker BeamID " + TOSTRING(i) + " enabled trigger " + TOSTRING(scount));
+                                beam.shock->last_debug_state = 1;
+                            }
+                            beams[scount].shock->trigger_enabled = false; // disable the trigger
+                        }
+                    }
+                }
+                else if (beam.shock->flags & SHOCK_FLAG_TRG_BLOCKER_A) // this is an enabled inverted blocker and inside boundary
+                {
+                    for (int scount = i + 1; scount <= i + beam.shock->trigger_cmdlong; scount++) // (cycle blockerbeamID + 1) to (blockerbeamID + beams to release)
+                    {
+                        if (beams[scount].shock && (beams[scount].shock->flags & SHOCK_FLAG_ISTRIGGER)) // don't mess anything up if the user set the number too big
+                        {
+                            if (triggerdebug && beams[scount].shock->trigger_enabled && beam.shock->last_debug_state != 9)
+                            {
+                                LOG(" Trigger enabled. Inverted Blocker BeamID " + TOSTRING(i) + " disabled trigger " + TOSTRING(scount));
+                                beam.shock->last_debug_state = 9;
+                            }
+                            beams[scount].shock->trigger_enabled = true; // enable the triggers
+                        }
+                    }
+                }
+                else if (beam.shock->flags & SHOCK_FLAG_TRG_CMD_BLOCKER) // this an enabled cmd-key-blocker and past a boundary
+                {
+                    commandkey[beam.shock->trigger_cmdshort].trigger_cmdkeyblock_state = false; // Release the cmdKey
+                    if (triggerdebug && beam.shock->last_debug_state != 2)
+                    {
+                        LOG(" F-key trigger block released. Blocker BeamID " + TOSTRING(i) + " Released F" + TOSTRING(beam.shock->trigger_cmdshort));
+                        beam.shock->last_debug_state = 2;
+                    }
+                }
+                else if (beam.shock->flags & SHOCK_FLAG_TRG_CMD_SWITCH) // this is an enabled cmdkey switch and past a boundary
+                {
+                    if (!beam.shock->trigger_switch_state)// this switch is triggered first time in this boundary
+                    {
+                        for (int scount = 0; scount < free_shock; scount++)
+                        {
+                            int short1 = beams[shocks[scount].beamid].shock->trigger_cmdshort; // cmdshort of checked trigger beam
+                            int short2 = beam.shock->trigger_cmdshort; // cmdshort of switch beam
+                            int long1 = beams[shocks[scount].beamid].shock->trigger_cmdlong; // cmdlong of checked trigger beam
+                            int long2 = beam.shock->trigger_cmdlong; // cmdlong of switch beam
+                            int tmpi = beams[shocks[scount].beamid].shock->beamid; // beamID global of checked trigger beam
+                            if (((short1 == short2 && long1 == long2) || (short1 == long2 && long1 == short2)) && i != tmpi) // found both command triggers then swap if its not the switching trigger
+                            {
+                                int tmpcmdkey = beams[shocks[scount].beamid].shock->trigger_cmdlong;
+                                beams[shocks[scount].beamid].shock->trigger_cmdlong = beams[shocks[scount].beamid].shock->trigger_cmdshort;
+                                beams[shocks[scount].beamid].shock->trigger_cmdshort = tmpcmdkey;
+                                beam.shock->trigger_switch_state = beam.shock->trigger_boundary_t; //prevent trigger switching again before leaving boundaries or timeout
+                                if (triggerdebug && beam.shock->last_debug_state != 3)
+                                {
+                                    LOG(" Trigger F-key commands switched. Switch BeamID " + TOSTRING(i)+ " switched commands of Trigger BeamID " + TOSTRING(beams[shocks[scount].beamid].shock->beamid) + " to cmdShort: F" + TOSTRING(beams[shocks[scount].beamid].shock->trigger_cmdshort) + ", cmdlong: F" + TOSTRING(beams[shocks[scount].beamid].shock->trigger_cmdlong));
+                                    beam.shock->last_debug_state = 3;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                { // just a trigger, check high/low boundary and set action
+                    if (cur_len_diff > beam.long_bound * beam.L) // trigger past long_bound
+                    {
+                        if (beam.shock->flags & SHOCK_FLAG_TRG_HOOK_UNLOCK)
+                        {
+                            if (update)
+                            {
+                                //autolock hooktoggle unlock
+                                hookToggle(beam.shock->trigger_cmdlong, HOOK_UNLOCK, -1);
+                            }
+                        }
+                        else if (beam.shock->flags & SHOCK_FLAG_TRG_HOOK_LOCK)
+                        {
+                            if (update)
+                            {
+                                //autolock hooktoggle lock
+                                hookToggle(beam.shock->trigger_cmdlong, HOOK_LOCK, -1);
+                            }
+                        }
+                        else if (beam.shock->flags & SHOCK_FLAG_TRG_ENGINE)
+                        {
+                            engineTriggerHelper(beam.shock->trigger_cmdshort, beam.shock->trigger_cmdlong, 1.0f);
+                        }
+                        else
+                        {
+                            //just a trigger
+                            if (!commandkey[beam.shock->trigger_cmdlong].trigger_cmdkeyblock_state) // related cmdkey is not blocked
+                            {
+                                if (beam.shock->flags & SHOCK_FLAG_TRG_CONTINUOUS)
+                                    commandkey[beam.shock->trigger_cmdshort].triggerInputValue = 1; // continuous trigger only operates on trigger_cmdshort
+                                else
+                                    commandkey[beam.shock->trigger_cmdlong].triggerInputValue = 1;
+                                if (triggerdebug && beam.shock->last_debug_state != 4)
+                                {
+                                    LOG(" Trigger Longbound activated. Trigger BeamID " + TOSTRING(i) + " Triggered F" + TOSTRING(beam.shock->trigger_cmdlong));
+                                    beam.shock->last_debug_state = 4;
+                                }
+                            }
+                        }
+                    }
+                    else // trigger past short bound
+                    {
+                        if (beam.shock->flags & SHOCK_FLAG_TRG_HOOK_UNLOCK)
+                        {
+                            if (update)
+                            {
+                                //autolock hooktoggle unlock
+                                hookToggle(beam.shock->trigger_cmdshort, HOOK_UNLOCK, -1);
+                            }
+                        }
+                        else if (beam.shock->flags & SHOCK_FLAG_TRG_HOOK_LOCK)
+                        {
+                            if (update)
+                            {
+                                //autolock hooktoggle lock
+                                hookToggle(beam.shock->trigger_cmdshort, HOOK_LOCK, -1);
+                            }
+                        }
+                        else if (beam.shock->flags & SHOCK_FLAG_TRG_ENGINE)
+                        {
+                            bool triggerValue = !(beam.shock->flags & SHOCK_FLAG_TRG_CONTINUOUS); // 0 if trigger is continuous, 1 otherwise
+
+                            engineTriggerHelper(beam.shock->trigger_cmdshort, beam.shock->trigger_cmdlong, triggerValue);
+                        }
+                        else
+                        {
+                            //just a trigger
+                            if (!commandkey[beam.shock->trigger_cmdshort].trigger_cmdkeyblock_state) // related cmdkey is not blocked
+                            {
+                                if (beam.shock->flags & SHOCK_FLAG_TRG_CONTINUOUS)
+                                    commandkey[beam.shock->trigger_cmdshort].triggerInputValue = 0; // continuous trigger only operates on trigger_cmdshort
+                                else
+                                    commandkey[beam.shock->trigger_cmdshort].triggerInputValue = 1;
+
+                                if (triggerdebug && beam.shock->last_debug_state != 5)
+                                {
+                                    LOG(" Trigger Shortbound activated. Trigger BeamID " + TOSTRING(i) + " Triggered F" + TOSTRING(beam.shock->trigger_cmdshort));
+                                    beam.shock->last_debug_state = 5;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else // this is a trigger inside boundaries and its enabled
+            {
+                if (beam.shock->flags & SHOCK_FLAG_TRG_CONTINUOUS) // this is an enabled continuous trigger
+                {
+                    if (beam.long_bound - beam.short_bound > 0.0f)
+                    {
+                        float diffPercentage = cur_len_diff / beam.L;
+                        float triggerValue = (diffPercentage - beam.short_bound) / (beam.long_bound - beam.short_bound);
+
+                        triggerValue = std::max(0.0f, triggerValue);
+                        triggerValue = std::min(triggerValue, 1.0f);
+
+                        if (beam.shock->flags & SHOCK_FLAG_TRG_ENGINE) // this trigger controls an engine
+                        {
+                            engineTriggerHelper(beam.shock->trigger_cmdshort, beam.shock->trigger_cmdlong, triggerValue);
+                        }
+                        else
+                        {
+                            // normal trigger
+                            commandkey[beam.shock->trigger_cmdshort].triggerInputValue = triggerValue;
+                            commandkey[beam.shock->trigger_cmdlong].triggerInputValue = triggerValue;
+                        }
+                    }
+                }
+                else if (beam.shock->flags & SHOCK_FLAG_TRG_BLOCKER) // this is an enabled blocker and inside boundary
+                {
+                    for (int scount = i + 1; scount <= i + beam.shock->trigger_cmdlong; scount++) // (cycle blockerbeamID + 1) to (blockerbeamID + beams to release)
+                    {
+                        if (beams[scount].shock && (beams[scount].shock->flags & SHOCK_FLAG_ISTRIGGER)) // don't mess anything up if the user set the number too big
+                        {
+                            if (triggerdebug && beams[scount].shock->trigger_enabled && beam.shock->last_debug_state != 6)
+                            {
+                                LOG(" Trigger enabled. Blocker BeamID " + TOSTRING(i) + " disabled trigger " + TOSTRING(scount));
+                                beam.shock->last_debug_state = 6;
+                            }
+                            beams[scount].shock->trigger_enabled = true; // enable the triggers
+                        }
+                    }
+                }
+                else if (beam.shock->flags & SHOCK_FLAG_TRG_BLOCKER_A) // this is an enabled reverse blocker and past boundary
+                {
+                    for (int scount = i + 1; scount <= i + beam.shock->trigger_cmdshort; scount++) // (cylce blockerbeamID +1) to (blockerbeamID + beams tob lock)
+                    {
+                        if (beams[scount].shock && (beams[scount].shock->flags & SHOCK_FLAG_ISTRIGGER)) // dont mess anything up if the user set the number too big
+                        {
+                            if (triggerdebug && !beams[scount].shock->trigger_enabled && beam.shock->last_debug_state != 10)
+                            {
+                                LOG(" Trigger disabled. Inverted Blocker BeamID " + TOSTRING(i) + " enabled trigger " + TOSTRING(scount));
+                                beam.shock->last_debug_state = 10;
+                            }
+                            beams[scount].shock->trigger_enabled = false; // disable the trigger
+                        }
+                    }
+                }
+                else if ((beam.shock->flags & SHOCK_FLAG_TRG_CMD_SWITCH) && beam.shock->trigger_switch_state) // this is a switch that was activated and is back inside boundaries again
+                {
+                    beam.shock->trigger_switch_state = 0.0f; //trigger_switch reset
+                    if (triggerdebug && beam.shock->last_debug_state != 7)
+                    {
+                        LOG(" Trigger switch reset. Switch BeamID " + TOSTRING(i));
+                        beam.shock->last_debug_state = 7;
+                    }
+                }
+                else if ((beam.shock->flags & SHOCK_FLAG_TRG_CMD_BLOCKER) && !commandkey[beam.shock->trigger_cmdshort].trigger_cmdkeyblock_state) // this cmdkeyblocker is inside boundaries and cmdkeystate is diabled
+                {
+                    commandkey[beam.shock->trigger_cmdshort].trigger_cmdkeyblock_state = true; // activate trigger blocking
+                    if (triggerdebug && beam.shock->last_debug_state != 8)
+                    {
+                        LOG(" F-key trigger blocked. Blocker BeamID " + TOSTRING(i) + " Blocked F" + TOSTRING(beam.shock->trigger_cmdshort));
+                        beam.shock->last_debug_state = 8;
+                    }
+                }
+            }
+        }
+    }
+    // save beam position for next simulation cycle
+    beam.shock->lastpos = cur_len_diff;
 }
 
 void G1SoftbodyGraph::Calculate(std::vector<G1Node>& nodes, std::vector<G1Beam>& beams)

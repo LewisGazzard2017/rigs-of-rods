@@ -62,8 +62,25 @@ struct G1Beam
 
 struct G1Shock
 {
-    float sbd_spring; ///< SBD = `set_beam_defaults` directive from truckfile | used by both SHOCK1 and SHOCK2
-    float sbd_damp;   ///< SBD = `set_beam_defaults` directive from truckfile | used by both SHOCK1 and SHOCK2
+    float sbd_spring;     ///< SBD = `set_beam_defaults` directive from truckfile | used by both SHOCK1 and SHOCK2
+    float sbd_damp;       ///< SBD = `set_beam_defaults` directive from truckfile | used by both SHOCK1 and SHOCK2
+    float last_len_diff;  ///< Last step's length diff from base
+    float spring_in;
+    float spring_in_prog;
+    float spring_out;
+    float spring_out_prog;
+    float damp_in;
+    float damp_in_prog;
+    float damp_out;
+    float damp_out_prog;
+    float trigger_switch_state;     ///< needed to avoid doubleswitch, bool and timer in one
+    // Type bits
+    bool is_soft_bump:1;
+    bool is_normal:1;
+    bool is_trigger:1;
+    bool is_trig_blocker:1;
+    // State bits
+    bool is_trigger_enabled:1;
 };
 
 /// Node/Beam connectivity graph.
@@ -105,6 +122,8 @@ public:
 private:
     // Reads { Beam, Shock }
     static void UpdateBeamShock1(G1Beam& beam, float cur_len_diff, float& spring, float& damp);
+    // Reads { Beam, Shock }
+    static void UpdateBeamShock2(G1Beam& beam, float cur_len_diff, float& spring, float& damp);
     // Reads { Beam }; Writes { Actor.increase_col_accuracy, Beam }
     void UpdateBeamDeform(G1Beam& beam, float& slen, float len, const float cur_len_diff, const float spring);
     // Reads { Beam, SoftbodyGraph }; Writes { Beam }
