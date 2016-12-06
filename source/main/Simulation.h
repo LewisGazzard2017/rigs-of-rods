@@ -234,15 +234,12 @@ public:
     bool WasKeyPressed        (int keycode);
     bool WasKeyReleased       (int keycode);
     bool HasKbChanged         () { return m_keyboard_changed; }
-    void SetCameraPosition    (float x, float y, float z); ///< Only effective in free-look and similar modes.
-    void CameraLookAt         (float x, float y, float z); ///< Only effective in free-look and similar modes.
-    void SetCameraOrientation (float x, float y, float z, float w); ///< Quaternion; Only effective in free-look and similar modes.
+    void SetCameraPosition    (Ogre::Vector3 pos);            ///< Only effective in free-look and similar modes.
+    void SetCameraOrientation (Ogre::Quaternion orientation); ///< Quaternion; Only effective in free-look and similar modes.
 
     char*                  GetCurKeyStates()  { return m_key_states[m_cur_buffer_idx]; }
     MouseState&            GetCurMouseState() { return m_mouse_state[m_cur_buffer_idx]; }
     Ogre::Vector3&         GetCamPos()        { return m_camera_pos; }
-    Ogre::Vector3&         GetCamLookAtPos()  { return m_camera_lookat_pos; }
-    bool                   IsCamLookAtSet()   { return m_camera_lookat_set; }
     Ogre::Quaternion&      GetCamRot()        { return m_camera_rot; }
     std::list<ActorLogic>& GetActors()        { return m_actors; }
 
@@ -265,8 +262,6 @@ protected:
     bool                  m_mouse_changed;
     // Simulation
     Ogre::Vector3         m_camera_pos;
-    Ogre::Vector3         m_camera_lookat_pos;
-    bool                  m_camera_lookat_set; ///< Was `CameraLookAt()` called this frame?
     Ogre::Quaternion      m_camera_rot;
     std::list<ActorLogic> m_actors;
     // Scripting

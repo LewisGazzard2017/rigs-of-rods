@@ -1,5 +1,7 @@
 
-#include "OisInputDefs.as"
+#include "SimControls.as"
+
+InputHandler input_handler;
 
 // External interface - called on startup
 bool SimPrepare(SimContext@ ctx)
@@ -15,13 +17,12 @@ bool SimPrepare(SimContext@ ctx)
 // External interface 
 bool SimUpdate(SimContext@ ctx, uint dt_milis)
 {
-    if (ctx.HasKbChanged())
+    input_handler.UpdateControls(ctx);
+    
+    if (input_handler.GetControl(CONTROL_GENERAL_EXIT_TO_MENU).is_active)
     {
-        if (ctx.WasKeyPressed(KC_ESCAPE))
-        {
-            LogMessage("SimUpdate(): Escape key pressed, leaving simulation");
-            ctx.Quit();
-        }
+        LogMessage("SimUpdate(): Returning to main menu");
+        ctx.Quit(); // Request exit
     }
     
     return true;

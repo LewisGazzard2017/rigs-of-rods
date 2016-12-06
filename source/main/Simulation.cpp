@@ -45,6 +45,7 @@
 #include <scriptstdstring/scriptstdstring.h>
 #include <scriptmath/scriptmath.h>
 #include <scriptany/scriptany.h>
+#include "OgreAngelscript.h"
 
 using namespace RoR;
 
@@ -100,8 +101,6 @@ void GfxContext::CopyLogicData(LogicContext* logic_ctx)
     // Camera
     m_data.camera_pos        = logic_ctx->GetCamPos();
     m_data.camera_rot        = logic_ctx->GetCamRot();
-    m_data.camera_lookat_pos = logic_ctx->GetCamLookAtPos();
-    m_data.camera_lookat_set = logic_ctx->IsCamLookAtSet();
 
     // Actors
     m_data.actors_added.clear();
@@ -174,14 +173,7 @@ void GfxContext::Update()
 {
     // Camera
     m_camera->setPosition(m_data.camera_pos);
-    if (m_data.camera_lookat_set)
-    {
-        m_camera->lookAt(m_data.camera_lookat_pos);
-    }
-    else
-    {
-        m_camera->setOrientation(m_data.camera_rot);
-    }
+    m_camera->setOrientation(m_data.camera_rot);
 
     // Removed actors (not updated anymore)
     for (Actor* removed_actor : m_data.actors_removed)
@@ -296,8 +288,6 @@ LogicContext::LogicContext():
 void LogicContext::Reset()
 {
     m_camera_pos          = Ogre::Vector3::ZERO;
-    m_camera_lookat_pos   = Ogre::Vector3::ZERO;
-    m_camera_lookat_set   = false;
     m_camera_rot          = Ogre::Quaternion::IDENTITY;
     m_keyboard_changed    = false;
     m_mouse_changed       = false;
@@ -389,20 +379,22 @@ bool LogicContext::CheckAndInit()
 
     AsSetupHelper helper(m_script_engine);
 
+    RegisterOgreObjects(&helper);
+
     helper.RegisterGlobalFn("void LogMessage(string)", AngelScript::asFUNCTION(AsLogMessage), AngelScript::asCALL_CDECL);
 
     AsObjectRegProxy obj(&helper, "SimContext", 0, AngelScript::asOBJ_REF);
     obj.AddBehavior(AngelScript::asBEHAVE_ADDREF,  "void f()", AngelScript::asMETHOD(LogicContext, DummyAddRef),     AngelScript::asCALL_THISCALL);
     obj.AddBehavior(AngelScript::asBEHAVE_RELEASE, "void f()", AngelScript::asMETHOD(LogicContext, DummyReleaseRef), AngelScript::asCALL_THISCALL);
 
-    obj.AddMethod("void Quit()", AngelScript::asMETHOD(LogicContext, Quit));
-    obj.AddMethod("bool IsKeyDown(int keycode)", AngelScript::asMETHOD(LogicContext, IsKeyDown));
-    obj.AddMethod("bool HasKbChanged()", AngelScript::asMETHOD(LogicContext, HasKbChanged));
-    obj.AddMethod("bool WasKeyPressed(int keycode)", AngelScript::asMETHOD(LogicContext, WasKeyPressed));
-    obj.AddMethod("bool WasKeyReleased()", AngelScript::asMETHOD(LogicContext, WasKeyReleased));
-    obj.AddMethod("void CameraLookAt(float x, float y, float z)", AngelScript::asMETHOD(LogicContext, CameraLookAt));
-    obj.AddMethod("void SetCameraPosition(float x, float y, float z)", AngelScript::asMETHOD(LogicContext, SetCameraPosition));
-    obj.AddMethod("void SetCameraOrientation(float x, float y, float z, float w)", AngelScript::asMETHOD(LogicContext, SetCameraOrientation));
+    obj.AddMethod("void Quit()",                               AngelScript::asMETHOD(LogicContext, Quit));
+    obj.AddMethod("bool IsKeyDown(int keycode)",               AngelScript::asMETHOD(LogicContext, IsKeyDown));
+    obj.AddMethod("bool HasKbChanged()",                       AngelScript::asMETHOD(LogicContext, HasKbChanged));
+    obj.AddMethod("bool WasKeyPressed(int keycode)",           AngelScript::asMETHOD(LogicContext, WasKeyPressed));
+    obj.AddMethod("bool WasKeyReleased()",                     AngelScript::asMETHOD(LogicContext, WasKeyReleased));
+    obj.AddMethod("void SetCameraPosition(Vector3 pos)",       AngelScript::asMETHOD(LogicContext, SetCameraPosition));
+    obj.AddMethod("void SetCameraOrientation(Quaternion rot)", AngelScript::asMETHOD(LogicContext, SetCameraOrientation));
+
     if (helper.CheckErrors())
     {
         LOGSTREAM << "Errors while registering LogicContext interface, messages:\n" << helper.GetErrors();
@@ -571,34 +563,20 @@ bool LogicContext::WasKeyReleased(int keycode)
         && (m_key_states[m_prev_buffer_idx][keycode] == 1);
 }
 
-void LogicContext::SetCameraPosition (float x, float y, float z)
+void LogicContext::SetCameraPosition (Ogre::Vector3 pos)
 {
-    m_camera_pos.x = x;
-    m_camera_pos.y = y;
-    m_camera_pos.z = z;
+    m_camera_pos = pos;
 }
 
-void LogicContext::CameraLookAt (float x, float y, float z)
+void LogicContext::SetCameraOrientation (Ogre::Quaternion orientation)
 {
-    m_camera_lookat_pos.x = x;
-    m_camera_lookat_pos.y = y;
-    m_camera_lookat_pos.z = z;
-    m_camera_lookat_set = true;
-}
-
-void LogicContext::SetCameraOrientation (float x, float y, float z, float w)
-{
-    m_camera_rot.x = x;
-    m_camera_rot.y = y;
-    m_camera_rot.z = z;
-    m_camera_rot.w = w;
+    m_camera_rot = orientation;
 }
 
 void LogicContext::StartNewFrame()
 {
     m_cur_buffer_idx = (m_cur_buffer_idx == 0) ? 1 : 0;
     m_prev_buffer_idx = (m_prev_buffer_idx == 0) ? 1 : 0;
-    m_camera_lookat_set = false;
 }
 
 // ============================== Simulation =============================== //
@@ -663,7 +641,7 @@ void Simulation::EnterLoop()
             [this, dt_milis]{ this->m_logic_context.Update(dt_milis); });
 
         // Update gfx on main thread.
-        // OGRE engine must render on the thread which initialized it.
+        // OGRE engine 1.x must render on the thread which initialized it.
         this->m_gfx_context.Update();
 
         // Wait for logic
