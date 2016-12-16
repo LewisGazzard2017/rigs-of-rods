@@ -64,6 +64,7 @@ void VehicleAI::AddWaypoint(String& id, Vector3& point)
     waypoint_names.emplace(free_waypoints, id);
 }
 
+/* NEXTSIM-FIXME
 void VehicleAI::AddWaypoints(AngelScript::CScriptDictionary& d)
 {
     for (auto dict : d.dict)
@@ -72,7 +73,7 @@ void VehicleAI::AddWaypoints(AngelScript::CScriptDictionary& d)
         Vector3* point = (Vector3 *)dict.second.valueObj;
         AddWaypoint(id, *(point));
     }
-}
+}*/
 
 void VehicleAI::AddEvent(String& id, int& ev)
 {

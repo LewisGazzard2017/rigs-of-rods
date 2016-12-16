@@ -87,8 +87,7 @@ bool AsExecuteContext(AngelScript::asIScriptContext* ctx, AngelScript::asIScript
     {
         msg << "The script ended with an exception." << std::endl;
 
-        int funcId = ctx->GetExceptionFunction();
-        const asIScriptFunction *func = engine->GetFunctionById(funcId);
+        const asIScriptFunction* func = ctx->GetExceptionFunction();
         msg << "\tFunction: " << func->GetDeclaration()        << std::endl;
         msg << "\t  Module: " << func->GetModuleName()         << std::endl;
         msg << "\t Section: " << func->GetScriptSectionName()  << std::endl;

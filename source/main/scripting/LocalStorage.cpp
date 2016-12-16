@@ -24,6 +24,8 @@
 #include "Application.h"
 #include "Settings.h"
 
+#include <angelscript.h>
+
 int LocalStorage::refCount = 0;
 
 /* class that implements the localStorage interface for the scripts */
@@ -32,7 +34,15 @@ LocalStorage::LocalStorage(AngelScript::asIScriptEngine *engine_in, std::string 
     refCount++;
     cgflag=false;
     this->engine = engine_in;
-    engine->NotifyGarbageCollectorOfNewObject(this, engine->GetTypeIdByDecl("LocalStorage"));
+    AngelScript::asITypeInfo* type_info = engine->GetTypeInfoByDecl("LocalStorage");
+    if (type_info != nullptr)
+    {
+        engine->NotifyGarbageCollectorOfNewObject(this, type_info);
+    }
+    else
+    {
+        LOGSAFE("internal error in LocalStorage::LocalStorage(): could not get type");
+    }
 
     // inversed logic, better use a whiteliste instead of a blacklist, so you are on the safe side ;) - tdev
     std::string allowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-";
@@ -54,8 +64,8 @@ LocalStorage::LocalStorage(AngelScript::asIScriptEngine *engine_in)
 {
     this->engine = engine_in;
     refCount++;
-
-    engine->NotifyGarbageCollectorOfNewObject(this, engine->GetTypeIdByDecl("LocalStorage"));	
+    AngelScript::asITypeInfo* type_info = engine->GetTypeInfoByDecl("LocalStorage");
+    engine->NotifyGarbageCollectorOfNewObject(this, type_info);	
     saved = true;
 }
 

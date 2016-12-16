@@ -36,7 +36,6 @@
 #include "scripthelper/scripthelper.h"
 #include "scriptmath/scriptmath.h"
 #include "scriptstdstring/scriptstdstring.h"
-#include "scriptstring/scriptstring.h"
 // AS addons end
 
 #include "Application.h"
@@ -347,7 +346,7 @@ void GameScript::moveObjectVisuals(const String& instanceName, const Vector3& po
         gEnv->terrainManager->getObjectManager()->moveObjectVisuals(instanceName, pos);
     }
 }
-
+/* NEXTSIM-FIXME
 void GameScript::spawnObject(const String& objectName, const String& instanceName, const Vector3& pos, const Vector3& rot, const String& eventhandler, bool uniquifyMaterials)
 {
     AngelScript::asIScriptModule* mod = 0;
@@ -362,6 +361,7 @@ void GameScript::spawnObject(const String& objectName, const String& instanceNam
     }
     if (!mod)
         return;
+    
     int functionPtr = mod->GetFunctionIdByName(eventhandler.c_str());
 
     // trying to create the new object
@@ -371,7 +371,7 @@ void GameScript::spawnObject(const String& objectName, const String& instanceNam
         const String type = "";
         gEnv->terrainManager->getObjectManager()->loadObject(objectName, pos, rot, bakeNode, instanceName, type, true, functionPtr, uniquifyMaterials);
     }
-}
+}*/
 
 void GameScript::hideDirectionArrow()
 {
@@ -646,6 +646,7 @@ static size_t curlWriteMemoryCallback(void* ptr, size_t size, size_t nmemb, void
 }
 #endif //USE_CURL
 
+#if 0 // NEXTSIM-FIXME
 int GameScript::useOnlineAPIDirectly(OnlineAPIParams_t params)
 {
 #ifdef USE_CURL
@@ -658,6 +659,7 @@ int GameScript::useOnlineAPIDirectly(OnlineAPIParams_t params)
     struct curl_httppost* formpost = NULL;
     struct curl_httppost* lastptr = NULL;
 
+    
     std::map<String, AngelScript::CScriptDictionary::valueStruct>::const_iterator it;
     for (it = params.dict->dict.begin(); it != params.dict->dict.end(); it++)
     {
@@ -690,6 +692,7 @@ int GameScript::useOnlineAPIDirectly(OnlineAPIParams_t params)
             curl_formadd(&formpost, &lastptr, CURLFORM_COPYNAME, it->first.c_str(), CURLFORM_COPYCONTENTS, TOSTRING((float)it->second.valueFlt).c_str(), CURLFORM_END);
         }
     }
+    */
 
     // add some hard coded values
     //curl_formadd(&formpost, &lastptr, CURLFORM_COPYNAME, "terrain_Name", CURLFORM_COPYCONTENTS, gEnv->frameListener->terrainName.c_str(), CURLFORM_END);
@@ -823,7 +826,9 @@ int GameScript::useOnlineAPIDirectly(OnlineAPIParams_t params)
 #endif //USE_CURL
     return 0;
 }
+#endif
 
+/* NEXTSIM-FIXME
 int GameScript::useOnlineAPI(const String& apiquery, const AngelScript::CScriptDictionary& d, String& result)
 {
     // malloc this, so we are safe from this function scope
@@ -883,6 +888,7 @@ int GameScript::useOnlineAPI(const String& apiquery, const AngelScript::CScriptD
 
     return 0;
 }
+*/
 
 void GameScript::boostCurrentTruck(float factor)
 {
@@ -903,12 +909,12 @@ int GameScript::addScriptFunction(const String& arg)
 
 int GameScript::scriptFunctionExists(const String& arg)
 {
-    return mse->functionExists(arg);
+    return (int) (mse->functionExists(arg) != nullptr);
 }
 
 int GameScript::deleteScriptFunction(const String& arg)
 {
-    return mse->deleteFunction(arg);
+    return (int) (mse->deleteFunction(arg) != nullptr);
 }
 
 int GameScript::addScriptVariable(const String& arg)

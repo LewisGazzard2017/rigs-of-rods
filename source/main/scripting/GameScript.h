@@ -311,7 +311,8 @@ public:
     * @param eventhandler A name of a function that should be called when an event happens (events, as defined in the object definition file)
     * @param uniquifyMaterials Set this to true if you need to uniquify the materials
     */
-    void spawnObject(const Ogre::String& objectName, const Ogre::String& instanceName, const Ogre::Vector3& pos, const Ogre::Vector3& rot, const Ogre::String& eventhandler, bool uniquifyMaterials);
+    // NEXTSIM-FIXME
+    //void spawnObject(const Ogre::String& objectName, const Ogre::String& instanceName, const Ogre::Vector3& pos, const Ogre::Vector3& rot, const Ogre::String& eventhandler, bool uniquifyMaterials);
     /**
     * This destroys an object
     * @param instanceName The unique name that you chose when spawning this object
@@ -359,8 +360,8 @@ public:
     } OnlineAPIParams_t;
 
     float rangeRandom(float from, float to);
-    int useOnlineAPI(const Ogre::String& apiquery, const AngelScript::CScriptDictionary& dict, Ogre::String& result);
-    int useOnlineAPIDirectly(OnlineAPIParams_t params);
+    //NEXTSIM-FIXME// int useOnlineAPI(const Ogre::String& apiquery, const AngelScript::CScriptDictionary& dict, Ogre::String& result);
+    //NEXTSIM-FIXME// int useOnlineAPIDirectly(OnlineAPIParams_t params);
 
     int getLoadedTerrain(Ogre::String& result);
     Ogre::Vector3 getPersonPosition();

@@ -225,8 +225,8 @@ void RegisterOgreRadian(AsObjectRegProxy& proxy)
     proxy.AddBehavior(asBEHAVE_CONSTRUCT, "void f(const Radian &in)", asFUNCTION(RadianCopyConstructor),    asCALL_CDECL_OBJLAST);
 
     // Register other object behaviours
-    proxy.AddBehavior(asBEHAVE_IMPLICIT_VALUE_CAST, "float f() const",  asMETHOD(Radian,valueRadians), asCALL_THISCALL);
-    proxy.AddBehavior(asBEHAVE_IMPLICIT_VALUE_CAST, "double f() const", asMETHOD(Radian,valueRadians), asCALL_THISCALL);
+    //NEXTSIM-FIXME// proxy.AddBehavior(asBEHAVE_IMPLICIT_VALUE_CAST, "float f() const",  asMETHOD(Radian,valueRadians), asCALL_THISCALL);
+    //NEXTSIM-FIXME// proxy.AddBehavior(asBEHAVE_IMPLICIT_VALUE_CAST, "double f() const", asMETHOD(Radian,valueRadians), asCALL_THISCALL);
 
     // Register the object operators
     proxy.AddMethod("Radian &opAssign(const Radian &in)",    asMETHODPR(Radian, operator= ,(const Radian &), Radian&),     asCALL_THISCALL);
@@ -291,8 +291,8 @@ void RegisterOgreDegree(AsObjectRegProxy& proxy)
     proxy.AddBehavior(asBEHAVE_CONSTRUCT, "void f(const Degree &in)", asFUNCTION(DegreeCopyConstructor),    asCALL_CDECL_OBJLAST);
 
     // Register other object behaviours
-    proxy.AddBehavior(asBEHAVE_IMPLICIT_VALUE_CAST, "float f() const",  asMETHOD(Degree,valueDegrees), asCALL_THISCALL);
-    proxy.AddBehavior(asBEHAVE_IMPLICIT_VALUE_CAST, "double f() const", asMETHOD(Degree,valueDegrees), asCALL_THISCALL);
+    //NEXTSIM-FIXME// proxy.AddBehavior(asBEHAVE_IMPLICIT_VALUE_CAST, "float f() const",  asMETHOD(Degree,valueDegrees), asCALL_THISCALL);
+    //NEXTSIM-FIXME// proxy.AddBehavior(asBEHAVE_IMPLICIT_VALUE_CAST, "double f() const", asMETHOD(Degree,valueDegrees), asCALL_THISCALL);
 
     // Register the object operators
     proxy.AddMethod("Degree &opAssign(const Degree &in)",    asMETHODPR(Degree, operator= ,(const Degree &), Degree&),     asCALL_THISCALL);

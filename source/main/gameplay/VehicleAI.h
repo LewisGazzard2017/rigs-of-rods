@@ -93,7 +93,7 @@ public:
      *  Adds a dictionary with waypoints.
      *  @param [in] d Dictionary with waypoints
      */
-    void AddWaypoints(AngelScript::CScriptDictionary& d);
+    //NEXTSIM-FIXME // void AddWaypoints(AngelScript::CScriptDictionary& d);
     /**
      *  Adds a event
      *

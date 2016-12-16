@@ -34,6 +34,7 @@
 #include <OgreQuaternion.h>
 
 #include <mutex>
+#include <angelscript.h>
 
 struct eventsource_t
 {
@@ -41,7 +42,7 @@ struct eventsource_t
     char boxname[256];
     Ogre::SceneNode* snode;
     Ogre::Quaternion direction;
-    int scripthandler;
+    AngelScript::asIScriptFunction* scripthandler;
     int cbox;
     bool enabled;
 };

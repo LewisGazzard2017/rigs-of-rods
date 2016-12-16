@@ -558,7 +558,7 @@ int Collisions::addCollisionBox(SceneNode *tenode, bool rotating, bool virt, Vec
         // this is event-generating
         strcpy(eventsources[free_eventsource].boxname, eventname.c_str());
         strcpy(eventsources[free_eventsource].instancename, instancename.c_str());
-        eventsources[free_eventsource].scripthandler = scripthandler;
+        eventsources[free_eventsource].scripthandler = nullptr; //NEXTSIM=FIXME = scripthandler;
         eventsources[free_eventsource].cbox = free_collision_box;
         eventsources[free_eventsource].snode = tenode;
         eventsources[free_eventsource].direction = direction;
