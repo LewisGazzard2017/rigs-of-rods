@@ -50,6 +50,8 @@ int OgreScriptBuilder::LoadScriptSection(const char* filename)
         return -1;
     }
 
+    Ogre::LogManager::getSingleton().stream() << "[RoR|Scripting] Loading #include file '" << filename << "'";
+
     // Read the entire file
     string code;
     code.resize(ds->size());

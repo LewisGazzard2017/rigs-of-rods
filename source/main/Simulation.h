@@ -147,20 +147,19 @@ struct ActorGfx
 
     void Update();
 
-    std::list<MeshGfx> meshes;
-    Actor*             actor;
-    State              state;
-
+    std::list<MeshGfx>             meshes;
+    Actor*                         actor;
+    State                          state;
     std::unique_ptr<Ogre::Vector3> node_positions;
 };
 
 /// Read-only definition of an actor (softbody) - both logic/gfx data
 struct ActorDef
 {
-    std::string name;
+    std::string          name;
     std::vector<NodeDef> nodes;
     std::vector<BeamDef> beams;
-    std::list<MeshDef> meshes;
+    std::list<MeshDef>   meshes;
 };
 
 /// Master actor entry, managed by main thread.
@@ -216,34 +215,34 @@ public:
 
     LogicContext();
 
-    bool        Prepare          ();
-    bool        Update           (size_t dt_milis);
-    void        StartNewFrame    ();
-    bool        WasExitRequested () { return m_exit_requested; }
-    void        Cleanup          ();
-    std::string GetError         () { return m_err_msg.str(); }
+    bool        Prepare              ();
+    bool        Update               (size_t dt_milis);
+    void        StartNewFrame        ();
+    bool        WasExitRequested     () { return m_exit_requested; }
+    void        Cleanup              ();
+    std::string GetError             () { return m_err_msg.str(); }
 
     // AngelScript utils
-    void DummyAddRef          () {}; ///< For AngelScript to be happy
-    void DummyReleaseRef      () {}; ///< For AngelScript to be happy
+    void        DummyAddRef          () {}; ///< For AngelScript to be happy
+    void        DummyReleaseRef      () {}; ///< For AngelScript to be happy
 
     // AngelScript interface
-    void Quit                 () { m_exit_requested = true; } ///< Exit to main menu
-    void ScriptMsgCallback    (const AngelScript::asSMessageInfo* msg);
-    bool IsKeyDown            (int keycode);
-    bool WasKeyPressed        (int keycode);
-    bool WasKeyReleased       (int keycode);
-    bool HasKbChanged         () { return m_keyboard_changed; }
-    void SetCameraPosition    (Ogre::Vector3 pos);            ///< Only effective in free-look and similar modes.
-    void SetCameraOrientation (Ogre::Quaternion orientation); ///< Quaternion; Only effective in free-look and similar modes.
+    void        Quit                 () { m_exit_requested = true; } ///< Exit to main menu
+    void        ScriptMsgCallback    (const AngelScript::asSMessageInfo* msg);
+    bool        IsKeyDown            (int keycode);
+    bool        WasKeyPressed        (int keycode);
+    bool        WasKeyReleased       (int keycode);
+    bool        HasKbChanged         () { return m_keyboard_changed; }
+    void        SetCameraPosition    (Ogre::Vector3 pos);            ///< Only effective in free-look and similar modes.
+    void        SetCameraOrientation (Ogre::Quaternion orientation); ///< Only effective in free-look and similar modes.
 
-    char*                  GetCurKeyStates()  { return m_key_states[m_cur_buffer_idx]; }
-    MouseState&            GetCurMouseState() { return m_mouse_state[m_cur_buffer_idx]; }
-    Ogre::Vector3&         GetCamPos()        { return m_camera_pos; }
-    Ogre::Quaternion&      GetCamRot()        { return m_camera_rot; }
-    std::list<ActorLogic>& GetActors()        { return m_actors; }
+    char*       GetCurKeyStates      () { return m_key_states[m_cur_buffer_idx]; }
+    MouseState& GetCurMouseState     () { return m_mouse_state[m_cur_buffer_idx]; }
+    Ogre::Vector3&         GetCamPos () { return m_camera_pos; }
+    Ogre::Quaternion&      GetCamRot () { return m_camera_rot; }
+    std::list<ActorLogic>& GetActors () { return m_actors; }
 
-    void                   UpdateUserInput(OIS::Keyboard* kb, OIS::Mouse* mouse);
+    void        UpdateUserInput      (OIS::Keyboard* kb, OIS::Mouse* mouse);
 
 protected:
     bool CheckAndInit();

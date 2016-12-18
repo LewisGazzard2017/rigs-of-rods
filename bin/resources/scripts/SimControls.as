@@ -19,10 +19,11 @@ class ControlInfo
 {
     ControlInfo()
     {
-        Reset();
+        ResetDef();
+        ResetState();
     }
     
-    void Reset()
+    void ResetDef()
     {
         keyb_code    = 0;
         mouse_code   = 0;
@@ -32,7 +33,10 @@ class ControlInfo
         mod_mouse_l  = false;
         mod_mouse_r  = false;
         mod_mouse_m  = false;
-        // State
+    }
+    
+    void ResetState()
+    {
         is_active    = false;
         is_fresh_on  = false;
         is_fresh_off = false;
@@ -81,13 +85,13 @@ class InputHandler
         m_controls.insertLast(control);
         
         // CONTROL_FREECAM_MOVE_UP
-        control.Reset();
+        control.ResetDef();
         control.keyb_code = KC_W;
         control.mod_mouse_r = true;
         m_controls.insertLast(control);
         
         // CONTROL_FREECAM_MOVE_DOWN
-        control.Reset();
+        control.ResetDef();
         control.keyb_code = KC_S;
         control.mod_mouse_r = true;
         m_controls.insertLast(control);              
@@ -102,25 +106,39 @@ class InputHandler
         bool ctrl    = ctx.IsKeyDown(KC_RCONTROL) || ctx.IsKeyDown(KC_LCONTROL);
         bool alt     = ctx.IsKeyDown(KC_RMENU)    || ctx.IsKeyDown(KC_LMENU);
         
-        for (int i = 0; i < m_controls.size(); ++i)
+        for (uint i = 0; i < m_controls.length(); ++i)
         {
             ControlInfo c = m_controls[i]; // Copy out
             c.is_fresh_on = false;
             c.is_fresh_off = false;
             
             bool kb_mods_match = (c.mod_shift == shift) && (c.mod_alt == alt) && (c.mod_ctrl == ctrl);
-            if (c.active && !kb_mods_match)
+            if (c.is_active)
             {
-                c.is_active = false;
-                c.is_fresh_off = true;
+                if (!kb_mods_match || !ctx.IsKeyDown(c.keyb_code))
+                {
+                    c.is_active = false;
+                    c.is_fresh_off = true;
+                }
             }
-            else if (!c.is_active && (c.keyb_code != 0) && kb_mods_match && ctx.IsKeyDown(c.keyb_code))
+            else
             {
-                c.is_active = true;
-                c.is_fresh_on = true;
+                if (kb_mods_match && ctx.IsKeyDown(c.keyb_code))
+                {
+                    c.is_active = true;
+                    c.is_fresh_on = true;
+                }
             }
             
             m_controls[i] = c; // Copy back
+        }
+    }
+    
+    void ResetControlStates()
+    {
+        for (uint i = 0; i < m_controls.length(); ++i)
+        {
+            m_controls[i].ResetState();
         }
     }
     

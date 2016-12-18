@@ -8,8 +8,15 @@ bool SimPrepare(SimContext@ ctx)
 {
     LogMessage("Running SimPrepare() ...");
     
-    ctx.SetCameraPosition(-50,40,-50);
-    ctx.CameraLookAt(0,0,0);
+    // Initial camera pos
+    ctx.SetCameraPosition(Vector3(-50,40,-50));
+    
+    // Initial camera rotation
+    Vector3 rot_axis(1,0,0); // global X
+    Radian rot_angle(3.14 * -0.1); // slight tilt
+    ctx.SetCameraOrientation(Quaternion(rot_angle, rot_axis));
+    
+    input_handler.ResetControlStates();
     
     return true;
 }

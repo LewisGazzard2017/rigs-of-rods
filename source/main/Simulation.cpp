@@ -413,14 +413,15 @@ bool LogicContext::CheckAndInit()
     }
 
     res = builder.AddSectionFromFile("SimMain.as");
-    if (res != 0)
+    if (res < 0)
     {
         SCRIPTLOG << "error loading script 'SimMain.as': " << AsRetCodeToString(res);
         return false;
     }
 
+    SCRIPTLOG << "Compiling file 'SimMain.as'";
     res = builder.BuildModule();
-    if (res != 0)
+    if (res < 0)
     {
         SCRIPTLOG << "error bulding module: " << AsRetCodeToString(res);
         return false;
