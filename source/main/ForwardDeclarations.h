@@ -52,6 +52,14 @@ namespace RoR
         class  MultiplayerSelector;
         class  FrictionSettings;
     }
+
+    namespace ModCache
+    {
+        struct Entry;
+        struct SoftbodyEntry;
+        struct TerrainEntry;
+        struct CategoryInfo;
+    }
 }
 
 namespace MyGUI
@@ -111,8 +119,6 @@ class BeamEngine;
 class BeamFactory;
 class BeamThreadStats;
 class Buoyance;
-class CacheEntry;
-class CacheSystem;
 class CameraManager;
 class Character;
 class ChatSystem;

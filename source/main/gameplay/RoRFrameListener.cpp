@@ -1393,7 +1393,7 @@ bool RoRFrameListener::updateEvents(float dt)
                     m_reload_pos = gEnv->player->getPosition();
                 }
 
-                Beam* local_truck = BeamFactory::getSingleton().CreateLocalRigInstance(m_reload_pos, m_reload_dir, m_last_cache_selection->fname, m_last_cache_selection->number, 0, false, config_ptr, m_last_skin_selection);
+                Beam* local_truck = BeamFactory::getSingleton().CreateLocalRigInstance(m_reload_pos, m_reload_dir, m_last_cache_selection->filename, m_last_cache_selection->number, 0, false, config_ptr, m_last_skin_selection);
 
                 finalizeTruckSpawning(local_truck, current_truck);
             }

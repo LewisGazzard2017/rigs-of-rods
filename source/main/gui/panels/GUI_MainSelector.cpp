@@ -342,7 +342,7 @@ struct sort_entries
 
 struct sort_search_results
 {
-    bool operator ()(std::pair<CacheEntry*, size_t> const& a, std::pair<CacheEntry*, size_t> const& b) const
+    bool operator ()(std::pair<ModCache::Entry*, size_t> const& a, std::pair<ModCache::Entry*, size_t> const& b) const
     {
         return a.second < b.second;
     }
@@ -353,11 +353,11 @@ typedef std::map<ModCache::Entry::Category, int> CategoryUsageMap;
 inline void AddCategoryUsage(CategoryUsageMap& map, ModCache::Entry* entry, size_t cur_timestamp)
 {
     ++map[entry->category];
-    ++map[ModCache::Entry::SPECIAL_ALL];
+    ++map[ModCache::Entry::CATEGORY_SPECIAL_ALL];
 
     if ((cur_timestamp - entry->added_timestamp) < CACHE_FILE_FRESHNESS)
     {
-        ++map[ModCache::Entry::SPECIAL_FRESH];
+        ++map[ModCache::Entry::CATEGORY_SPECIAL_FRESH];
     }
 }
 

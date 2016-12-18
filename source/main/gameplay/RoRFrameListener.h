@@ -71,7 +71,7 @@ protected:
     RoR::ForceFeedback m_forcefeedback;
     HeatHaze* m_heathaze;
 
-    CacheEntry* m_last_cache_selection;
+    RoR::ModCache::SoftbodyEntry* m_last_cache_selection;
     Skin* m_last_skin_selection;
     std::vector<Ogre::String> m_last_vehicle_configs;
 

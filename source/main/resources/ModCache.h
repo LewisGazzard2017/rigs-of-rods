@@ -89,7 +89,10 @@
         }
 */
 
+#pragma once
+
 #include <vector>
+#include <list>
 #include <string>
 #include <map>
 
@@ -152,48 +155,58 @@ struct Entry
     /// These are the category numbers from the repository. do not modify them!
     enum Category
     {
-        UNKNOWN             = 0,
+        CATEGORY_UNKNOWN             = 0,
 
-        OTHER_LAND_VEHICLES = 108,
+        CATEGORY_OTHER_LAND_VEHICLES = 108,
 
-        STREET_CARS         = 146,
-        LIGHT_RACING_CARS   = 147,
-        OFFROAD_CARS        = 148,
-        FANTASY_CARS        = 149,
-        BIKES               = 150,
-        CRAWLERS            = 155,
+        CATEGORY_STREET_CARS         = 146,
+        CATEGORY_LIGHT_RACING_CARS   = 147,
+        CATEGORY_OFFROAD_CARS        = 148,
+        CATEGORY_FANTASY_CARS        = 149,
+        CATEGORY_BIKES               = 150,
+        CATEGORY_CRAWLERS            = 155,
 
-        TOWERCRANES         = 152,
-        MOBILE_CRANES       = 153,
-        OTHER_CRANES        = 154,
+        CATEGORY_TOWERCRANES         = 152,
+        CATEGORY_MOBILE_CRANES       = 153,
+        CATEGORY_OTHER_CRANES        = 154,
 
-        BUSES               = 107,
-        TRACTORS            = 151,
-        FORKLIFTS           = 156,
-        FANTASY_TRUCKS      = 159,
-        TRANSPORT_TRUCKS    = 160,
-        RACING_TRUCKS       = 161,
-        OFFROAD_TRUCKS      = 162,
+        CATEGORY_BUSES               = 107,
+        CATEGORY_TRACTORS            = 151,
+        CATEGORY_FORKLIFTS           = 156,
+        CATEGORY_FANTASY_TRUCKS      = 159,
+        CATEGORY_TRANSPORT_TRUCKS    = 160,
+        CATEGORY_RACING_TRUCKS       = 161,
+        CATEGORY_OFFROAD_TRUCKS      = 162,
 
-        BOATS               = 110,
-        SUBMARINE           = 875,
+        CATEGORY_BOATS               = 110,
+        CATEGORY_SUBMARINE           = 875,
 
-        HELICOPTERS         = 113,
-        AIRCRAFT            = 114,
+        CATEGORY_HELICOPTERS         = 113,
+        CATEGORY_AIRCRAFT            = 114,
 
-        TRAILERS            = 117,
-        OTHER_LOADS         = 118,
-        CONTAINER           = 859,
+        CATEGORY_TRAILERS            = 117,
+        CATEGORY_OTHER_LOADS         = 118,
+        CATEGORY_CONTAINER           = 859,
 
-        ADDON_TERRAINS      = 129,
-        OFFICIAL_TERRAINS   = 5000, ///< Note: not in repository
-        NIGHT_TERRAINS      = 5001, ///< Note: not in repository
+        CATEGORY_ADDON_TERRAINS      = 129,
+        CATEGORY_OFFICIAL_TERRAINS   = 5000, ///< Note: not in repository
+        CATEGORY_NIGHT_TERRAINS      = 5001, ///< Note: not in repository
 
-        SPECIAL_UNSORTED    = 9990,
-        SPECIAL_ALL         = 9991,
-        SPECIAL_FRESH       = 9992,
-        SPECIAL_HIDDEN      = 9993,
+        CATEGORY_SPECIAL_UNSORTED    = 9990,
+        CATEGORY_SPECIAL_ALL         = 9991,
+        CATEGORY_SPECIAL_FRESH       = 9992,
+        CATEGORY_SPECIAL_HIDDEN      = 9993,
     };
+
+    enum Type
+    {
+        TYPE_INVALID,
+        TYPE_SOFTBODY,
+        TYPE_TERRAIN
+    };
+
+    virtual ~Entry() {}
+    virtual Type GetType() { return TYPE_INVALID; }
 
     std::string             name;
     std::string             filename;
@@ -206,15 +219,19 @@ struct Entry
 
 struct SoftbodyEntry: public Entry
 {
+    Type GetType() override { return TYPE_SOFTBODY; }
+
     std::list<std::string> modules;
     char                   engine_type;
     int                    driveable;
     int                    num_gears;
     std::string            file_ext;
+    int                    numeric_id;
 };
 
 struct TerrainEntry: public Entry
 {
+    Type GetType() override { return TYPE_TERRAIN; }
 };
 
 struct CategoryInfo // Required for old SelectorGUI

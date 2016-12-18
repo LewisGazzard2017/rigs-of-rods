@@ -38,47 +38,45 @@ public:
     MainSelector();
     ~MainSelector();
 
-    bool IsFinishedSelecting();
-    void Show(LoaderType type);
-    void Hide(bool smooth = true);
-    bool IsVisible();
-    void Reset();
-    void Cancel();
-
-    CacheEntry* GetSelectedEntry() { return m_selected_entry; }
-    Skin* GetSelectedSkin() { return m_selected_skin; }
+    bool                      IsFinishedSelecting();
+    void                      Show(LoaderType type);
+    void                      Hide(bool smooth = true);
+    bool                      IsVisible();
+    void                      Reset();
+    void                      Cancel();
+    ModCache::Entry*          GetSelectedEntry()  { return m_selected_entry; }
+    Skin*                     GetSelectedSkin()   { return m_selected_skin; }
     std::vector<Ogre::String> GetVehicleConfigs() { return m_vehicle_configs; }
 
 private:
 
-    void NotifyWindowButtonPressed(MyGUI::WidgetPtr _sender, const std::string& _name);
-
     // gui events
-    void EventComboAcceptConfigComboBox(MyGUI::ComboBoxPtr _sender, size_t _index);
-    void EventComboChangePositionTypeComboBox(MyGUI::ComboBoxPtr _sender, size_t _index);
-    void EventKeyButtonPressed_Main(MyGUI::WidgetPtr _sender, MyGUI::KeyCode _key, MyGUI::Char _char);
-    void EventListChangePositionModelList(MyGUI::ListPtr _sender, size_t _index);
-    void EventListChangePositionModelListAccept(MyGUI::ListPtr _sender, size_t _index);
-    void EventMouseButtonClickCancelButton(MyGUI::WidgetPtr _sender);
-    void EventMouseButtonClickOkButton(MyGUI::WidgetPtr _sender);
-    void EventSearchTextChange(MyGUI::EditBox* _sender);
-    void EventSearchTextGotFocus(MyGUI::WidgetPtr _sender, MyGUI::WidgetPtr oldWidget);
-    void NotifyWindowChangeCoord(MyGUI::Window* _sender);
-    void ResizePreviewImage();
-    void BindKeys(bool bind = true);
+    void     NotifyWindowButtonPressed(MyGUI::WidgetPtr _sender, const std::string& _name);
+    void     EventComboAcceptConfigComboBox(MyGUI::ComboBoxPtr _sender, size_t _index);
+    void     EventComboChangePositionTypeComboBox(MyGUI::ComboBoxPtr _sender, size_t _index);
+    void     EventKeyButtonPressed_Main(MyGUI::WidgetPtr _sender, MyGUI::KeyCode _key, MyGUI::Char _char);
+    void     EventListChangePositionModelList(MyGUI::ListPtr _sender, size_t _index);
+    void     EventListChangePositionModelListAccept(MyGUI::ListPtr _sender, size_t _index);
+    void     EventMouseButtonClickCancelButton(MyGUI::WidgetPtr _sender);
+    void     EventMouseButtonClickOkButton(MyGUI::WidgetPtr _sender);
+    void     EventSearchTextChange(MyGUI::EditBox* _sender);
+    void     EventSearchTextGotFocus(MyGUI::WidgetPtr _sender, MyGUI::WidgetPtr oldWidget);
+    void     NotifyWindowChangeCoord(MyGUI::Window* _sender);
+    void     ResizePreviewImage();
+    void     BindKeys(bool bind = true);
 
     // other functions
-    void UpdateGuiData();
-    void OnCategorySelected(int categoryID);
-    void OnEntrySelected(int entryID);
-    void OnSelectionDone();
-    size_t SearchCompare(Ogre::String searchString, ModCache::Entry* entry);
+    void     UpdateGuiData();
+    void     OnCategorySelected(int categoryID);
+    void     OnEntrySelected(int entryID);
+    void     OnSelectionDone();
+    size_t   SearchCompare(Ogre::String searchString, ModCache::Entry* entry);
 
-    void UpdateControls(CacheEntry* entry);
-    void SetPreviewImage(Ogre::String texture);
-    void FrameEntered(float dt);
+    void     UpdateControls(ModCache::Entry* entry);
+    void     SetPreviewImage(Ogre::String texture);
+    void     FrameEntered(float dt);
 
-    CacheEntry*                            m_selected_entry;
+    ModCache::Entry*                       m_selected_entry;
     LoaderType                             m_loader_type;
     Ogre::String                           m_preview_image_texture;
     Skin*                                  m_selected_skin;

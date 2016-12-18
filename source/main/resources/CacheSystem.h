@@ -44,7 +44,7 @@ struct AuthorInfo
     Ogre::String email;
 };
 
-class CacheEntry
+class CacheEntry_BEGONE
 {
 
 public:
