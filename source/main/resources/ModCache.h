@@ -212,6 +212,7 @@ struct Entry
     std::string             filename;
     std::string             description;
     std::string             thumb_img_name;
+    std::string             guid;
     Category                category;
     size_t                  added_timestamp;
     std::vector<AuthorInfo> authors;

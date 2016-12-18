@@ -613,24 +613,36 @@ void CLASS::OnCategorySelected(int categoryID)
             }
         }
     }
-    else
+    else if (m_loader_type == LT_Terrain)
     {
-        for (auto it = m_entries.begin(); it != m_entries.end(); it++)
+        size_t terrn_index = 0;
+        for (ModCache::TerrainEntry* entry : m_terrain_entries)
         {
-            if (it->categoryid == categoryID || categoryID == CacheSystem::CID_All
-                || categoryID == CacheSystem::CID_Fresh && (ts - it->addtimestamp < CACHE_FILE_FRESHNESS))
+            ModCache::Entry::Category c = entry->category;
+            if (c == categoryID || c == ModCache::Entry::CATEGORY_SPECIAL_ALL
+                || (c == ModCache::Entry::CATEGORY_SPECIAL_FRESH && ts - entry->added_timestamp < CACHE_FILE_FRESHNESS))
             {
                 counter++;
-                Ogre::String txt = TOSTRING(counter) + ". " + it->dname;
-                try
-                {
-                    m_Model->addItem(txt, it->number);
-                }
-                catch (...)
-                {
-                    m_Model->addItem("ENCODING ERROR", it->number);
-                }
+                Ogre::String txt = TOSTRING(counter) + ". " + Utils::SanitizeUtf8String(entry->name);
+                m_Model->addItem(txt, terrn_index);
             }
+            ++terrn_index;
+        }
+    }
+    else
+    {
+        size_t softbody_index = 0;
+        for (ModCache::SoftbodyEntry* entry : m_softbody_entries)
+        {
+            ModCache::Entry::Category c = entry->category;
+            if (c == categoryID || c == ModCache::Entry::CATEGORY_SPECIAL_ALL
+                || (c == ModCache::Entry::CATEGORY_SPECIAL_FRESH && ts - entry->added_timestamp < CACHE_FILE_FRESHNESS))
+            {
+                counter++;
+                Ogre::String txt = TOSTRING(counter) + ". " + Utils::SanitizeUtf8String(entry->name);
+                m_Model->addItem(txt, softbody_index);
+            }
+            ++softbody_index;
         }
     }
 
@@ -686,11 +698,24 @@ void CLASS::OnEntrySelected(int entryID)
         }
         return;
     }
-    CacheEntry* entry = RoR::App::GetCacheSystem()->getEntry(entryID);
-    if (!entry)
+    
+    if (m_loader_type == LT_Terrain)
+    {
+        m_selected_entry = m_terrain_entries.at(entryID);
+        if (m_selected_entry != nullptr)
+        {
+            this->UpdateControls(m_selected_entry);
+        }
         return;
-    m_selected_entry = entry;
-    this->UpdateControls(m_selected_entry);
+    }
+    
+    // Default = assume softbody
+    m_selected_entry = m_terrain_entries.at(entryID);
+    if (m_selected_entry != nullptr)
+    {
+        this->UpdateControls(m_selected_entry);
+    }
+    
 }
 
 void CLASS::OnSelectionDone()
@@ -700,16 +725,8 @@ void CLASS::OnSelectionDone()
 
     m_selection_done = true;
 
-
-
     if (m_loader_type != LT_SKIN)
     {
-        // we show the normal loader
-
-        //Only load vehicles via the selector
-        if (m_loader_type != LT_Terrain)
-            RoR::App::GetCacheSystem()->checkResourceLoaded(*m_selected_entry);
-
         m_current_skins.clear();
         m_skin_manager->GetUsableSkins(m_selected_entry->guid, this->m_current_skins);
         if (!m_current_skins.empty())
@@ -735,44 +752,45 @@ void CLASS::OnSelectionDone()
     }
 }
 
-void CLASS::UpdateControls(CacheEntry* entry)
+void CLASS::UpdateControls(ModCache::Entry* entry)
 {
-    Ogre::String outBasename = "";
-    Ogre::String outPath = "";
-    Ogre::StringUtil::splitFilename(entry->filecachename, outBasename, outPath);
+    Ogre::String outBasename = entry->filename;
 
     SetPreviewImage(outBasename);
 
-    if (entry->sectionconfigs.size())
+    ModCache::SoftbodyEntry* sb_entry = nullptr;
+    bool has_modules = false;
+    if (entry->GetType() == ModCache::Entry::TYPE_SOFTBODY)
     {
-        m_Config->setVisible(true);
-        m_Config->removeAllItems();
-        for (std::vector<Ogre::String>::iterator its = entry->sectionconfigs.begin(); its != entry->sectionconfigs.end(); its++)
+        sb_entry = static_cast<ModCache::SoftbodyEntry*>(entry);
+        if (!sb_entry->modules.empty())
         {
-            try
+            has_modules = true;
+            m_Config->setVisible(true);
+            m_Config->removeAllItems();
+            for (std::string module_name: sb_entry->modules)
             {
-                m_Config->addItem(*its, *its);
+                module_name = Utils::SanitizeUtf8String(module_name);
+                m_Config->addItem(module_name, module_name);
             }
-            catch (...)
-            {
-                m_Config->addItem("ENCODING ERROR", *its);
-            }
-        }
-        m_Config->setIndexSelected(0);
+            m_Config->setIndexSelected(0);
 
-        m_vehicle_configs.clear();
-        Ogre::String configstr = *m_Config->getItemDataAt<Ogre::String>(0);
-        m_vehicle_configs.push_back(configstr);
+            m_vehicle_configs.clear();
+            Ogre::String configstr = *m_Config->getItemDataAt<Ogre::String>(0);
+            m_vehicle_configs.push_back(configstr);
+        }
     }
-    else
+
+    if (!has_modules)
     {
         m_Config->setVisible(false);
     }
+
     Ogre::UTFString authors = "";
     std::set<Ogre::String> author_names;
     for (auto it = entry->authors.begin(); it != entry->authors.end(); it++)
     {
-        if (!it->type.empty() && !it->name.empty())
+        if (!it->name.empty())
         {
             Ogre::String name = it->name;
             Ogre::StringUtil::trim(name);
@@ -789,14 +807,7 @@ void CLASS::UpdateControls(CacheEntry* entry)
         authors = _L("no author information available");
     }
 
-    try
-    {
-        m_EntryName->setCaption(convertToMyGUIString(ANSI_TO_UTF(entry->dname)));
-    }
-    catch (...)
-    {
-        m_EntryName->setCaption("ENCODING ERROR");
-    }
+    m_EntryName->setCaption(Utils::SanitizeUtf8String(entry->name));
 
     Ogre::UTFString c = U("#FF7D02"); // colour key shortcut
     Ogre::UTFString nc = U("#FFFFFF"); // colour key shortcut
@@ -807,100 +818,24 @@ void CLASS::UpdateControls(CacheEntry* entry)
 
     descriptiontxt = descriptiontxt + _L("Author(s): ") + c + authors + nc + newline;
 
-    if (entry->version > 0)
-        descriptiontxt = descriptiontxt + _L("Version: ") + c + TOUTFSTRING(entry->version) + nc + newline;
-    if (entry->wheelcount > 0)
-        descriptiontxt = descriptiontxt + _L("Wheels: ") + c + TOUTFSTRING(entry->wheelcount) + U("x") + TOUTFSTRING(entry->propwheelcount) + nc + newline;
-    if (entry->truckmass > 0)
-        descriptiontxt = descriptiontxt + _L("Mass: ") + c + TOUTFSTRING((int)(entry->truckmass / 1000.0f)) + U(" ") + _L("tons") + nc + newline;
-    if (entry->loadmass > 0)
-        descriptiontxt = descriptiontxt + _L("Load Mass: ") + c + TOUTFSTRING((int)(entry->loadmass / 1000.0f)) + U(" ") + _L("tons") + nc + newline;
-    if (entry->nodecount > 0)
-        descriptiontxt = descriptiontxt + _L("Nodes: ") + c + TOUTFSTRING(entry->nodecount) + nc + newline;
-    if (entry->beamcount > 0)
-        descriptiontxt = descriptiontxt + _L("Beams: ") + c + TOUTFSTRING(entry->beamcount) + nc + newline;
-    if (entry->shockcount > 0)
-        descriptiontxt = descriptiontxt + _L("Shocks: ") + c + TOUTFSTRING(entry->shockcount) + nc + newline;
-    if (entry->hydroscount > 0)
-        descriptiontxt = descriptiontxt + _L("Hydros: ") + c + TOUTFSTRING(entry->hydroscount) + nc + newline;
-    if (entry->soundsourcescount > 0)
-        descriptiontxt = descriptiontxt + _L("SoundSources: ") + c + TOUTFSTRING(entry->soundsourcescount) + nc + newline;
-    if (entry->commandscount > 0)
-        descriptiontxt = descriptiontxt + _L("Commands: ") + c + TOUTFSTRING(entry->commandscount) + nc + newline;
-    if (entry->rotatorscount > 0)
-        descriptiontxt = descriptiontxt + _L("Rotators: ") + c + TOUTFSTRING(entry->rotatorscount) + nc + newline;
-    if (entry->exhaustscount > 0)
-        descriptiontxt = descriptiontxt + _L("Exhausts: ") + c + TOUTFSTRING(entry->exhaustscount) + nc + newline;
-    if (entry->flarescount > 0)
-        descriptiontxt = descriptiontxt + _L("Flares: ") + c + TOUTFSTRING(entry->flarescount) + nc + newline;
-    if (entry->torque > 0)
-        descriptiontxt = descriptiontxt + _L("Torque: ") + c + TOUTFSTRING(entry->torque) + nc + newline;
-    if (entry->flexbodiescount > 0)
-        descriptiontxt = descriptiontxt + _L("Flexbodies: ") + c + TOUTFSTRING(entry->flexbodiescount) + nc + newline;
-    if (entry->propscount > 0)
-        descriptiontxt = descriptiontxt + _L("Props: ") + c + TOUTFSTRING(entry->propscount) + nc + newline;
-    if (entry->wingscount > 0)
-        descriptiontxt = descriptiontxt + _L("Wings: ") + c + TOUTFSTRING(entry->wingscount) + nc + newline;
-    if (entry->hasSubmeshs)
-        descriptiontxt = descriptiontxt + _L("Using Submeshs: ") + c + TOUTFSTRING(entry->hasSubmeshs) + nc + newline;
-    if (entry->numgears > 0)
-        descriptiontxt = descriptiontxt + _L("Transmission Gear Count: ") + c + TOUTFSTRING(entry->numgears) + nc + newline;
-    if (entry->minrpm > 0)
-        descriptiontxt = descriptiontxt + _L("Engine RPM: ") + c + TOUTFSTRING(entry->minrpm) + U(" - ") + TOUTFSTRING(entry->maxrpm) + nc + newline;
-    if (!entry->uniqueid.empty() && entry->uniqueid != "no-uid")
-        descriptiontxt = descriptiontxt + _L("Unique ID: ") + c + entry->uniqueid + nc + newline;
     if (!entry->guid.empty() && entry->guid != "no-guid")
         descriptiontxt = descriptiontxt + _L("GUID: ") + c + entry->guid + nc + newline;
-    if (entry->usagecounter > 0)
-        descriptiontxt = descriptiontxt + _L("Times used: ") + c + TOUTFSTRING(entry->usagecounter) + nc + newline;
 
-    if (entry->addtimestamp > 0)
+    if (entry->added_timestamp > 0)
     {
         char tmp[255] = "";
-        time_t epch = entry->addtimestamp;
+        time_t epch = entry->added_timestamp;
         sprintf(tmp, "%s", asctime(gmtime(&epch)));
         descriptiontxt = descriptiontxt + _L("Date and Time installed: ") + c + Ogre::String(tmp) + nc + newline;
     }
 
     Ogre::UTFString driveableStr[5] = {_L("Non-Driveable"), _L("Truck"), _L("Airplane"), _L("Boat"), _L("Machine")};
-    if (entry->nodecount > 0)
-        descriptiontxt = descriptiontxt + _L("Vehicle Type: ") + c + driveableStr[entry->driveable] + nc + newline;
+    if (sb_entry != nullptr)
+    {
+        descriptiontxt = descriptiontxt + _L("Vehicle Type: ") + c + driveableStr[sb_entry->driveable] + nc + newline;
+    }
 
-    descriptiontxt = descriptiontxt + "#FF0000\n"; // red colour for the props
-
-    if (entry->forwardcommands)
-        descriptiontxt = descriptiontxt + _L("[forwards commands]") + newline;
-    if (entry->importcommands)
-        descriptiontxt = descriptiontxt + _L("[imports commands]") + newline;
-    if (entry->rollon)
-        descriptiontxt = descriptiontxt + _L("[is rollon]") + newline;
-    if (entry->rescuer)
-        descriptiontxt = descriptiontxt + _L("[is rescuer]") + newline;
-    if (entry->custom_particles)
-        descriptiontxt = descriptiontxt + _L("[uses custom particles]") + newline;
-    if (entry->fixescount > 0)
-        descriptiontxt = descriptiontxt + _L("[has fixes]") + newline;
-    // t is the default, do not display it
-    //if (entry->enginetype == 't') descriptiontxt = descriptiontxt +_L("[TRUCK ENGINE]") + newline;
-    if (entry->enginetype == 'c')
-        descriptiontxt = descriptiontxt + _L("[car engine]") + newline;
-    if (entry->type == "Zip")
-        descriptiontxt = descriptiontxt + _L("[zip archive]") + newline;
-    if (entry->type == "FileSystem")
-        descriptiontxt = descriptiontxt + _L("[unpacked in directory]") + newline;
-
-    descriptiontxt = descriptiontxt + "#66CCFF\n"; // now blue-ish color*
-
-    if (!entry->dirname.empty())
-        descriptiontxt = descriptiontxt + _L("Source: ") + entry->dirname + newline;
-    if (!entry->fname.empty())
-        descriptiontxt = descriptiontxt + _L("Filename: ") + entry->fname + newline;
-    if (!entry->hash.empty() && entry->hash != "none")
-        descriptiontxt = descriptiontxt + _L("Hash: ") + entry->hash + newline;
-    if (!entry->hash.empty())
-        descriptiontxt = descriptiontxt + _L("Mod Number: ") + TOUTFSTRING(entry->number) + newline;
-
-    if (!entry->sectionconfigs.empty())
+    if (has_modules)
     {
         descriptiontxt = descriptiontxt + U("\n\n#e10000") + _L("Please select a configuration below!") + nc + U("\n\n");
     }

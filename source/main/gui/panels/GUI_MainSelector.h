@@ -68,7 +68,7 @@ private:
     // other functions
     void     UpdateGuiData();
     void     OnCategorySelected(int categoryID);
-    void     OnEntrySelected(int entryID);
+    void     OnEntrySelected(int id);
     void     OnSelectionDone();
     size_t   SearchCompare(Ogre::String searchString, ModCache::Entry* entry);
 

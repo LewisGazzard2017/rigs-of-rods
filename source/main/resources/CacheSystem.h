@@ -27,7 +27,6 @@
 #pragma once
 
 #include "RoRPrerequisites.h"
-
 #include <Ogre.h>
 
 #define CACHE_FILE "mods.cache"
@@ -140,33 +139,16 @@ public:
     };
 
     void Startup(bool forcecheck=false);
-    void loadAllZips();
+
     
     static Ogre::String stripUIDfromString(Ogre::String uidstr);
     static Ogre::String getUIDfromString(Ogre::String uidstr);
     static bool stringHasUID(Ogre::String uidstr);
     
-    void loadAllZipsInResourceGroup(Ogre::String group);
 
-    bool checkResourceLoaded(CacheEntry t);
-    bool checkResourceLoaded(Ogre::String &filename);
+ 
 
-    /**
-    * Finds given resource and returns it's name/group.
-    * @param filename Input-output!
-    * @param group Input-output!
-    * @return True if resource was found.
-    */
-    bool checkResourceLoaded(Ogre::String &filename, Ogre::String &group);
-    CacheEntry getResourceInfo(Ogre::String &filename);
-    Ogre::String addMeshMaterials(CacheEntry &entry, Ogre::Entity *e);
-    std::map<int, Category_Entry> *getCategories();
-    std::vector<CacheEntry> *getEntries();
 
-    int getCategoryUsage(int category);
-    CacheEntry *getEntry(int modid);
-
-    int getTimeStamp();
 
     // this location MUST include a path separator at the end!
     void setLocation(Ogre::String cachepath, Ogre::String configpath);
@@ -174,8 +156,7 @@ public:
     // this is for stats only, maybe protect it by getter later
     int changedFiles, newFiles, deletedFiles;
 
-    void loadSingleZip(Ogre::String zippath, int cfactor, bool unload=true, bool ownGroup=true);
-    void loadSingleDirectory(Ogre::String dirname, Ogre::String group, bool alreadyLoaded=true);
+
 
     static bool resourceExistsInAllGroups(Ogre::String filename);
 
@@ -191,20 +172,12 @@ protected:
     int addUniqueString(std::set<Ogre::String> &list, Ogre::String str);
 
     /** parses all files loaded with a certain extension */
-    void parseFilesAllRG(Ogre::String ext);
-    void parseFilesOneRG(Ogre::String ext, Ogre::String rg);
-    void parseKnownFilesOneRG(Ogre::String rg);
-    void parseKnownFilesAllRG();
-    void parseKnownFilesOneRGDirectory(Ogre::String rg, Ogre::String dir);
 
-    void checkForNewKnownFiles();
 
     void addFile(Ogre::FileInfo f, Ogre::String ext);	// adds a file to entries
-    void addFile(Ogre::String filename, Ogre::String archiveType, Ogre::String archiveDirectory, Ogre::String ext);
 
-    // reads all advanced information out of the entry's file
-    void fillTerrainDetailInfo(CacheEntry &entry, Ogre::DataStreamPtr ds, Ogre::String fname);
-    void fillTruckDetailInfo(CacheEntry &entry, Ogre::DataStreamPtr ds, Ogre::String fname);
+
+
 
     /// Checks if update is needed
     CacheValidityState IsCacheValid();
@@ -213,30 +186,28 @@ protected:
     Ogre::String getCacheConfigFilename(bool full); // returns filename of the cache file
     int incrementalCacheUpdate();             // tries to update parts of the Cache only
 
-    void generateFileCache(CacheEntry &entry, Ogre::String directory=Ogre::String());	// generates a new cache
-    void deleteFileCache(char *filename); // removed files from cache
+    
+
     void writeGeneratedCache();
     
     // adds a zip to the cache
-    void loadSingleZip(Ogre::FileInfo f, bool unload=true, bool ownGroup=true);
-    void loadSingleZip(CacheEntry e, bool unload=true, bool ownGroup=true);
+
 
     Ogre::String detectFilesMiniType(Ogre::String filename);
-    void removeFileFromFileCache(std::vector<CacheEntry>::iterator it);
+    
     void generateCache(bool forcefull=false);
-    Ogre::String formatEntry(int counter, CacheEntry t);
-    Ogre::String formatInnerEntry(int counter, CacheEntry t);
-    void updateSingleTruckEntryCache(int number, CacheEntry t);
-    void parseModAttribute(const Ogre::String& line, CacheEntry& t);
-    void logBadTruckAttrib(const Ogre::String& line, CacheEntry& t);
 
-    void readCategoryTitles();
+    
+
+
+
+
 
     // helpers
     char *replacesSpaces(char *str);
     char *restoreSpaces(char *str);
     
-    std::time_t fileTime(Ogre::String filename);
+
 
     Ogre::String getRealPath(Ogre::String path);
     Ogre::String getVirtualPath(Ogre::String path);
@@ -244,20 +215,6 @@ protected:
     Ogre::String normalizeText(Ogre::String text);
     Ogre::String deNormalizeText(Ogre::String text);
     
-    void checkForNewFiles(Ogre::String ext);
-
-    void checkForNewContent();
-
-    void checkForNewZipsInResourceGroup(Ogre::String group);
-    void checkForNewDirectoriesInResourceGroup(Ogre::String group);
-
-    void generateZipList();
-    bool isZipUsedInEntries(Ogre::String filename);
-    bool isFileInEntries(Ogre::String filename);
-
-    bool isDirectoryUsedInEntries(Ogre::String directory);
-
-    void loadAllDirectoriesInResourceGroup(Ogre::String group);
 
     // ================================================================================
     // Variables
@@ -272,12 +229,12 @@ protected:
     
     std::vector<Ogre::String> known_extensions; //!< the extensions we track in the cache system
 
-    std::vector<CacheEntry> entries; //!< this holds all files
+
 
     std::map<Ogre::String, Ogre::String> zipHashes;
 
     // categories
-    std::map<int, Category_Entry> categories;
+
     std::map<int, int> category_usage;
     std::set<Ogre::String> zipCacheList;
 
