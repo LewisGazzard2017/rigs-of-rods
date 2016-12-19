@@ -3,6 +3,9 @@
 
 #include "BeamFactory.h"
 
+// NOTE: This code is largely cloned from original implementation (with cleanup)
+//       Orig comments were preserved, new comments start with NEXTSIM
+
 // ------------- PHYSICS UPDATE (w/THREADPOOL) --------------
 //
 // RoRFrameListener::frameStarted()
@@ -192,7 +195,7 @@ void G1LogicContext::BeginUpdate(size_t dt_milis)
 // NEXTSIM|OLD: void Beam::preUpdatePhysics(float dt)
 void G1Actor::BeginUpdate()
 {
-    m_prev_avg_pos = m_avg_pos; // TODO: Do it later when actually needed.
+    m_prev_avg_pos = m_avg_pos; // NEXTSIM|TODO: Do it later when actually needed.
 
     if (this-> m_nodes[0].rel_pos.squaredLength() > 10000.0)
     {
@@ -204,7 +207,7 @@ void G1Actor::TranslateOrigin(Ogre::Vector3 offset)
 {
     m_origin += offset;
 
-    // TODO: Parallelize this
+    // NEXTSIM|TODO: Parallelize this
     size_t max = m_nodes.size();
     for (size_t i = 0; i < max; ++i)
     {
@@ -238,7 +241,7 @@ void G1Actor::UpdateBeams()
             }
             else if (beam.is_shock2 && beam.shock != nullptr)
             {
-                // TODO
+                // NEXTSIM|TODO
             }
             else if (beam.is_support && cur_len_diff > 0.f)
             {
@@ -349,14 +352,14 @@ void G1Actor::UpdateBeamBreaking(G1Beam& beam, float& slen)
         beam.is_disabled = true;
         beam.is_broken = true;
 
-        // TODO: detacher groups (disabled for inter-actor beams)
+        // NEXTSIM|TODO: detacher groups (disabled for inter-actor beams)
     }
     else
     {
         beam.strength = 2.f * beam.deform_thr_abs;
     }
 
-    // TODO: check buoyant hull (disabled for inter-actor beams)
+    // NEXTSIM|TODO: check buoyant hull (disabled for inter-actor beams)
 }
 
 // static
