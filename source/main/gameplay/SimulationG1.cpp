@@ -265,13 +265,13 @@ void G1Actor::UpdateBeams()
         }
 
         // Calculate beam's rate of change
-        // NEXTSIM: not sure what 'slen' means - possibly 'squared length'? ~ only_a_ptr, 12/2016    
+        // NEXTSIM: not sure what 'slen' means ~ only_a_ptr, 12/2016    
         const Ogre::Vector3 v = beam.p1->velocity - beam.p2->velocity;
         float slen = -spring * cur_len_diff - damp * v.dotProduct(distance) * inv_length;
         beam.stress = slen;
 
         // Fast test for deformation
-        float len = std::abs(slen); // NEXTSIM: kept old name 'len' because not sure what the 'slen' value is. ~ only_a_ptr, 12/2016    
+        float len = std::abs(slen); // NEXTSIM: kept old name 'len' (not sure what 'slen' is). ~ only_a_ptr, 12/2016    
         if (len > beam.deform_thr_abs)
         {
             this->UpdateBeamDeform(beam, slen, len, cur_len_diff, spring);
