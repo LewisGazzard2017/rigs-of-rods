@@ -178,7 +178,7 @@ void G1LogicContext::BeginUpdate(size_t dt_milis)
 {
     ++m_num_frames;
 
-    // COMPAT: Use float value
+    // NEXTSIM|COMPAT: Use float value
     float dt_sec = static_cast<float>(static_cast<double>(dt_milis) / 1000.0);
     dt_sec = std::min(dt_sec, 1.0f / 20.0f); // COMPAT: do not allow dt > 1/20
     dt_sec *= m_sim_speed;
@@ -189,7 +189,7 @@ void G1LogicContext::BeginUpdate(size_t dt_milis)
     dt_sec = PHYSICS_DT * m_update_num_steps;
 }
 
-// OLD: void Beam::preUpdatePhysics(float dt)
+// NEXTSIM|OLD: void Beam::preUpdatePhysics(float dt)
 void G1Actor::BeginUpdate()
 {
     m_prev_avg_pos = m_avg_pos; // TODO: Do it later when actually needed.
@@ -268,7 +268,7 @@ void G1Actor::UpdateBeams()
         beam.stress = slen;
 
         // Fast test for deformation
-        float len = std::abs(slen); // NEXTSIM: kept old name 'len' because not sure what the value is. ~ only_a_ptr, 12/2016    
+        float len = std::abs(slen); // NEXTSIM: kept old name 'len' because not sure what the 'slen' value is. ~ only_a_ptr, 12/2016    
         if (len > beam.deform_thr_abs)
         {
             this->UpdateBeamDeform(beam, slen, len, cur_len_diff, spring);
@@ -338,7 +338,6 @@ void G1Actor::UpdateBeamBreaking(G1Beam& beam, float& slen)
         m_step_context.increase_coll_accuracy = true;
     }
 
-    // ORIG:
     //Break the beam only when it is not connected to a node
     //which is a part of a collision triangle and has 2 "live" beams or less connected to it.
 
@@ -365,7 +364,7 @@ void G1Actor::UpdateBeamShock1(G1Beam& beam, float cur_len_diff, float& spring, 
 {
     float interp_ratio;
     bool process = true;
-    // ORIG: Following code interpolates between defined beam parameters and default beam parameters
+    // Following code interpolates between defined beam parameters and default beam parameters
     const float max_len = beam.long_bound * beam.length;
     const float min_len = beam.short_bound * beam.length;
     if (cur_len_diff > max_len)
@@ -377,11 +376,11 @@ void G1Actor::UpdateBeamShock1(G1Beam& beam, float cur_len_diff, float& spring, 
 
     if (process)
     {
-        // ORIG: Hard (normal) shock bump
+        // Hard (normal) shock bump
         float tspring = DEFAULT_SPRING;
         float tdamp = DEFAULT_DAMP;
 
-        // ORIG: Skip camera, wheels or any other shocks which are not generated in a shocks or shocks2 section
+        // Skip camera, wheels or any other shocks which are not generated in a shocks or shocks2 section
         if (beam.is_hydro || beam.is_invis_hydro)
         {
             tspring = beam.shock->sbd_spring;
