@@ -33,7 +33,7 @@ class CameraManager : public IBehaviorManager
 
 public:
 
-    CameraManager();
+    CameraManager(RoR::LocalCharacter* player);
     ~CameraManager();
 
     class CameraContext
@@ -41,6 +41,7 @@ public:
     public:
 
         Beam* mCurrTruck;
+        RoR::LocalCharacter* player;
         DOFManager* mDof;
         Ogre::Degree mRotScale;
         Ogre::Real mDt;

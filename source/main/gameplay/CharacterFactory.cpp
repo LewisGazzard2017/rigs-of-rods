@@ -23,13 +23,16 @@
 
 #include "Character.h"
 
-Character* CharacterFactory::createLocal(int playerColour)
+
+///////// dead //////////
+/*
+Character* zzCharacterFactory::CreateLocalCharacter(int playerColour)
 {
     Character* ch = new Character(-1, 0, playerColour, false);
     return ch;
 }
 
-void CharacterFactory::createRemoteInstance(int sourceid, int streamid)
+void zzCharacterFactory::CreateRemoteCharacter(int sourceid, int streamid)
 {
 #ifdef USE_SOCKETW
     RoRnet::UserInfo info;
@@ -42,7 +45,7 @@ void CharacterFactory::createRemoteInstance(int sourceid, int streamid)
 #endif // USE_SOCKETW
 }
 
-void CharacterFactory::removeStreamSource(int sourceid)
+void zzCharacterFactory::removeStreamSource(int sourceid)
 {
     for (auto it = m_characters.begin(); it != m_characters.end(); it++)
     {
@@ -55,7 +58,7 @@ void CharacterFactory::removeStreamSource(int sourceid)
     }
 }
 
-void CharacterFactory::update(float dt)
+void zzCharacterFactory::update(float dt)
 {
     gEnv->player->update(dt);
     gEnv->player->updateLabels();
@@ -66,31 +69,5 @@ void CharacterFactory::update(float dt)
         c->updateLabels();
     }
 }
+*/
 
-#ifdef USE_SOCKETW
-void CharacterFactory::handleStreamData(std::vector<RoR::Networking::recv_packet_t> packet_buffer)
-{
-    for (auto packet : packet_buffer)
-    {
-        if (packet.header.command == RoRnet::MSG2_STREAM_REGISTER)
-        {
-            RoRnet::StreamRegister* reg = (RoRnet::StreamRegister *)packet.buffer;
-            if (reg->type == 1)
-            {
-                createRemoteInstance(packet.header.source, packet.header.streamid);
-            }
-        }
-        else if (packet.header.command == RoRnet::MSG2_USER_LEAVE)
-        {
-            removeStreamSource(packet.header.source);
-        }
-        else
-        {
-            for (auto& c : m_characters)
-            {
-                c->receiveStreamData(packet.header.command, packet.header.source, packet.header.streamid, packet.buffer);
-            }
-        }
-    }
-}
-#endif // USE_SOCKETW

@@ -30,17 +30,21 @@
 
 namespace RoR
 {
+    class  CharacterFactory;
+    class  CharacterGfx;
+    class  Console;
     class  ContentManager;
     class  GUIManager;
     struct GuiManagerImpl;
     class  GuiManagerInterface;
+    class  LocalCharacter;
     class  MainMenu;
     class  OgreSubsystem;
     struct PlatformUtils;
+    class  RemoteCharacter;
     class  RigLoadingProfiler;
     class  SceneMouse;
     class  SkinManager;
-    class  Console;
 
     namespace GUI
     {
@@ -121,7 +125,6 @@ class Buoyance;
 class CacheEntry;
 class CacheSystem;
 class CameraManager;
-class Character;
 class ChatSystem;
 class CmdKeyInertia;
 class Collisions;

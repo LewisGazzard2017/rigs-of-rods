@@ -72,7 +72,7 @@ public:
     void toggleMapView();
     void toggleMapAlpha();
 
-    void update(Ogre::Real dt);
+    void update(Ogre::Real dt, Ogre::Vector3 player_pos);
 
     static Ogre::String getTypeByDriveable(int driveable);
 

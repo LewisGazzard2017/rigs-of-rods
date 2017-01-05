@@ -29,7 +29,6 @@
 #include "CacheSystem.h"
 #include "CameraManager.h"
 #include "Character.h"
-#include "CharacterFactory.h"
 #include "ChatSystem.h"
 #include "CollisionTools.h"
 #include "Collisions.h"
@@ -118,6 +117,36 @@ using namespace RoR;
 #define  simSELECT(_S_) (_S_ == App::SIM_STATE_SELECTING  )
 #define  simEDITOR(_S_) (_S_ == App::SIM_STATE_EDITOR_MODE)
 
+RoRFrameListener::RoRFrameListener() :
+    m_dir_arrow_pointed(Vector3::ZERO),
+    m_heathaze(0),
+    m_hide_gui(false),
+    m_is_dir_arrow_visible(false),
+    m_is_pace_reset_pressed(false),
+    m_last_cache_selection(nullptr),
+    m_last_screenshot_date(""),
+    m_last_screenshot_id(1),
+    m_last_simulation_speed(0.1f),
+    m_last_skin_selection(nullptr),
+    m_netcheck_gui_timer(0.0f),
+    m_pressure_pressed(false),
+    m_race_bestlap_time(0),
+    m_race_in_progress(false),
+    m_race_start_time(0),
+    m_reload_box(0),
+    m_reload_dir(Quaternion::IDENTITY),
+    m_reload_pos(Vector3::ZERO),
+    m_stats_on(0),
+    m_time(0),
+    m_time_until_next_toggle(0),
+    m_truck_info_on(false)
+{
+}
+
+RoRFrameListener::~RoRFrameListener()
+{
+}
+
 void RoRFrameListener::updateForceFeedback(float dt)
 {
     if (!App::GetIoFFbackEnabled()) { return; }
@@ -154,36 +183,6 @@ void RoRFrameListener::updateForceFeedback(float dt)
             current_truck->hydrodircommand,
             current_truck->ffhydro);
     }
-}
-
-RoRFrameListener::RoRFrameListener() :
-    m_dir_arrow_pointed(Vector3::ZERO),
-    m_heathaze(0),
-    m_hide_gui(false),
-    m_is_dir_arrow_visible(false),
-    m_is_pace_reset_pressed(false),
-    m_last_cache_selection(nullptr),
-    m_last_screenshot_date(""),
-    m_last_screenshot_id(1),
-    m_last_simulation_speed(0.1f),
-    m_last_skin_selection(nullptr),
-    m_netcheck_gui_timer(0.0f),
-    m_pressure_pressed(false),
-    m_race_bestlap_time(0),
-    m_race_in_progress(false),
-    m_race_start_time(0),
-    m_reload_box(0),
-    m_reload_dir(Quaternion::IDENTITY),
-    m_reload_pos(Vector3::ZERO),
-    m_stats_on(0),
-    m_time(0),
-    m_time_until_next_toggle(0),
-    m_truck_info_on(false)
-{
-}
-
-RoRFrameListener::~RoRFrameListener()
-{
 }
 
 void RoRFrameListener::StartRaceTimer()
@@ -640,6 +639,8 @@ bool RoRFrameListener::updateEvents(float dt)
         }
     }
 
+    LocalCharacter* player = m_character_factory.GetLocalCharacter();
+
     //OLD m_loading_state == ALL_LOADED
     if (simEDITOR(s) && object_list.size() > 0)
     {
@@ -649,7 +650,7 @@ bool RoRFrameListener::updateEvents(float dt)
             if (object_index == -1)
             {
                 // Select nearest object
-                Vector3 ref_pos = gEnv->cameraManager->gameControlsLocked() ? gEnv->mainCamera->getPosition() : gEnv->player->getPosition();
+                Vector3 ref_pos = gEnv->cameraManager->gameControlsLocked() ? gEnv->mainCamera->getPosition() : player->GetPosition();
                 float min_dist = std::numeric_limits<float>::max();
                 for (int i = 0; i < (int)object_list.size(); i++)
                 {
@@ -719,7 +720,7 @@ bool RoRFrameListener::updateEvents(float dt)
 #endif //USE_MYGUI
             if (terrain_editing_track_object)
             {
-                gEnv->player->setPosition(object_list[object_index].node->getPosition());
+                player->SetPosition(object_list[object_index].node->getPosition());
                 //gEnv->cameraManager->NotifyContextChange();
             }
         }
@@ -791,28 +792,25 @@ bool RoRFrameListener::updateEvents(float dt)
 
                 if (terrain_editing_track_object)
                 {
-                    gEnv->player->setPosition(object_list[object_index].node->getPosition());
+                    player->SetPosition(object_list[object_index].node->getPosition());
                 }
             }
         }
         else
         {
-            CharacterFactory::getSingleton().update(dt);
+            m_character_factory.Update(dt, gEnv->mainCamera->getPosition());
         }
     }
     else if (simRUNNING(s) || simPAUSED(s))
     //else if (m_loading_state == ALL_LOADED)
     {
-        CharacterFactory::getSingleton().update(dt);
+        m_character_factory.Update(dt, gEnv->mainCamera->getPosition());
         if (gEnv->cameraManager && !gEnv->cameraManager->gameControlsLocked())
         {
             if (!curr_truck)
             {
-                if (gEnv->player)
-                {
-                    if (!App::GetGuiManager()->IsVisible_GamePauseMenu())
-                        gEnv->player->setPhysicsEnabled(true);
-                }
+                if (!App::GetGuiManager()->IsVisible_GamePauseMenu())
+                    player->SetUsePhysics(true);
             }
             else // we are in a vehicle
             {
@@ -826,7 +824,7 @@ bool RoRFrameListener::updateEvents(float dt)
                     StopRaceTimer();
                     Vector3 center = curr_truck->getRotationCenter();
                     BeamFactory::getSingleton().removeCurrentTruck();
-                    gEnv->player->setPosition(center);
+                    player->SetPosition(center);
                 }
                 else if ((RoR::App::GetInputEngine()->getEventBoolValue(EV_COMMON_REPAIR_TRUCK) || m_advanced_truck_repair) && !curr_truck->replaymode)
                 {
@@ -1327,10 +1325,7 @@ bool RoRFrameListener::updateEvents(float dt)
                         continue;
                     }
                     float len = 0.0f;
-                    if (gEnv->player)
-                    {
-                        len = trucks[i]->nodes[trucks[i]->cinecameranodepos[0]].AbsPosition.distance(gEnv->player->getPosition() + Vector3(0.0, 2.0, 0.0));
-                    }
+                    len = trucks[i]->nodes[trucks[i]->cinecameranodepos[0]].AbsPosition.distance(player->GetPosition() + Vector3(0.0, 2.0, 0.0));
                     if (len < mindist)
                     {
                         mindist = len;
@@ -1382,8 +1377,8 @@ bool RoRFrameListener::updateEvents(float dt)
                 }
                 else
                 {
-                    m_reload_dir = Quaternion(Degree(180) - gEnv->player->getRotation(), Vector3::UNIT_Y);
-                    m_reload_pos = gEnv->player->getPosition();
+                    m_reload_dir = Quaternion(Degree(180) - player->GetRotation(), Vector3::UNIT_Y);
+                    m_reload_pos = player->GetPosition();
                 }
 
                 Beam* local_truck = BeamFactory::getSingleton().CreateLocalRigInstance(m_reload_pos, m_reload_dir, m_last_cache_selection->fname, m_last_cache_selection->number, 0, false, config_ptr, m_last_skin_selection);
@@ -1431,8 +1426,8 @@ bool RoRFrameListener::updateEvents(float dt)
                         }
                         else
                         {
-                            m_reload_dir = Quaternion(Degree(180) - gEnv->player->getRotation(), Vector3::UNIT_Y);
-                            m_reload_pos = gEnv->player->getPosition();
+                            m_reload_dir = Quaternion(Degree(180) - player->GetRotation(), Vector3::UNIT_Y);
+                            m_reload_pos = player->GetPosition();
                         }
                     }
 
@@ -1440,9 +1435,9 @@ bool RoRFrameListener::updateEvents(float dt)
 
                     finalizeTruckSpawning(local_truck, current_truck);
                 }
-                else if (gEnv->player)
+                else
                 {
-                    gEnv->player->unwindMovement(0.1f);
+                    player->UnwindMovement(0.1f);
                 }
 
                 m_reload_box = 0;
@@ -1456,7 +1451,7 @@ bool RoRFrameListener::updateEvents(float dt)
 
     if (RoR::App::GetInputEngine()->getEventBoolValueBounce(EV_COMMON_GET_NEW_VEHICLE))
     {
-        if ((simRUNNING(s) || simPAUSED(s) || simEDITOR(s)) && gEnv->player != nullptr)
+        if ((simRUNNING(s) || simPAUSED(s) || simEDITOR(s)))
         {
             App::SetActiveSimState(App::SIM_STATE_SELECTING); // TODO: use pending mechanism
 
@@ -1504,11 +1499,8 @@ bool RoRFrameListener::updateEvents(float dt)
         Radian rotation(0);
         if (BeamFactory::getSingleton().getCurrentTruckNumber() == -1)
         {
-            if (gEnv->player)
-            {
-                position = gEnv->player->getPosition();
-                rotation = gEnv->player->getRotation() + Radian(Math::PI);
-            }
+            position = player->GetPosition();
+            rotation = player->GetRotation() + Radian(Math::PI);
         }
         else
         {
@@ -1572,11 +1564,13 @@ bool RoRFrameListener::frameStarted(const FrameEvent& evt)
 
     BeamFactory::getSingleton().SyncWithSimThread();
 
+    LocalCharacter* player = m_character_factory.GetLocalCharacter();
+
     const bool mp_connected = (App::GetActiveMpState() == App::MP_STATE_CONNECTED);
 #ifdef USE_SOCKETW
     if (mp_connected)
     {
-        RoR::Networking::HandleStreamData();
+        RoR::Networking::HandleStreamData(m_character_factory);
 #ifdef USE_MYGUI
         m_netcheck_gui_timer += dt;
         if (m_netcheck_gui_timer > 2.0f)
@@ -1608,14 +1602,12 @@ bool RoRFrameListener::frameStarted(const FrameEvent& evt)
     {
         // now update mumble 3d audio things
 #ifdef USE_MUMBLE
-        if (gEnv->player)
-        {
-            // calculate orientation of avatar first
-            Ogre::Vector3 avatarDir = Ogre::Vector3(Math::Cos(gEnv->player->getRotation()), 0.0f, Math::Sin(gEnv->player->getRotation()));
+        // calculate orientation of avatar first
+        Ogre::Vector3 avatarDir = Ogre::Vector3(Math::Cos(player->GetRotation()), 0.0f, Math::Sin(player->GetRotation()));
 
-            MumbleIntegration::getSingleton().update(gEnv->mainCamera->getPosition(), gEnv->mainCamera->getDirection(), gEnv->mainCamera->getUp(),
-                gEnv->player->getPosition() + Vector3(0, 1.8f, 0), avatarDir, Ogre::Vector3(0.0f, 1.0f, 0.0f));
-        }
+        MumbleIntegration::getSingleton().update(gEnv->mainCamera->getPosition(), gEnv->mainCamera->getDirection(), gEnv->mainCamera->getUp(),
+            player->GetPosition() + Vector3(0, 1.8f, 0), avatarDir, Ogre::Vector3(0.0f, 1.0f, 0.0f));
+        
 #endif // USE_MUMBLE
     }
 
@@ -1627,7 +1619,7 @@ bool RoRFrameListener::frameStarted(const FrameEvent& evt)
         }
         if (gEnv->surveyMap != nullptr)
         {
-            gEnv->surveyMap->update(dt);
+            gEnv->surveyMap->update(dt, player->GetPosition());
         }
     }
 
@@ -1728,7 +1720,7 @@ bool RoRFrameListener::frameStarted(const FrameEvent& evt)
     // update gui 3d arrow
     if (RoR::App::GetOverlayWrapper() && m_is_dir_arrow_visible && (simRUNNING(s) || simPAUSED(s) || simEDITOR(s)))
     {
-        RoR::App::GetOverlayWrapper()->UpdateDirectionArrow(curr_truck, m_dir_arrow_pointed);
+        RoR::App::GetOverlayWrapper()->UpdateDirectionArrow(curr_truck, player->GetPosition(), m_dir_arrow_pointed);
     }
 
     // one of the input modes is immediate, so setup what is needed for immediate mouse/key movement
@@ -1808,18 +1800,20 @@ bool RoRFrameListener::frameStarted(const FrameEvent& evt)
         {
             App::GetGuiManager()->SetVisible_GamePauseMenu(true);
             BeamFactory::getSingleton().MuteAllTrucks();
-            gEnv->player->setPhysicsEnabled(false);
+            player->SetUsePhysics(false);
 
             App::SetActiveSimState(App::SIM_STATE_PAUSED);
             App::SetPendingSimState(App::SIM_STATE_NONE);
+
+            BeamFactory::getSingleton().MuteAllTrucks();
         }
         else if (simPAUSED(s) && (App::GetPendingSimState() == App::SIM_STATE_RUNNING))
         {
             App::GetGuiManager()->SetVisible_GamePauseMenu(false);
             BeamFactory::getSingleton().UnmuteAllTrucks();
-            if (gEnv->player->getVisible() && !gEnv->player->getBeamCoupling())
+            if (player->GetCoupledTruck() == nullptr)
             {
-                gEnv->player->setPhysicsEnabled(true);
+                player->SetUsePhysics(true);
             }
 
             App::SetActiveSimState(App::SIM_STATE_RUNNING);
@@ -2060,10 +2054,12 @@ void RoRFrameListener::ChangedCurrentVehicle(Beam* previous_vehicle, Beam* curre
 #endif // OPENAL
     }
 
+    LocalCharacter* player = m_character_factory.GetLocalCharacter();
+
     if (current_vehicle == nullptr)
     {
         // getting outside
-        if (previous_vehicle && gEnv->player)
+        if (previous_vehicle)
         {
             previous_vehicle->prepareInside(false);
 
@@ -2077,9 +2073,9 @@ void RoRFrameListener::ChangedCurrentVehicle(Beam* previous_vehicle, Beam* curre
                 position += -2.0 * ((previous_vehicle->nodes[previous_vehicle->cameranodepos[0]].RelPosition - previous_vehicle->nodes[previous_vehicle->cameranoderoll[0]].RelPosition).normalisedCopy());
                 position += Vector3(0.0, -1.0, 0.0);
             }
-            gEnv->player->setBeamCoupling(false);
-            gEnv->player->setRotation(Radian(rotation));
-            gEnv->player->setPosition(position);
+            player->DetachFromTruck();
+            player->SetRotation(Radian(rotation));
+            player->SetPosition(position);
         }
 
         m_forcefeedback.SetEnabled(false);
@@ -2108,10 +2104,7 @@ void RoRFrameListener::ChangedCurrentVehicle(Beam* previous_vehicle, Beam* curre
         m_forcefeedback.SetEnabled(current_vehicle->driveable == TRUCK); //only for trucks so far
 
         // attach player to truck
-        if (gEnv->player)
-        {
-            gEnv->player->setBeamCoupling(true, current_vehicle);
-        }
+        player->AttachToTruck(current_vehicle);
 
         if (RoR::App::GetOverlayWrapper())
         {
@@ -2209,24 +2202,23 @@ bool RoRFrameListener::LoadTerrain()
     App::GetGuiManager()->FrictionSettingsUpdateCollisions();
 #endif //USE_MYGUI
 
-    if (gEnv->player != nullptr)
+    LocalCharacter* player = m_character_factory.GetLocalCharacter();
+    player->SetVisible(true);
+
+    player->SetPosition(gEnv->terrainManager->getSpawnPos());
+
+    // Classic behavior, retained for compatibility.
+    // Required for maps like N-Labs or F1 Track.
+    if (!gEnv->terrainManager->hasPreloadedTrucks())
     {
-        gEnv->player->setVisible(true);
-        gEnv->player->setPosition(gEnv->terrainManager->getSpawnPos());
-
-        // Classic behavior, retained for compatibility.
-        // Required for maps like N-Labs or F1 Track.
-        if (!gEnv->terrainManager->hasPreloadedTrucks())
-        {
-            gEnv->player->setRotation(Degree(180));
-        }
-
-        // Small hack to prevent spawning the Character in mid-air
-        for (int i = 0; i < 100; i++)
-        {
-            gEnv->player->update(0.05f);
-        }
+        player->SetRotation(Degree(180));
     }
+
+    // Small hack to prevent spawning the Character in mid-air
+    for (int i = 0; i < 100; i++)
+    {
+        player->Update(0.05f);
+    }    
 
     // hide loading window
     App::GetGuiManager()->SetVisible_LoadingWindow(false);
@@ -2261,12 +2253,7 @@ void RoRFrameListener::UnloadTerrain()
     BeamFactory::getSingleton().removeAllTrucks();
     loading_window->setProgress(30, _L("Unloading Terrain"));
 
-    if (gEnv->player != nullptr)
-    {
-        gEnv->player->setVisible(false);
-        delete(gEnv->player);
-        gEnv->player = nullptr;
-    }
+    m_character_factory.DeleteAllCharacters();
     loading_window->setProgress(45, _L("Unloading Terrain"));
 
     if (gEnv->terrainManager != nullptr)
@@ -2354,8 +2341,8 @@ bool RoRFrameListener::SetupGameplayLoop()
     }
 #endif // USE_SOCKETW
 
-    // NOTE: create player _AFTER_ network, important
-    gEnv->player = CharacterFactory::getSingleton().createLocal(colourNum);
+    LocalCharacter* player = m_character_factory.CreateLocalCharacter(colourNum);
+    player->SetVisible(true);
 
     // heathaze effect
     if (BSETTING("HeatHaze", false) && RoR::App::GetContentManager()->isLoaded(ContentManager::ResourcePack::HEATHAZE.mask))
@@ -2367,7 +2354,7 @@ bool RoRFrameListener::SetupGameplayLoop()
     if (gEnv->cameraManager == nullptr)
     {
         // init camera manager after mygui and after we have a character
-        gEnv->cameraManager = new CameraManager();
+        gEnv->cameraManager = new CameraManager(player);
     }
 
     // ============================================================================
@@ -2416,8 +2403,8 @@ bool RoRFrameListener::SetupGameplayLoop()
 
         const std::vector<Ogre::String> truckConfig = std::vector<Ogre::String>(1, App::GetDiagPreselectedVehConfig());
 
-        Vector3 pos = gEnv->player->getPosition();
-        Quaternion rot = Quaternion(Degree(180) - gEnv->player->getRotation(), Vector3::UNIT_Y);
+        Vector3 pos = player->GetPosition();
+        Quaternion rot = Quaternion(Degree(180) - player->GetRotation(), Vector3::UNIT_Y);
 
         Beam* b = BeamFactory::getSingleton().CreateLocalRigInstance(pos, rot, App::GetDiagPreselectedVehicle(), -1, nullptr, false, &truckConfig);
 

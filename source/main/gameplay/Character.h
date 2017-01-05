@@ -2,6 +2,7 @@
     This source file is part of Rigs of Rods
     Copyright 2005-2012 Pierre-Michel Ricordel
     Copyright 2007-2012 Thomas Fischer
+    Copyright 2016+     Petr Ohlidal & contributors
 
     For more information, see http://www.rigsofrods.org/
 
@@ -18,119 +19,128 @@
     along with Rigs of Rods. If not, see <http://www.gnu.org/licenses/>.
 */
 
+/// @file
+/// @brief Implements a player-controlled character (avatar)
+/// NOTE: NextSim approach is employed: there are separate game-logic and gfx states.
+/// Right now the separation is only half-baked (compatibility), but will help later.
+
 #pragma once
 
 #include "RoRPrerequisites.h"
+#include "Network.h"
 
-#include "MovableText.h"
+namespace RoR {
 
-class Character : public ZeroedMemoryAllocator
+/// 3D engine objects
+class CharacterGfx
 {
 public:
+    CharacterGfx();
+    void  Load               (Ogre::SceneManager* scene_mgr, const char* obj_name);
+    void  Unload             (Ogre::SceneManager* scene_mgr);
+    void  AddNetLabel        (const char* obj_name);
+    void  UpdatePlayerColor  (int colornum);
+    void  PushRotation       (Ogre::Radian rot_horizontal);
+    void  PushRotation       (Ogre::Quaternion rot);
+    void  PushPosition       (Ogre::Vector3 pos);
+    void  PushVisible        (bool vis);
+    void  UpdateNetLabel     (const char* caption, Ogre::Vector3 cam_pos, Ogre::Vector3 character_pos);
+    float AdvanceAnimation   (const char* anim_name, float time); ///< Returns updated anim time (temporary)
+    void  PushSteerAnim      (float steer_angle);
+    void  SetNetLabelVisible (bool visible);
+    void  SetCastShadows     (bool v);
 
-    Character(int source = -1, unsigned int streamid = 0, int colourNumber = 0, bool remote = true);
-    ~Character();
+private:
+    void SetActiveAnim     (const char* anim_name);
 
-    Ogre::Radian getRotation() { return characterRotation; };
-    Ogre::Vector3 getPosition();
-    bool getPhysicsEnabled() { return physicsEnabled; };
-    bool getVisible();
-
-    void receiveStreamData(unsigned int& type, int& source, unsigned int& streamid, char* buffer);
-
-    int getSourceID() { return m_source_id; };
-
-    bool isRemote() { return remote; };
-    bool getBeamCoupling() { return isCoupled; };
-
-    void setBeamCoupling(bool enabled, Beam* truck = 0);
-    void setColour(int color) { this->colourNumber = color; };
-    void setPhysicsEnabled(bool enabled) { physicsEnabled = enabled; };
-    void setPosition(Ogre::Vector3 position);
-    void setRotation(Ogre::Radian rotation);
-    void setVisible(bool visible);
-
-    void move(Ogre::Vector3 offset);
-
-    void unwindMovement(float distance);
-
-    void update(float dt);
-    void updateCharacterColour();
-    void updateCharacterRotation();
-    void updateMapIcon();
-    void updateLabels();
-
-    static unsigned int characterCounter;
-
-protected:
-
-    void createMapEntity();
-    void updateNetLabelSize();
-
-    Beam* beamCoupling;
-    bool isCoupled;
-    SurveyMapEntity* mapEntity;
-
-    bool canJump;
-    bool physicsEnabled;
-    bool remote;
-
-    Ogre::Radian characterRotation;
-    Ogre::Real characterSpeed;
-    Ogre::Real characterVSpeed;
-
-    unsigned int myNumber;
-    int colourNumber;
-    int networkAuthLevel;
-    int m_stream_id;
-    int m_source_id;
-
-    Ogre::AnimationStateSet* mAnimState;
-    Ogre::Camera* mCamera;
-    Ogre::MovableText* mMoveableText;
-    Ogre::SceneNode* mCharacterNode;
-    Ogre::String mLastAnimMode;
-    Ogre::String myName;
-    Ogre::UTFString networkUsername;
-    std::deque<Ogre::Vector3> mLastPosition;
-
-    void setAnimationMode(Ogre::String mode, float time = 0);
-
-    // network stuff
-    struct header_netdata_t
-    {
-        int command;
-    };
-
-    struct pos_netdata_t
-    {
-        int command;
-        float posx, posy, posz;
-        float rotx, roty, rotz, rotw;
-        char animationMode[256];
-        float animationTime;
-    };
-
-    struct attach_netdata_t
-    {
-        int command;
-        bool enabled;
-        int source_id;
-        int stream_id;
-        int position;
-    };
-
-    enum
-    {
-        CHARCMD_POSITION,
-        CHARCMD_ATTACH
-    };
-
-    Ogre::Timer mNetTimer;
-
-    bool mHideOwnNetLabel;
-
-    void sendStreamData();
-    void sendStreamSetup();
+    Ogre::MaterialPtr        m_material;
+    Ogre::Entity*            m_entity;
+    Ogre::SceneNode*         m_scene_node;
+    Ogre::AnimationStateSet* m_anim_states;
+    Ogre::MovableText*       m_net_label;
+    const char*              m_active_anim_name;
 };
 
+/// Physics and simulation logic
+class LocalCharacter
+{
+public:
+    LocalCharacter();
+    ~LocalCharacter();
+    void                 UpdateNetLabel     (Ogre::Vector3 camera_pos);
+    void                 NetSendStreamSetup ();
+    void                 NetSendState  ();
+    inline void          SetRotation        (Ogre::Radian rot_horizontal) { m_rotation = rot_horizontal; }
+    inline void          SetVisible         (bool vis) { m_is_visible = vis; } // TODO: update survey map
+    void                 SetPosition        (Ogre::Vector3 pos);
+    void                 UnwindMovement     (float distance);
+    void                 Update             (float dt_sec); // NOTE: After calling this, must manually update GFX pos/rot and send stream data!
+    void                 AttachToTruck      (Beam* truck);
+    void                 DetachFromTruck    ();
+    inline Ogre::Vector3 GetPosition        () const { return m_position; }
+    inline Ogre::Radian  GetRotation        () const { return m_rotation; }
+    inline void          SetUsePhysics      (bool v) { m_has_physics = v; }
+    inline Beam*         GetCoupledTruck    () { return m_coupled_truck; }
+
+private:
+    CharacterGfx         m_gfx; // TODO: Should be managed separately, but compatibility... ~only_a_ptr, 01/2017
+    std::string          m_obj_name;
+    int                  m_net_source_id;
+    int                  m_net_stream_id;
+    Beam*                m_coupled_truck;
+    const char*          m_active_anim_name;
+    float                m_active_anim_time;
+    // Positioning
+    Ogre::Vector3        m_position;
+    Ogre::Radian         m_rotation;
+    float                m_speed_h;
+    float                m_speed_v;
+    std::deque<Ogre::Vector3> m_prev_positions;
+    // Bit flags
+    bool                 m_is_visible:1;
+    bool                 m_has_physics:1;
+    bool                 m_can_jump:1;
+    bool                 m_is_coupled_visible:1;
+};
+
+class RemoteCharacter
+{
+public:
+    RemoteCharacter(int source_id, int stream_id);
+    ~RemoteCharacter();
+    void        UpdateNetLabel    (Ogre::Vector3 camera_pos);
+    void        HandleStreamData  (char* buffer);
+    inline int  GetSourceId       () const { return m_net_source_id; }
+    inline int  GetStreamId       () const { return m_net_stream_id; }
+    void        AttachToTruck     (Beam* truck);
+    void        DetachFromTruck   ();
+    
+private:
+    void        ReportError(const char* detail);
+
+    CharacterGfx         m_gfx;
+    std::string          m_obj_name;
+    int                  m_net_source_id;
+    int                  m_net_stream_id;
+    Beam*                m_coupled_truck;
+    Ogre::Vector3        m_position; ///< Only applies when not coupled with vehicle
+};
+    
+class CharacterFactory
+{
+public:
+    CharacterFactory();
+    LocalCharacter*        CreateLocalCharacter (int color_num);
+    RemoteCharacter*       CreateRemoteCharacter(int source_id, int stream_id);
+    void                   DeleteRemoteCharacter(int source_id);
+    void                   DeleteAllCharacters  ();
+    void                   HandleStreamData(std::vector<RoR::Networking::recv_packet_t>& packets);
+    inline LocalCharacter* GetLocalCharacter() { return m_local_obj; }
+    void                   Update(float dt_sec, Ogre::Vector3 camera_pos);
+    
+private:
+    LocalCharacter*               m_local_obj;
+    std::vector<RemoteCharacter*> m_remote_objs;
+};
+    
+} // namespace RoR

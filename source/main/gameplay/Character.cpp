@@ -2,6 +2,7 @@
     This source file is part of Rigs of Rods
     Copyright 2005-2012 Pierre-Michel Ricordel
     Copyright 2007-2012 Thomas Fischer
+    Copyright 2016+     Petr Ohlidal & contributors
 
     For more information, see http://www.rigsofrods.org/
 
@@ -26,6 +27,7 @@
 #include "Collisions.h"
 #include "IHeightFinder.h"
 #include "InputEngine.h"
+#include "MovableText.h"
 #include "Network.h"
 #include "PlayerColours.h"
 #include "SurveyMapEntity.h"
@@ -34,279 +36,324 @@
 #include "Utils.h"
 #include "Water.h"
 
+#include <stdint.h>
+
 using namespace Ogre;
 using namespace RoR;
 
-unsigned int Character::characterCounter = 0;
+#define LOGSTREAM Ogre::LogManager::getSingleton().stream()
 
-Character::Character(int source, unsigned int streamid, int colourNumber, bool remote) :
-    beamCoupling(0)
-    , canJump(false)
-    , characterRotation(0.0f)
-    , characterSpeed(2.0f)
-    , characterVSpeed(0.0f)
-    , colourNumber(colourNumber)
-    , mAnimState(0)
-    , mCamera(gEnv->mainCamera)
-    , mCharacterNode(0)
-    , mHideOwnNetLabel(BSETTING("HideOwnNetLabel", false))
-    , mMoveableText(0)
-    , networkAuthLevel(0)
-    , networkUsername("")
-    , physicsEnabled(true)
-    , remote(remote)
-    , m_source_id(source)
-    , m_stream_id(streamid)
-    , isCoupled(0)
+// Named character animations.
+static const char* ANIM_NAME_RUN       = "Run";
+static const char* ANIM_NAME_WALK      = "Walk";
+static const char* ANIM_NAME_TURN      = "Turn";
+static const char* ANIM_NAME_SIDESTEP  = "Side_step";
+static const char* ANIM_NAME_IDLE_SWAY = "Idle_sway";
+static const char* ANIM_NAME_SWIP_LOOP = "Swim_loop";
+static const char* ANIM_NAME_SWIM_SPOT = "Spot_swim";
+static const char* ANIM_NAME_DRIVING   = "Driving";
+
+static size_t s_num_local = 0; // Unique ID source
+static size_t s_num_remote = 0; // Unique ID source
+
+LocalCharacter::LocalCharacter():
+    m_net_source_id(-1), // Unassigned
+    m_net_stream_id(0),
+    m_coupled_truck(nullptr),
+    m_position(Ogre::Vector3::ZERO),
+    m_rotation(0.f),
+    m_speed_h(2.f),
+    m_speed_v(0.f),
+    m_is_visible(false),
+    m_has_physics(true),
+    m_can_jump(true)
 {
-    myNumber = characterCounter++;
-    myName = "Character" + TOSTRING(myNumber);
+    m_obj_name = "character_local_" + TOSTRING(s_num_local++);
 
-    Entity* entity = gEnv->sceneManager->createEntity(myName + "_mesh", "character.mesh");
-#if OGRE_VERSION<0x010602
-	entity->setNormaliseNormals(true);
-#endif //OGRE_VERSION
+    m_gfx.Load(gEnv->sceneManager, m_obj_name.c_str());
+    if ((App::GetActiveMpState() == App::MP_STATE_CONNECTED) && !BSETTING("HideOwnNetLabel", false))
+    {
+        m_gfx.AddNetLabel(m_obj_name.c_str());
+    }
+}
 
-    // fix disappearing mesh
+LocalCharacter::~LocalCharacter()
+{
+    m_gfx.Unload(gEnv->sceneManager);
+}
+
+RemoteCharacter::~RemoteCharacter()
+{
+    m_gfx.Unload(gEnv->sceneManager);
+}
+
+RemoteCharacter::RemoteCharacter(int source_id, int stream_id):
+    m_net_source_id(source_id),
+    m_net_stream_id(stream_id),
+    m_coupled_truck(nullptr)
+{
+    m_obj_name = "character_remote_" + TOSTRING(s_num_remote++);
+
+    m_gfx.Load(gEnv->sceneManager, m_obj_name.c_str());
+    m_gfx.AddNetLabel(m_obj_name.c_str());
+    m_gfx.PushVisible(true);
+}
+
+CharacterGfx::CharacterGfx():
+    m_entity     (nullptr),
+    m_scene_node (nullptr),
+    m_anim_states(nullptr),
+    m_net_label  (nullptr)
+{}
+
+void CharacterGfx::Load(Ogre::SceneManager* scene_mgr, const char* obj_name)
+{
+    assert(m_entity == nullptr);
+    assert(m_scene_node == nullptr);
+    assert(m_anim_states == nullptr);
+    
+    char name_buf[50];
+    // Entity
+    snprintf(name_buf, 50, "%s_mesh", obj_name);
+    m_entity = scene_mgr->createEntity(name_buf, "character.mesh");
+    // Entity AABB (TODO: necessary?)
     AxisAlignedBox aabb;
     aabb.setInfinite();
-    entity->getMesh()->_setBounds(aabb);
+    m_entity->getMesh()->_setBounds(aabb);
+    // Material
+    snprintf(name_buf, 50, "%s_material", obj_name);
+    m_material = Ogre::MaterialManager::getSingleton().getByName("tracks/character")->clone(name_buf);
+    m_entity->setMaterial(m_material);
+    // Scene
+    m_scene_node = scene_mgr->getRootSceneNode()->createChildSceneNode();
+    m_scene_node->attachObject(m_entity);
+    m_scene_node->setScale(0.02f, 0.02f, 0.02f); // Legacy
+    // Animations
+    m_anim_states = m_entity->getAllAnimationStates();
+}
 
-    // add entity to the scene node
-    mCharacterNode = gEnv->sceneManager->getRootSceneNode()->createChildSceneNode();
-    mCharacterNode->attachObject(entity);
-    mCharacterNode->setScale(0.02f, 0.02f, 0.02f);
-    mAnimState = entity->getAllAnimationStates();
+void CharacterGfx::AddNetLabel(const char* obj_name)
+{
+    assert(m_scene_node != nullptr);
+    assert(m_net_label == nullptr);
+    
+    char name_buf[50];
+    snprintf(name_buf, 50, "%s_netlabel", obj_name);
+    m_net_label = new MovableText(name_buf, "");  
+    m_net_label->setFontName("CyberbitEnglish");
+    m_net_label->setTextAlignment(MovableText::H_CENTER, MovableText::V_ABOVE);
+    m_net_label->setAdditionalHeight(2);
+    m_net_label->showOnTop(false);
+    m_net_label->setCharacterHeight(8);
+    m_net_label->setColor(ColourValue::Black);
 
-    if (App::GetActiveMpState() == App::MP_STATE_CONNECTED)
+    m_scene_node->attachObject(m_net_label);
+}
+
+void CharacterGfx::Unload(Ogre::SceneManager* scene_mgr)
+{
+    assert(m_scene_node != nullptr);
+    assert(m_entity != nullptr);
+    
+    m_scene_node->detachAllObjects();
+    scene_mgr->destroySceneNode(m_scene_node);
+    m_scene_node = nullptr;
+    scene_mgr->destroyEntity(m_entity);
+    m_entity = nullptr;
+    m_anim_states = nullptr; // Invalidated by destroyEntity()
+    MaterialManager::getSingleton().remove(m_material->getName());
+    m_material.setNull();
+
+    if (m_net_label != nullptr)
     {
-        sendStreamSetup();
+        delete m_net_label;
+        m_net_label = nullptr;
     }
-    if (remote)
-    {
-        setVisible(true);
-    }
-    // setup colour
-    MaterialPtr mat1 = MaterialManager::getSingleton().getByName("tracks/character");
-    MaterialPtr mat2 = mat1->clone("tracks/" + myName);
-    entity->setMaterialName("tracks/" + myName);
+}
 
+void CharacterGfx::UpdatePlayerColor(int colornum)
+{
+    PlayerColours::getSingleton().updateMaterial(colornum, m_material->getName(), 2);
+}
+
+void LocalCharacter::UpdateNetLabel(Ogre::Vector3 camera_pos)
+{
 #ifdef USE_SOCKETW
-    if ((App::GetActiveMpState() == App::MP_STATE_CONNECTED) && (remote || !mHideOwnNetLabel))
+    RoRnet::UserInfo info = RoR::Networking::GetLocalUserData();
+    m_gfx.UpdatePlayerColor(info.colournum);
+    if (strlen(info.username) > 0)
     {
-        mMoveableText = new MovableText("netlabel-" + myName, "");
-        mCharacterNode->attachObject(mMoveableText);
-        mMoveableText->setFontName("CyberbitEnglish");
-        mMoveableText->setTextAlignment(MovableText::H_CENTER, MovableText::V_ABOVE);
-        mMoveableText->setAdditionalHeight(2);
-        mMoveableText->showOnTop(false);
-        mMoveableText->setCharacterHeight(8);
-        mMoveableText->setColor(ColourValue::Black);
-
-        updateLabels();
+        m_gfx.UpdateNetLabel(info.username, camera_pos, m_position);
     }
-#endif //SOCKETW
+#endif    
 }
 
-Character::~Character()
+void RemoteCharacter::UpdateNetLabel(Ogre::Vector3 camera_pos)
 {
-    setVisible(false);
-    if (mMoveableText)
-    {
-        delete mMoveableText;
-    }
-    if (mCharacterNode)
-    {
-        mCharacterNode->detachAllObjects();
-    }
-#ifdef USE_MYGUI
-    if (gEnv->surveyMap && mapEntity)
-    {
-        gEnv->surveyMap->deleteMapEntity(mapEntity);
-    }
-#endif // USE_MYGUI
-    // try to unload some materials
-    try
-    {
-        MaterialManager::getSingleton().unload("tracks/" + myName);
-    }
-    catch (...)
-    {
-    }
-}
-
-void Character::updateCharacterRotation()
-{
-    setRotation(characterRotation);
-}
-
-void Character::updateCharacterColour()
-{
-    String matName = "tracks/" + myName;
-    PlayerColours::getSingleton().updateMaterial(colourNumber, matName, 2);
-}
-
-void Character::updateLabels()
-{
-    if (App::GetActiveMpState() != App::MP_STATE_CONNECTED) { return; }
-
 #ifdef USE_SOCKETW
     RoRnet::UserInfo info;
-
-    if (remote)
+    if (!RoR::Networking::GetUserInfo(m_net_source_id, info))
+        return;
+    
+    m_gfx.UpdatePlayerColor(info.colournum);    
+    if (strlen(info.username) > 0)
     {
-        if (!RoR::Networking::GetUserInfo(m_source_id, info))
-            return;
+        m_gfx.UpdateNetLabel(info.username, camera_pos, m_position);
+    }
+#endif 
+}
+
+void CharacterGfx::UpdateNetLabel   (const char* caption, Ogre::Vector3 cam_pos, Ogre::Vector3 character_pos)
+{
+    assert(m_net_label != nullptr);
+
+    char caption_buf[100];
+    std::string utf8caption = RoR::Utils::SanitizeUtf8String(caption);
+    const float cam_dist = (character_pos - cam_pos).length();
+    if (cam_dist > 1000.f) // 1km
+    {
+        snprintf(caption_buf, 100, "%s (%.1f km)", utf8caption.c_str(), ceil(cam_dist / 100.f) / 10.0f);
+        m_net_label->setCaption(utf8caption);
+    }
+    else if (cam_dist > 20.f)
+    {
+        snprintf(caption_buf, 100, "%s (%.2f m)", utf8caption.c_str(), cam_dist);
+        m_net_label->setCaption(utf8caption);
     }
     else
     {
-        info = RoR::Networking::GetLocalUserData();
-    }
-
-    networkAuthLevel = info.authstatus;
-
-    colourNumber = info.colournum;
-    updateCharacterColour();
-
-    if (String(info.username).empty())
-        return;
-    networkUsername = tryConvertUTF(info.username);
-
-    if (mMoveableText)
-    {
-        mMoveableText->setCaption(networkUsername);
-    }
-
-    /*
-    if (networkAuthLevel & AUTH_ADMIN)
-    {
-        mMoveableText->setFontName("highcontrast_red");
-    } else if (networkAuthLevel & AUTH_RANKED)
-    {
-        mMoveableText->setFontName("highcontrast_green");
-    } else
-    {
-        mMoveableText->setFontName("highcontrast_black");
-    }
-    */
-
-    updateNetLabelSize();
-#endif //SOCKETW
-}
-
-void Character::setPosition(Vector3 position)
-{
-    mCharacterNode->setPosition(position);
-    mLastPosition.clear();
-#ifdef USE_MYGUI
-    if (gEnv->surveyMap && gEnv->surveyMap->getMapEntityByName(myName))
-    {
-        gEnv->surveyMap->getMapEntityByName(myName)->setPosition(position);
-    }
-#endif // USE_MYGUI
-}
-
-void Character::setVisible(bool visible)
-{
-    mCharacterNode->setVisible(visible);
-#ifdef USE_MYGUI
-    if (gEnv->surveyMap)
-    {
-        SurveyMapEntity* e = gEnv->surveyMap->getMapEntityByName(myName);
-        if (e)
-            e->setVisibility(visible);
-    }
-#endif // USE_MYGUI
-}
-
-Vector3 Character::getPosition()
-{
-    return mCharacterNode->getPosition();
-}
-
-bool Character::getVisible()
-{
-    return mCharacterNode->getAttachedObject(0)->getVisible();
-}
-
-void Character::setRotation(Radian rotation)
-{
-    characterRotation = rotation;
-    mCharacterNode->resetOrientation();
-    mCharacterNode->yaw(-characterRotation);
-}
-
-void Character::setAnimationMode(String mode, float time)
-{
-    if (!mAnimState)
-        return;
-    if (mLastAnimMode != mode)
-    {
-        AnimationStateIterator it = mAnimState->getAnimationStateIterator();
-        while (it.hasMoreElements())
-        {
-            AnimationState* as = it.getNext();
-            if (as->getAnimationName() == mode)
-            {
-                as->setEnabled(true);
-                as->setWeight(1);
-                as->addTime(time);
-            }
-            else
-            {
-                as->setEnabled(false);
-                as->setWeight(0);
-            }
-        }
-        mLastAnimMode = mode;
-    }
-    else
-    {
-        mAnimState->getAnimationState(mode)->addTime(time);
+        m_net_label->setCaption(utf8caption);
     }
 }
 
-float calculate_collision_depth(Vector3 pos)
+void LocalCharacter::SetPosition(Ogre::Vector3 pos)
 {
-    Vector3 query = pos + Vector3::UNIT_Y;
-    while (query.y > pos.y)
-    {
-        if (gEnv->collisions->collisionCorrect(&query, false))
-            break;
-        query.y -= 0.01f;
-    }
-    return query.y - pos.y;
+    m_position = pos;
+    m_prev_positions.clear();
+    // TODO: update survey map
 }
 
-void Character::update(float dt)
+void CharacterGfx::PushRotation(Ogre::Radian rot_horizontal)
 {
-    if (physicsEnabled && !remote)
+    m_scene_node->resetOrientation();
+    m_scene_node->yaw(-rot_horizontal);
+}
+
+void CharacterGfx::PushPosition(Ogre::Vector3 pos)
+{
+    m_scene_node->setPosition(pos);
+}
+
+void  CharacterGfx::PushRotation(Ogre::Quaternion rot)
+{
+    m_scene_node->setOrientation(rot);
+}
+
+void CharacterGfx::PushVisible(bool vis)
+{
+    m_scene_node->setVisible(vis);
+    //TODO: Hide on survey map!
+}
+
+void CharacterGfx::SetActiveAnim      (const char* anim_name)
+{
+    // Disable all
+    auto itor = m_anim_states->getAnimationStateIterator();
+    while (itor.hasMoreElements())
     {
+        AnimationState* state = itor.getNext();
+        state->setEnabled(false);
+        state->setWeight(0.f);
+    }
+    // Enable desired
+    AnimationState* state = m_anim_states->getAnimationState(anim_name);
+    state->setEnabled(true);
+    state->setWeight(1.f);
+    m_active_anim_name = anim_name;
+}
+
+float CharacterGfx::AdvanceAnimation  (const char* anim_name, float time)
+{
+    assert(m_anim_states != nullptr);
+
+    if (anim_name != m_active_anim_name)
+        this->SetActiveAnim(anim_name);
+
+    auto* state = m_anim_states->getAnimationState(anim_name);
+    state->addTime(time);
+    return state->getTimePosition(); // Temporary solution... the logic should not rely on read-back values
+}
+
+void CharacterGfx::PushSteerAnim  (float steer_angle)
+{
+    assert(m_anim_states != nullptr);
+
+    if (m_active_anim_name != ANIM_NAME_DRIVING)
+        this->SetActiveAnim(ANIM_NAME_DRIVING);
+
+    auto* steer_anim = m_anim_states->getAnimationState(ANIM_NAME_DRIVING);
+    const float anim_length = steer_anim->getLength();
+    float anim_time_pos = ((steer_angle + 1.0f) * 0.5f) * anim_length;
+    // prevent animation flickering on the borders:
+    if (anim_time_pos < 0.01f)
+    {
+        anim_time_pos = 0.01f;
+    }
+    if (anim_time_pos > anim_length - 0.01f)
+    {
+        anim_time_pos = anim_length - 0.01f;
+    }
+    steer_anim->setTimePosition(anim_time_pos);
+}
+
+// Temporary solution... we should really update name/time locally and push later...
+#define ADVANCE_ANIM_NOW(_NAME_, _TIME_) \
+{ \
+    m_active_anim_name = _NAME_; \
+    m_active_anim_time = m_gfx.AdvanceAnimation(_NAME_, _TIME_); \
+}
+
+void LocalCharacter::Update(float dt_sec)
+{
+    // Clone of legacy logic
+    if (!m_has_physics && m_is_coupled_visible)
+    {
+        Quaternion rot;
+        m_coupled_truck->calculateDriverPos(m_position, rot);
+        m_gfx.PushRotation(rot);
+        m_position = m_position + (rot * Vector3(0.f, -0.6f, 0.f));
+        m_gfx.PushPosition(m_position); // Hack to position the character right perfect on the default seat
+        const float steer_angle = m_coupled_truck->hydrodirwheeldisplay * -1.0f; // Use this instead of `getSteeringAngle()` because it's smoothed
+        m_gfx.PushSteerAnim(steer_angle); 
+        m_active_anim_name = ANIM_NAME_DRIVING;
+        m_active_anim_time = 0.f;
+    }
+    else if (m_has_physics)
+    {  
         // disable character movement when using the free camera mode or when the menu is opened
         // TODO: check for menu being opened
         if (gEnv->cameraManager && gEnv->cameraManager->gameControlsLocked())
             return;
 
-        Vector3 position = mCharacterNode->getPosition();
+        // Gravity
+        Ogre::Vector3 position = m_position;
+        position.y += m_speed_v * dt_sec;
+        m_speed_v += dt_sec * -9.8f; // TODO: respect terrain gravity settings!!
 
-        // gravity force is always on
-        position.y += characterVSpeed * dt;
-        characterVSpeed += dt * -9.8f;
-
-        // Auto compensate minor height differences
-        float depth = calculate_collision_depth(position);
-        if (depth > 0.0f)
+        // Auto-compensate minor height differences
+        Vector3 depth_query = position + Vector3::UNIT_Y;
+        while (depth_query.y > position.y)
         {
-            characterVSpeed = std::max(0.0f, characterVSpeed);
-            canJump = true;
-            if (depth < 0.3f)
-            {
-                position.y += depth;
-                if (depth > 0.01f && gEnv->cameraManager)
-                {
-                    gEnv->cameraManager->NotifyContextChange();
-                }
-            }
+            if (gEnv->collisions->collisionCorrect(&depth_query, false))
+                break;
+            depth_query.y -= 0.01f; // magic!
+        }
+        const float depth = depth_query.y - position.y;
+        if (depth > 0.f)
+        {
+            m_speed_v = std::max(0.f, m_speed_v);
+            m_can_jump = true;
+            // TODO: Legacy code was WTF - an `if (depth < 0.3f)` condition was here. ~ only_a_ptr, 01/2017
         }
 
         // Trigger script events and handle mesh (ground) collision
@@ -321,10 +368,10 @@ void Character::update(float dt)
         }
 
         // Obstacle detection
-        if (mLastPosition.size() > 0)
+        if (m_prev_positions.size() > 0)
         {
-            Vector3 lastPosition = mLastPosition.front();
-            Vector3 diff = mCharacterNode->getPosition() - lastPosition;
+            Vector3 lastPosition = m_prev_positions.front();
+            Vector3 diff = m_position - lastPosition;
             Vector3 h_diff = Vector3(diff.x, 0.0f, diff.z);
             if (depth <= 0.0f || h_diff.squaredLength() > 0.0f)
             {
@@ -342,11 +389,11 @@ void Character::update(float dt)
             }
         }
 
-        mLastPosition.push_front(position);
+        m_prev_positions.push_front(position);
 
-        if (mLastPosition.size() > 10)
+        if (m_prev_positions.size() > 10)
         {
-            mLastPosition.pop_back();
+            m_prev_positions.pop_back();
         }
 
         // ground contact
@@ -355,8 +402,8 @@ void Character::update(float dt)
         if (position.y < pheight)
         {
             position.y = pheight;
-            characterVSpeed = 0.0f;
-            canJump = true;
+            m_speed_v = 0.0f;
+            m_can_jump = true;
         }
 
         // water stuff
@@ -369,7 +416,7 @@ void Character::update(float dt)
             if (position.y < wheight - 1.8f)
             {
                 position.y = wheight - 1.8f;
-                characterVSpeed = 0.0f;
+                m_speed_v = 0.0f;
             }
         }
 
@@ -380,12 +427,12 @@ void Character::update(float dt)
         }
 
         float tmpJoy = 0.0f;
-        if (canJump)
+        if (m_can_jump)
         {
             if (RoR::App::GetInputEngine()->getEventBoolValue(EV_CHARACTER_JUMP))
             {
-                characterVSpeed = 2.0f;
-                canJump = false;
+                m_speed_v = 2.0f;
+                m_can_jump = false;
             }
         }
 
@@ -395,10 +442,10 @@ void Character::update(float dt)
         if (tmpJoy > 0.0f)
         {
             float scale = RoR::App::GetInputEngine()->isKeyDown(OIS::KC_LMENU) ? 0.1f : 1.0f;
-            setRotation(characterRotation + dt * 2.0f * scale * Radian(tmpJoy));
+            this->SetRotation(m_rotation + dt_sec * 2.0f * scale * Radian(tmpJoy));
             if (!isswimming)
             {
-                setAnimationMode("Turn", -dt);
+                ADVANCE_ANIM_NOW(ANIM_NAME_TURN, -dt_sec);
                 idleanim = false;
             }
         }
@@ -407,10 +454,10 @@ void Character::update(float dt)
         if (tmpJoy > 0.0f)
         {
             float scale = RoR::App::GetInputEngine()->isKeyDown(OIS::KC_LMENU) ? 0.1f : 1.0f;
-            setRotation(characterRotation - dt * scale * 2.0f * Radian(tmpJoy));
+            this->SetRotation(m_rotation - dt_sec * scale * 2.0f * Radian(tmpJoy));
             if (!isswimming)
             {
-                setAnimationMode("Turn", dt);
+                ADVANCE_ANIM_NOW(ANIM_NAME_TURN, dt_sec);
                 idleanim = false;
             }
         }
@@ -424,10 +471,10 @@ void Character::update(float dt)
             if (tmpRun > 0.0f)
                 accel = 3.0f * tmpRun;
             // animation missing for that
-            position += dt * characterSpeed * 0.5f * accel * Vector3(cos(characterRotation.valueRadians() - Math::HALF_PI), 0.0f, sin(characterRotation.valueRadians() - Math::HALF_PI));
+            position += dt_sec * m_speed_h * 0.5f * accel * Vector3(cos(m_rotation.valueRadians() - Math::HALF_PI), 0.0f, sin(m_rotation.valueRadians() - Math::HALF_PI));
             if (!isswimming)
             {
-                setAnimationMode("Side_step", -dt);
+                ADVANCE_ANIM_NOW(ANIM_NAME_SIDESTEP, -dt_sec);
                 idleanim = false;
             }
         }
@@ -438,10 +485,10 @@ void Character::update(float dt)
             if (tmpRun > 0.0f)
                 accel = 3.0f * tmpRun;
             // animation missing for that
-            position += dt * characterSpeed * 0.5f * accel * Vector3(cos(characterRotation.valueRadians() + Math::HALF_PI), 0.0f, sin(characterRotation.valueRadians() + Math::HALF_PI));
+            position += dt_sec * m_speed_h * 0.5f * accel * Vector3(cos(m_rotation.valueRadians() + Math::HALF_PI), 0.0f, sin(m_rotation.valueRadians() + Math::HALF_PI));
             if (!isswimming)
             {
-                setAnimationMode("Side_step", dt);
+                ADVANCE_ANIM_NOW(ANIM_NAME_SIDESTEP, dt_sec);
                 idleanim = false;
             }
         }
@@ -457,142 +504,88 @@ void Character::update(float dt)
             if (tmpRun > 0.0f)
                 accel = 3.0f * tmpRun;
 
-            float time = dt * tmpJoy * characterSpeed;
+            float time = dt_sec * tmpJoy * m_speed_h;
 
             if (isswimming)
             {
-                setAnimationMode("Swim_loop", time);
+                ADVANCE_ANIM_NOW(ANIM_NAME_SWIP_LOOP, time);
                 idleanim = false;
             }
             else
             {
                 if (tmpRun > 0.0f)
                 {
-                    setAnimationMode("Run", time);
+                    ADVANCE_ANIM_NOW(ANIM_NAME_RUN, time);
                     idleanim = false;
                 }
                 else
                 {
-                    setAnimationMode("Walk", time);
+                    ADVANCE_ANIM_NOW(ANIM_NAME_WALK, time);
                     idleanim = false;
                 }
             }
             // 0.005f fixes character getting stuck on meshes
-            position += dt * characterSpeed * 1.5f * accel * Vector3(cos(characterRotation.valueRadians()), 0.01f, sin(characterRotation.valueRadians()));
+            position += dt_sec * m_speed_h * 1.5f * accel * Vector3(cos(m_rotation.valueRadians()), 0.01f, sin(m_rotation.valueRadians()));
         }
         else if (tmpBack > 0.0f)
         {
-            float time = -dt * characterSpeed;
+            float time = -dt_sec * m_speed_h;
             if (isswimming)
             {
-                setAnimationMode("Spot_swim", time);
+                ADVANCE_ANIM_NOW(ANIM_NAME_SWIM_SPOT, time);
                 idleanim = false;
             }
             else
             {
-                setAnimationMode("Walk", time);
+                ADVANCE_ANIM_NOW(ANIM_NAME_WALK, time);
                 idleanim = false;
             }
             // 0.005f fixes character getting stuck on meshes
-            position -= dt * characterSpeed * tmpBack * Vector3(cos(characterRotation.valueRadians()), 0.01f, sin(characterRotation.valueRadians()));
+            position -= dt_sec * m_speed_h * tmpBack * Vector3(cos(m_rotation.valueRadians()), 0.01f, sin(m_rotation.valueRadians()));
         }
 
         if (idleanim)
         {
             if (isswimming)
             {
-                setAnimationMode("Spot_swim", dt * 2.0f);
+                ADVANCE_ANIM_NOW(ANIM_NAME_SWIM_SPOT, dt_sec * 2.0f);
             }
             else
             {
-                setAnimationMode("Idle_sway", dt * 1.0f);
+                ADVANCE_ANIM_NOW(ANIM_NAME_IDLE_SWAY, dt_sec * 1.0f);
             }
         }
 
-        mCharacterNode->setPosition(position);
-        updateMapIcon();
-    }
-    else if (beamCoupling && beamCoupling->hasDriverSeat()) // beamCoupling = The vehicle or machine which the character occupies
-    {
-        Vector3 pos;
-        Quaternion rot;
-        beamCoupling->calculateDriverPos(pos, rot);
-        float angle = beamCoupling->hydrodirwheeldisplay * -1.0f; // not getSteeringAngle(), but this, as its smoothed
-        mCharacterNode->setOrientation(rot);
-        setPosition(pos + (rot * Vector3(0.f, -0.6f, 0.f))); // hack to position the character right perfect on the default seat
+        m_position = position;
+        // TODO: update survey map icon
 
-        // Animation
-        this->setAnimationMode("Driving");
-        Real anim_length = mAnimState->getAnimationState("Driving")->getLength();
-        float anim_time_pos = ((angle + 1.0f) * 0.5f) * anim_length;
-        // prevent animation flickering on the borders:
-        if (anim_time_pos < 0.01f)
-        {
-            anim_time_pos = 0.01f;
-        }
-        if (anim_time_pos > anim_length - 0.01f)
-        {
-            anim_time_pos = anim_length - 0.01f;
-        }
-        mAnimState->getAnimationState("Driving")->setTimePosition(anim_time_pos);
+        // Push updates to gfx (TODO: defer this)
+        m_gfx.PushVisible(m_is_visible);
+        m_gfx.PushPosition(m_position);
+        m_gfx.PushRotation(m_rotation);
     }
-
-#ifdef USE_SOCKETW
-    if ((App::GetActiveMpState() == App::MP_STATE_CONNECTED) && !remote)
-    {
-        sendStreamData();
-    }
-#endif // USE_SOCKETW
 }
 
-void Character::updateMapIcon()
+void LocalCharacter::UnwindMovement(float distance)
 {
-#ifdef USE_MYGUI
-    if (!gEnv->surveyMap)
-        return;
-    SurveyMapEntity* e = gEnv->surveyMap->getMapEntityByName(myName);
-    if (e)
-    {
-        e->setPosition(mCharacterNode->getPosition());
-        e->setRotation(mCharacterNode->getOrientation());
-        e->setVisibility(!beamCoupling);
-    }
-    else
-    {
-        createMapEntity();
-    }
-#endif // USE_MYGUI
-}
-
-void Character::unwindMovement(float distance)
-{
-    if (mLastPosition.size() == 0)
+    if (m_prev_positions.size() == 0)
         return;
 
-    Vector3 curPos = getPosition();
-    Vector3 oldPos = curPos;
+    Ogre::Vector3 old_pos;
 
-    for (Vector3 pos : mLastPosition)
+    for (Vector3 pos : m_prev_positions)
     {
-        oldPos = pos;
-        if (oldPos.distance(curPos) > distance)
+        old_pos = pos;
+        if (old_pos.distance(m_position) > distance)
             break;
     }
 
-    setPosition(oldPos);
+    m_position = old_pos;
 }
 
-void Character::move(Vector3 offset)
-{
-    mCharacterNode->translate(offset);
-}
-
-void Character::sendStreamSetup()
+void LocalCharacter::NetSendStreamSetup()
 {
 #ifdef USE_SOCKETW
-    if (remote)
-        return;
-
     RoRnet::StreamRegister reg;
     memset(&reg, 0, sizeof(reg));
     reg.status = 1;
@@ -602,159 +595,283 @@ void Character::sendStreamSetup()
 
     RoR::Networking::AddLocalStream(&reg, sizeof(RoRnet::StreamRegister));
 
-    m_source_id = reg.origin_sourceid;
-    m_stream_id = reg.origin_streamid;
-#endif // USE_SOCKETW
+    m_net_source_id = reg.origin_sourceid;
+    m_net_stream_id = reg.origin_streamid;
+#endif // USE_SOCKETW    
 }
 
-void Character::sendStreamData()
-{
 #ifdef USE_SOCKETW
-    // do not send position data if coupled to a truck already
-    if (beamCoupling)
-        return;
-
-    pos_netdata_t data;
-    data.command = CHARCMD_POSITION;
-    data.posx = mCharacterNode->getPosition().x;
-    data.posy = mCharacterNode->getPosition().y;
-    data.posz = mCharacterNode->getPosition().z;
-    data.rotx = mCharacterNode->getOrientation().x;
-    data.roty = mCharacterNode->getOrientation().y;
-    data.rotz = mCharacterNode->getOrientation().z;
-    data.rotw = mCharacterNode->getOrientation().w;
-    strncpy(data.animationMode, mLastAnimMode.c_str(), 254);
-    data.animationTime = mAnimState->getAnimationState(mLastAnimMode)->getTimePosition();
-
-    //LOG("sending character stream data: " + TOSTRING(RoR::Networking::GetUID()) + ":" + TOSTRING(m_stream_id));
-    RoR::Networking::AddPacket(m_stream_id, RoRnet::MSG2_STREAM_DATA, sizeof(pos_netdata_t), (char*)&data);
-#endif // USE_SOCKETW
-}
-
-void Character::receiveStreamData(unsigned int& type, int& source, unsigned int& streamid, char* buffer)
+void CharacterFactory::HandleStreamData(std::vector<RoR::Networking::recv_packet_t>& packets)
 {
-    if (type == RoRnet::MSG2_STREAM_DATA && m_source_id == source && m_stream_id == streamid)
+    for (auto packet : packets)
     {
-        header_netdata_t* header = (header_netdata_t *)buffer;
-        if (header->command == CHARCMD_POSITION)
+        const int command = packet.header.command;
+
+        if (command == RoRnet::MSG2_STREAM_REGISTER)
         {
-            pos_netdata_t* data = (pos_netdata_t *)buffer;
-            Vector3 pos(data->posx, data->posy, data->posz);
-            setPosition(pos);
-            Quaternion rot(data->rotw, data->rotx, data->roty, data->rotz);
-            mCharacterNode->setOrientation(rot);
-            setAnimationMode(getASCIIFromCharString(data->animationMode, 255), data->animationTime);
-        }
-        else if (header->command == CHARCMD_ATTACH)
-        {
-            attach_netdata_t* data = (attach_netdata_t *)buffer;
-            if (data->enabled)
+            RoRnet::StreamRegister* reg = (RoRnet::StreamRegister *)packet.buffer;
+            if (reg->type == 1)
             {
-                Beam* beam = BeamFactory::getSingleton().getBeam(data->source_id, data->stream_id);
-                setBeamCoupling(true, beam);
+                this->CreateRemoteCharacter(packet.header.source, packet.header.streamid);
             }
-            else
+        }
+        else if (command == RoRnet::MSG2_USER_LEAVE)
+        {
+            this->DeleteRemoteCharacter(packet.header.source);
+        }
+        else if (command == RoRnet::MSG2_STREAM_DATA)
+        {
+            for (auto& c : m_remote_objs)
             {
-                setBeamCoupling(false);
+                if (packet.header.source = c->GetSourceId() && packet.header.streamid == c->GetStreamId())
+                {
+                    c->HandleStreamData(packet.buffer);
+                    break;
+                }
             }
         }
     }
 }
 
-void Character::updateNetLabelSize()
+// Helper function
+void RemoteCharacter::ReportError(const char* detail)
 {
-    if (!mMoveableText)
-        return;
-    if (networkUsername.empty())
-        return;
-
-    float camDist = (mCharacterNode->getPosition() - mCamera->getPosition()).length();
-    float h = std::max(9.0f, camDist * 1.2f);
-
-    mMoveableText->setCharacterHeight(h);
-
-    if (camDist > 1000.0f)
-        mMoveableText->setCaption(networkUsername + "  (" + TOSTRING((float)(ceil(camDist / 100) / 10.0f)) + " km)");
-    else if (camDist > 20.0f && camDist <= 1000.0f)
-        mMoveableText->setCaption(networkUsername + "  (" + TOSTRING((int)camDist) + " m)");
+    Ogre::UTFString username;
+    RoRnet::UserInfo info;
+    if (!RoR::Networking::GetUserInfo(m_net_source_id, info))
+        username = "~~ERROR getting username~~";
     else
-        mMoveableText->setCaption(networkUsername);
+        username = info.username;
+
+    char msg_buf[300];
+    snprintf(msg_buf, 300, 
+        "[RoR|Networking] ERROR on remote character (User: '%s', SourceID: %d, StreamID: %d): ",
+        username.asUTF8_c_str(), m_net_source_id, m_net_stream_id);
+
+    LOGSTREAM << msg_buf << detail;
 }
 
-void Character::setBeamCoupling(bool enabled, Beam* truck /* = 0 */)
+#endif // USE_SOCKETW
+void RemoteCharacter::HandleStreamData(char* buffer)
 {
-    if (enabled)
+    const auto* msg = reinterpret_cast<Networking::CharacterMsgGeneric*>(buffer);
+    if (msg->command == Networking::CHARACTER_CMD_ATTACH)
     {
-        if (!truck)
+        const auto* attach_msg = reinterpret_cast<Networking::CharacterMsgAttach*>(buffer);
+        Beam* beam = BeamFactory::getSingleton().getBeam(attach_msg->source_id, attach_msg->stream_id);
+        if (beam != nullptr)
+            this->AttachToTruck(beam);
+        else
+        {
+            char err_buf[200];
+            snprintf(err_buf, 200, "Received command `ATTACH` with target{SourceID: %d, StreamID: %d}, "
+                "but corresponding vehicle doesn't exist. Ignoring command.",
+                attach_msg->source_id, attach_msg->stream_id);
+            this->ReportError(err_buf);
+        }
+    }
+    else if (msg->command == Networking::CHARACTER_CMD_DETACH)
+    {
+        if (m_coupled_truck != nullptr)
+        {
+            this->DetachFromTruck();
+        }
+        else
+        {
+            this->ReportError("Received command `DETACH`, but not currently attached to a vehicle. Ignoring command.");
+        }
+    }
+    else if (msg->command == Networking::CHARACTER_CMD_POSITION)
+    {
+        const auto* msg = reinterpret_cast<Networking::CharacterMsgPos*>(buffer);
+        m_position = Ogre::Vector3(msg->pos_x, msg->pos_y, msg->pos_z);
+        m_gfx.PushPosition(m_position);
+        m_gfx.PushRotation(Ogre::Radian(msg->rot_angle));
+        m_gfx.AdvanceAnimation(Utils::SanitizeUtf8String(msg->anim_name).c_str(), msg->anim_time);
+    }
+    else
+    {
+        char err_buf[100];
+        snprintf(err_buf, 100, "Received invalid command: %d. Cannot process.", msg->command);
+        this->ReportError(err_buf);
+    }
+}
+
+void RemoteCharacter::AttachToTruck(Beam* truck)
+{
+    assert(truck != nullptr);
+    assert(m_coupled_truck == nullptr);
+
+    m_coupled_truck = truck;
+    m_gfx.SetNetLabelVisible(false);
+
+    if (!truck->hasDriverSeat())
+        m_gfx.PushVisible(false);
+    else
+        m_gfx.SetCastShadows(false); // Do not cast in vehicle
+}
+
+void LocalCharacter::AttachToTruck(Beam* truck)
+{
+    assert(truck != nullptr);
+
+    m_coupled_truck = truck;
+    m_has_physics = false;
+    m_gfx.SetNetLabelVisible(false);
+    m_is_coupled_visible = truck->hasDriverSeat();
+
+    if (!m_is_coupled_visible)
+    {
+        m_is_visible = false;
+        m_gfx.PushVisible(false); // TODO: defer this...
+    }
+    else
+    {
+        m_gfx.SetCastShadows(false); // Do not cast in vehicle
+    }
+
+    if (App::GetActiveMpState() == App::MP_STATE_CONNECTED)
+    {
+        Networking::CharacterMsgAttach msg;
+        msg.command = Networking::CHARACTER_CMD_ATTACH;
+        msg.source_id = m_coupled_truck->m_source_id;
+        msg.stream_id = m_coupled_truck->m_stream_id;
+        const int msg_size = sizeof(Networking::CharacterMsgAttach);
+        Networking::AddPacket(m_net_stream_id, RoRnet::MSG2_STREAM_DATA, msg_size, (char*)&msg);
+    }
+}
+
+void RemoteCharacter::DetachFromTruck()
+{
+    assert(m_coupled_truck != nullptr);
+
+    m_coupled_truck = nullptr;
+    m_gfx.PushVisible(true);
+    m_gfx.PushRotation(Ogre::Radian(0.f));
+    m_gfx.SetCastShadows(true);
+    m_gfx.SetNetLabelVisible(true);
+}
+
+void LocalCharacter::DetachFromTruck()
+{
+    assert(m_coupled_truck != nullptr);
+
+    m_coupled_truck = nullptr;
+    m_has_physics = true;
+    m_is_coupled_visible = false;
+    m_is_visible = true;
+    m_gfx.PushVisible(true); // TODO: defer this...
+    m_gfx.PushRotation(Ogre::Radian(0.f));
+    m_gfx.SetCastShadows(true);
+    m_gfx.SetNetLabelVisible(true);
+
+    if (App::GetActiveMpState() == App::MP_STATE_CONNECTED)
+    {
+        Networking::CharacterMsgGeneric msg;
+        msg.command = Networking::CHARACTER_CMD_DETACH;
+        const int msg_size = sizeof(Networking::CharacterMsgGeneric);
+        Networking::AddPacket(m_net_stream_id, RoRnet::MSG2_STREAM_DATA, msg_size, (char*)&msg);
+    }
+}
+
+void CharacterGfx::SetNetLabelVisible (bool visible)
+{
+    if (m_net_label != nullptr)
+        m_net_label->setVisible(visible);
+}
+
+void CharacterGfx::SetCastShadows     (bool v)
+{
+    assert(m_entity != nullptr);
+    m_entity->setCastShadows(v);
+}
+
+void LocalCharacter::NetSendState()
+{
+#ifdef USE_SOCKETW
+    if (m_coupled_truck)
+        return;
+
+    Networking::CharacterMsgPos msg;
+    msg.command          = Networking::CHARACTER_CMD_POSITION;
+    msg.pos_x            = m_position.x;
+    msg.pos_y            = m_position.y;
+    msg.pos_z            = m_position.z;
+    msg.rot_angle        = m_rotation.valueRadians();
+    strncpy(msg.anim_name, m_active_anim_name, CHARACTER_ANIM_NAME_LEN);
+    msg.anim_time        = m_active_anim_time;
+#endif // USE_SOCKETW
+}
+
+CharacterFactory::CharacterFactory():
+    m_local_obj(nullptr)
+{
+}
+
+LocalCharacter* CharacterFactory::CreateLocalCharacter(int playerColour)
+{
+    m_local_obj = new LocalCharacter();
+    return m_local_obj;
+}
+
+RemoteCharacter* CharacterFactory::CreateRemoteCharacter(int source_id, int stream_id)
+{
+#ifdef USE_SOCKETW
+    RoRnet::UserInfo info;
+    RoR::Networking::GetUserInfo(source_id, info);
+    int colour = info.colournum;
+
+    char msg_buf[400];
+    snprintf(msg_buf, 400, "[RoR|Networking] Creating character for user '%s' (SourceID: %d, StreamID: %d, ColorNum: %d)",
+        Utils::SanitizeUtf8String(info.username).c_str(), source_id, stream_id, info.colournum);
+    LOG(msg_buf);
+
+    auto* obj = new RemoteCharacter(source_id, stream_id);
+    m_remote_objs.push_back(obj);
+    return obj;
+#endif // USE_SOCKETW
+}
+
+void CharacterFactory::DeleteAllCharacters()
+{
+    delete m_local_obj; // Destructor does all the cleanup
+    m_local_obj = nullptr;
+
+    while (! m_remote_objs.empty())
+    {
+        delete m_remote_objs.back();
+        m_remote_objs.pop_back();
+    }
+}
+
+void CharacterFactory::Update(float dt_sec, Ogre::Vector3 camera_pos)
+{
+    m_local_obj->Update(dt_sec);
+    if (App::GetActiveMpState() == App::MP_STATE_CONNECTED)
+    {
+        m_local_obj->UpdateNetLabel(camera_pos);
+        m_local_obj->NetSendState();
+    }
+
+    for (RemoteCharacter* rem : m_remote_objs)
+    {
+        rem->UpdateNetLabel(camera_pos);
+    }
+}
+
+void CharacterFactory::DeleteRemoteCharacter(int source_id)
+{
+    auto itor = m_remote_objs.begin();
+    auto endi = m_remote_objs.end();
+    for (; itor != endi; ++itor)
+    {
+        RemoteCharacter* r = *itor;
+        if (r->GetSourceId() == source_id)
+        {
+            delete r;
+            m_remote_objs.erase(itor);
             return;
-        beamCoupling = truck;
-        setPhysicsEnabled(false);
-        if (mMoveableText && mMoveableText->isVisible())
-        {
-            mMoveableText->setVisible(false);
         }
-        if ((App::GetActiveMpState() == App::MP_STATE_CONNECTED) && !remote)
-        {
-#ifdef USE_SOCKETW
-            attach_netdata_t data;
-            data.command = CHARCMD_ATTACH;
-            data.enabled = true;
-            data.source_id = beamCoupling->m_source_id;
-            data.stream_id = beamCoupling->m_stream_id;
-            RoR::Networking::AddPacket(m_stream_id, RoRnet::MSG2_STREAM_DATA, sizeof(attach_netdata_t), (char*)&data);
-#endif // USE_SOCKETW
-        }
-
-        // do not cast shadows inside of a truck
-        mCharacterNode->getAttachedObject(0)->setCastShadows(false);
-        isCoupled = true;
-        // check if there is a seat, if not, hide our character
-        if (!beamCoupling->hasDriverSeat())
-        {
-            // driver seat not found
-            setVisible(false);
-            isCoupled = false;
-        }
-    }
-    else
-    {
-        isCoupled = false;
-        setPhysicsEnabled(true);
-        beamCoupling = 0;
-        if (mMoveableText && !mMoveableText->isVisible())
-        {
-            mMoveableText->setVisible(true);
-        }
-        if ((App::GetActiveMpState() == App::MP_STATE_CONNECTED) && !remote)
-        {
-#ifdef USE_SOCKETW
-            attach_netdata_t data;
-            data.command = CHARCMD_ATTACH;
-            data.enabled = false;
-            RoR::Networking::AddPacket(m_stream_id, RoRnet::MSG2_STREAM_DATA, sizeof(attach_netdata_t), (char*)&data);
-#endif // USE_SOCKETW
-        }
-
-        // show character
-        setVisible(true);
-
-        mCharacterNode->resetOrientation();
-
-        // cast shadows when using it on the outside
-        mCharacterNode->getAttachedObject(0)->setCastShadows(true);
     }
 }
 
-void Character::createMapEntity()
-{
-#ifdef USE_MYGUI
-    if (gEnv->surveyMap)
-    {
-        mapEntity = gEnv->surveyMap->createNamedMapEntity(myName, "person");
-        mapEntity->setState(0);
-        mapEntity->setVisibility(true);
-        mapEntity->setPosition(mCharacterNode->getPosition());
-        mapEntity->setRotation(mCharacterNode->getOrientation());
-    }
-#endif // USE_MYGUI
-}

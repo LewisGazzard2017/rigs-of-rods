@@ -43,7 +43,7 @@
 using namespace Ogre;
 using namespace RoR;
 
-CameraManager::CameraManager() : 
+CameraManager::CameraManager(RoR::LocalCharacter* player) : 
       currentBehavior(nullptr)
     , currentBehaviorID(-1)
     , mTransScale(1.0f)
@@ -58,10 +58,11 @@ CameraManager::CameraManager() :
     ctx.mCurrTruck = 0;
     ctx.mDof = 0;
     ctx.mDebug = BSETTING("Camera Debug", false);
+    ctx.player = player;
 
     if (BSETTING("DOF", false))
     {
-        ctx.mDof = new DOFManager();
+        ctx.mDof = new DOFManager(player);
         ctx.mDof->setFocusMode(DOFManager::Auto);
     }
 

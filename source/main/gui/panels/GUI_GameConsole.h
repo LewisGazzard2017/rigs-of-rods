@@ -95,6 +95,8 @@ public:
 
     void putMessage(int type, int uid, Ogre::UTFString msg, Ogre::String icon = "bullet_black.png", unsigned long ttl = 30000, bool forcevisible = false);
 
+    void SetCharacter(LocalCharacter* c) { m_player = c; }
+
 protected:
     void notifyWindowButtonPressed(MyGUI::WidgetPtr _sender, const std::string& _name);
     void messageUpdate(float dt);
@@ -118,6 +120,8 @@ protected:
     Ogre::String sTextHistory[500];
     int iText;
     int HistoryCursor;
+
+    RoR::LocalCharacter* m_player;
 };
 
 } // namespace RoR

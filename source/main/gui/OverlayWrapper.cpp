@@ -844,7 +844,7 @@ void OverlayWrapper::SetupDirectionArrow()
     }
 }
 
-void OverlayWrapper::UpdateDirectionArrow(Beam* vehicle, Ogre::Vector3 const& point_to)
+void OverlayWrapper::UpdateDirectionArrow(Beam* vehicle, Ogre::Vector3 character_pos, Ogre::Vector3 const& point_to)
 {
     m_direction_arrow_node->lookAt(point_to, Node::TS_WORLD, Vector3::UNIT_Y);
     Real distance = 0.0f;
@@ -852,9 +852,9 @@ void OverlayWrapper::UpdateDirectionArrow(Beam* vehicle, Ogre::Vector3 const& po
     {
         distance = vehicle->getPosition().distance(point_to);
     }
-    else if (gEnv->player)
+    else
     {
-        distance = gEnv->player->getPosition().distance(point_to);
+        distance = character_pos.distance(point_to);
     }
     char tmp[256];
     sprintf(tmp, "%0.1f meter", distance);

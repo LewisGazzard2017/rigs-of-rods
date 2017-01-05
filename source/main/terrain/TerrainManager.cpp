@@ -53,7 +53,6 @@ using namespace Ogre;
 
 TerrainManager::TerrainManager() :
     m_terrain_config()
-    , character(0)
     , collisions(0)
     , dashboard(0)
     , envmap(0)

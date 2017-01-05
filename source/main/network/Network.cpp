@@ -2,7 +2,7 @@
     This source file is part of Rigs of Rods
     Copyright 2005-2012 Pierre-Michel Ricordel
     Copyright 2007-2012 Thomas Fischer
-    Copyright 2013-2016 Petr Ohlidal
+    Copyright 2013+     Petr Ohlidal & contributors
 
     For more information, see http://www.rigsofrods.org/
 
@@ -25,7 +25,7 @@
 
 #include "Application.h"
 #include "BeamFactory.h"
-#include "CharacterFactory.h"
+#include "Character.h"
 #include "ChatSystem.h"
 #include "ErrorUtils.h"
 #include "GUIManager.h"
@@ -738,7 +738,7 @@ void AddLocalStream(RoRnet::StreamRegister *reg, int size)
     m_stream_id++;
 }
 
-void HandleStreamData()
+void HandleStreamData(CharacterFactory& ch_factory)
 {
     std::vector<recv_packet_t> packet_buffer;
 
@@ -751,7 +751,7 @@ void HandleStreamData()
     RoR::ChatSystem::HandleStreamData(packet_buffer);
     BeamFactory::getSingleton().handleStreamData(packet_buffer);
     // Updates characters last (or else beam coupling might fail)
-    CharacterFactory::getSingleton().handleStreamData(packet_buffer);
+    ch_factory.HandleStreamData(packet_buffer);
 }
 
 Ogre::String GetTerrainName()

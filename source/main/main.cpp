@@ -267,9 +267,6 @@ int main(int argc, char *argv[])
         // initiate player colours
         PlayerColours::getSingleton();
 
-        // new factory for characters, net is INVALID, will be set later
-        new CharacterFactory();
-
         new BeamFactory();
 
         MainMenu main_obj(frame_listener);

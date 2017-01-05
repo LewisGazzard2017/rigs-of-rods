@@ -76,8 +76,8 @@ void CameraBehaviorStatic::update(const CameraManager::CameraContext& ctx)
     }
     else
     {
-        lookAt = gEnv->player->getPosition();
-        rotation = gEnv->player->getRotation().valueRadians();
+        lookAt = ctx.player->GetPosition();
+        rotation = ctx.player->GetRotation().valueRadians();
     }
 
     bool forceUpdate = RoR::App::GetInputEngine()->getEventBoolValueBounce(EV_CAMERA_RESET, 2.0f);

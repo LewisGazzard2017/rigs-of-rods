@@ -316,9 +316,9 @@ void Console::eventCommandAccept(MyGUI::Edit* _sender)
         else if (args[0] == "/pos" && (is_appstate_sim && !is_sim_select))
         {
             Beam* b = BeamFactory::getSingleton().getCurrentTruck();
-            if (!b && gEnv->player)
+            if (!b)
             {
-                Vector3 pos = gEnv->player->getPosition();
+                Vector3 pos = m_player->GetPosition();
                 putMessage(CONSOLE_MSGTYPE_INFO, CONSOLE_SYSTEM_REPLY, _L("Character position: ") + String("x: ") + TOSTRING(pos.x) + String(" y: ") + TOSTRING(pos.y) + String(" z: ") + TOSTRING(pos.z), "world.png");
             }
             else if (b)
@@ -340,9 +340,9 @@ void Console::eventCommandAccept(MyGUI::Edit* _sender)
             Vector3 pos = Vector3(PARSEREAL(args[1]), PARSEREAL(args[2]), PARSEREAL(args[3]));
 
             Beam* b = BeamFactory::getSingleton().getCurrentTruck();
-            if (!b && gEnv->player)
+            if (!b)
             {
-                gEnv->player->setPosition(pos);
+                m_player->SetPosition(pos);
                 putMessage(CONSOLE_MSGTYPE_INFO, CONSOLE_SYSTEM_REPLY, _L("Character position set to: ") + String("x: ") + TOSTRING(pos.x) + String(" y: ") + TOSTRING(pos.y) + String(" z: ") + TOSTRING(pos.z), "world.png");
             }
             else if (b)
@@ -360,9 +360,9 @@ void Console::eventCommandAccept(MyGUI::Edit* _sender)
             Vector3 pos = Vector3::ZERO;
 
             Beam* b = BeamFactory::getSingleton().getCurrentTruck();
-            if (!b && gEnv->player)
+            if (!b)
             {
-                pos = gEnv->player->getPosition();
+                pos = m_player->GetPosition();
             }
             else if (b)
             {

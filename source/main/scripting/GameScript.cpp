@@ -98,10 +98,15 @@ double GameScript::getTime()
     return result;
 }
 
+inline LocalCharacter* GetPlayer()
+{
+    // UGLY!! Temporary...
+    return App::GetMainMenu()->GetFrameListener()->GetCharacterFactory().GetLocalCharacter();
+}
+
 void GameScript::setPersonPosition(const Vector3& vec)
 {
-    if (gEnv->player)
-        gEnv->player->setPosition(vec);
+    GetPlayer()->SetPosition(vec);
 }
 
 void GameScript::loadTerrain(const String& terrain)
@@ -113,29 +118,22 @@ void GameScript::loadTerrain(const String& terrain)
 Vector3 GameScript::getPersonPosition()
 {
     Vector3 result(Vector3::ZERO);
-    if (gEnv->player)
-        result = gEnv->player->getPosition();
-    return result;
+    return GetPlayer()->GetPosition();
 }
 
 void GameScript::movePerson(const Vector3& vec)
 {
-    if (gEnv->player)
-        gEnv->player->move(vec);
+    GetPlayer()->SetPosition(GetPlayer()->GetPosition() + vec);
 }
 
 void GameScript::setPersonRotation(const Radian& rot)
 {
-    if (gEnv->player)
-        gEnv->player->setRotation(rot);
+    GetPlayer()->SetRotation(rot);
 }
 
 Radian GameScript::getPersonRotation()
 {
-    Radian result(0);
-    if (gEnv->player)
-        result = gEnv->player->getRotation();
-    return result;
+    return GetPlayer()->GetRotation();
 }
 
 String GameScript::getCaelumTime()

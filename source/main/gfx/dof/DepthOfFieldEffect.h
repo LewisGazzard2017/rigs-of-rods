@@ -102,7 +102,7 @@ class DOFManager : public Ogre::FrameListener, public ZeroedMemoryAllocator
 {
 public:
 
-    DOFManager();
+    DOFManager(RoR::LocalCharacter* player);
     ~DOFManager();
 
     void setEnabled(bool enabled);
@@ -138,6 +138,7 @@ protected:
     Ogre::RaySceneQuery* mRaySceneQuery;
     Ogre::Real targetFocalDistance;
     Ogre::SceneNode* debugNode;
+    RoR::LocalCharacter* mPlayer;
     float mAutoSpeed;
     float mAutoTime;
 };

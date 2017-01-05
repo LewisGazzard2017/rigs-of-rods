@@ -229,7 +229,8 @@ bool DepthOfFieldEffect::renderableQueued(Ogre::Renderable* rend, Ogre::uint8 gr
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
-DOFManager::DOFManager()
+DOFManager::DOFManager(RoR::LocalCharacter* player):
+    mPlayer(player)
 {
     mFocusMode = Manual;
     mAutoSpeed = 30;
@@ -371,9 +372,9 @@ bool DOFManager::frameStarted(const FrameEvent& evt)
                 {
                     lookAt = currTruck->getPosition();
                 }
-                else if (gEnv->player)
+                else
                 {
-                    lookAt = gEnv->player->getPosition();
+                    lookAt = mPlayer->GetPosition();
                 }
 
                 targetFocalDistance = gEnv->mainCamera->getPosition().distance(lookAt) / 2.0f; // Needs further investigation

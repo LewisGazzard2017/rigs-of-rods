@@ -29,11 +29,13 @@
 
 #include <memory>
 
-class CharacterFactory : public RoRSingleton<CharacterFactory>, public ZeroedMemoryAllocator
+/////////////// DEAD ///////////////////
+
+/*class zzCharacterFactory : public RoRSingleton<CharacterFactory>, public ZeroedMemoryAllocator
 {
 public:
 
-    Character* createLocal(int playerColour);
+    Character* CreateLocalCharacter(int playerColour);
 
     void update(float dt);
 #ifdef USE_SOCKETW
@@ -44,6 +46,6 @@ private:
 
     std::vector<std::unique_ptr<Character>> m_characters;
 
-    void createRemoteInstance(int sourceid, int streamid);
+    void CreateRemoteCharacter(int sourceid, int streamid);
     void removeStreamSource(int sourceid);
-};
+};*/

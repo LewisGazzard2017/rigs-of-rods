@@ -31,7 +31,6 @@ public:
           cameraManager(0)
         , collisions(0)
         , mainCamera(0)
-        , player(0)
         , sceneManager(0)
         , sky(0)
         , surveyMap(0)
@@ -42,9 +41,7 @@ public:
 
     Ogre::Camera*       mainCamera;
     Ogre::SceneManager* sceneManager;
-
     CameraManager*      cameraManager;
-    Character*          player;
     Collisions*         collisions;
     SurveyMapManager*   surveyMap;
     SkyManager*         sky;

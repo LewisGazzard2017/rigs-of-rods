@@ -22,6 +22,7 @@
 
 #include "RoRPrerequisites.h"
 #include "ForceFeedback.h"
+#include "Character.h"
 
 #include <Ogre.h>
 
@@ -58,6 +59,8 @@ public:
     bool IsRaceInProgress() { return m_race_in_progress; }
 
     void SetReloadPos(Ogre::Vector3 position) { m_reload_pos = position; }
+
+    inline RoR::CharacterFactory& GetCharacterFactory() { return m_character_factory; }
 
     void ChangedCurrentVehicle(Beam* previous_vehicle, Beam* current_vehicle);
     
@@ -121,6 +124,8 @@ protected:
 
     Ogre::Vector3 m_reload_pos;
     Ogre::Quaternion m_reload_dir;
+
+    RoR::CharacterFactory m_character_factory;
 
     void finalizeTruckSpawning(Beam* local_truck, Beam* previous_truck);
 };

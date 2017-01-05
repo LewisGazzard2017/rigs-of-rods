@@ -324,7 +324,7 @@ void TopMenubar::onMenuBtn(MyGUI::MenuCtrlPtr _sender, MyGUI::MenuItemPtr _item)
         return;
     }
 
-    if (miname == _L("Get new vehicle") && gEnv->player)
+    if (miname == _L("Get new vehicle"))
     {
         if (app_state != App::APP_STATE_SIMULATION)
         {
@@ -333,7 +333,7 @@ void TopMenubar::onMenuBtn(MyGUI::MenuCtrlPtr _sender, MyGUI::MenuItemPtr _item)
         App::SetActiveSimState(App::SIM_STATE_SELECTING); // TODO: use 'pending' mechanism
         gui_man->GetMainSelector()->Show(LT_AllBeam);
 
-    } else if (miname == _L("Reload current vehicle") && gEnv->player)
+    } else if (miname == _L("Reload current vehicle"))
     {
         if (BeamFactory::getSingleton().getCurrentTruckNumber() != -1)
         {

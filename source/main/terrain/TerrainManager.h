@@ -77,7 +77,6 @@ protected:
     RoR::ConfigFile m_terrain_config;
 
     // subsystems
-    Character* character;
     Collisions* collisions;
     Dashboard* dashboard;
     Envmap* envmap;

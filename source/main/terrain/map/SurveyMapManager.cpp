@@ -272,7 +272,7 @@ Ogre::String SurveyMapManager::getTypeByDriveable(int driveable)
     }
 }
 
-void SurveyMapManager::update(Ogre::Real dt)
+void SurveyMapManager::update(Ogre::Real dt, Ogre::Vector3 player_pos)
 {
     if (dt == 0)
         return;
@@ -321,7 +321,7 @@ void SurveyMapManager::update(Ogre::Real dt)
             }
             else
             {
-                setMapCenter(gEnv->player->getPosition(), mMapCenterThreshold * (1 - mMapZoom));
+                setMapCenter(player_pos, mMapCenterThreshold * (1 - mMapZoom));
             }
         }
         else

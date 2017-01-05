@@ -64,7 +64,7 @@ public:
     float mTimeUntilNextToggle;
 
     void SetupDirectionArrow();
-    void UpdateDirectionArrow(Beam* vehicle, Ogre::Vector3 const & point_to);
+    void UpdateDirectionArrow(Beam* vehicle, Ogre::Vector3 character_pos, Ogre::Vector3 const & point_to);
     void HideDirectionOverlay();
     void ShowDirectionOverlay(Ogre::String const & caption);
 

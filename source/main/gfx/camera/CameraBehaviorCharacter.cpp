@@ -34,22 +34,18 @@ CameraBehaviorCharacter::CameraBehaviorCharacter() :
 
 void CameraBehaviorCharacter::update(const CameraManager::CameraContext& ctx)
 {
-    if (!gEnv->player)
-        return;
-    targetDirection = -gEnv->player->getRotation() - Radian(Math::HALF_PI);
-    camLookAt = gEnv->player->getPosition() + camPositionOffset;
+    targetDirection = -ctx.player->GetRotation() - Radian(Math::HALF_PI);
+    camLookAt = ctx.player->GetPosition() + camPositionOffset;
 
     CameraBehaviorOrbit::update(ctx);
 }
 
 bool CameraBehaviorCharacter::mouseMoved(const CameraManager::CameraContext& ctx, const OIS::MouseEvent& _arg)
 {
-    if (!gEnv->player)
-        return false;
     if (camMode == CHARACTER_FIRST_PERSON)
     {
         const OIS::MouseState ms = _arg.state;
-        Radian angle = gEnv->player->getRotation();
+        Radian angle = ctx.player->GetRotation();
 
         camRotY += Degree(ms.Y.rel * 0.13f);
         angle += Degree(ms.X.rel * 0.13f);
@@ -57,7 +53,7 @@ bool CameraBehaviorCharacter::mouseMoved(const CameraManager::CameraContext& ctx
         camRotY = Radian(std::min(+Math::HALF_PI * 0.65f, camRotY.valueRadians()));
         camRotY = Radian(std::max(camRotY.valueRadians(), -Math::HALF_PI * 0.9f));
 
-        gEnv->player->setRotation(angle);
+        ctx.player->SetRotation(angle); // WTF? Rotating character in 'CameraController'?? TODO!! ~only_a_ptr 01/2017
 
 #ifdef USE_MYGUI
         MyGUI::PointerManager::getInstance().setVisible(false);
