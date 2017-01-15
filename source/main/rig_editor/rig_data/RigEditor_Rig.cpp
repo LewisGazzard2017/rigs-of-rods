@@ -97,7 +97,7 @@ Node* Rig::FindNode(
 }
 
 void Rig::Build(
-		boost::shared_ptr<RigDef::File> rig_def, 
+		std::shared_ptr<RigDef::File> rig_def, 
 		RigEditor::Main* rig_editor,
 		std::list<Ogre::String>* report // = nullptr
 	)
@@ -1208,13 +1208,13 @@ RigProperties* Rig::GetProperties()
 	return m_properties.get();
 }
 
-boost::shared_ptr<RigDef::File> Rig::Export()
+std::shared_ptr<RigDef::File> Rig::Export()
 {
 	using namespace RigDef;
 
 	// Allocate
-	auto def = boost::shared_ptr<File>(new RigDef::File());
-	auto module = boost::shared_ptr<File::Module>(new File::Module("_Root_"));
+	auto def = std::shared_ptr<File>(new RigDef::File());
+	auto module = std::shared_ptr<File::Module>(new File::Module("_Root_"));
 	def->root_module = module;
 
 	// Fill node data

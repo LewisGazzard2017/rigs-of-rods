@@ -169,10 +169,10 @@ namespace Regexes
 
 /** Actual regex definition macro. */
 #define DEFINE_REGEX(_NAME_,_REGEXP_) \
-	const boost::regex _NAME_ = boost::regex( _REGEXP_, boost::regex::extended);
+	const std::regex _NAME_ = std::regex( _REGEXP_, std::regex::extended);
 
 #define DEFINE_REGEX_IGNORECASE(_NAME_,_REGEXP_) \
-	const boost::regex _NAME_ = boost::regex( _REGEXP_, boost::regex::extended | boost::regex::icase);
+	const std::regex _NAME_ = std::regex( _REGEXP_, std::regex::extended | std::regex::icase);
 
 /* -------------------------------------------------------------------------- */
 /* Utility regexes                                                            */

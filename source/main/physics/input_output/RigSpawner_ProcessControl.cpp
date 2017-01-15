@@ -209,7 +209,7 @@ rig_t *RigSpawner::SpawnRig()
 	PROCESS_SECTION_IN_ALL_MODULES(RigDef::File::KEYWORD_AXLES, RigDef::Axle, axles, ProcessAxle);
 
 	// Section 'flexbodies' (Uses generated nodes)
-	PROCESS_SECTION_IN_ALL_MODULES(RigDef::File::KEYWORD_FLEXBODIES, boost::shared_ptr<RigDef::Flexbody>, flexbodies, ProcessFlexbody);
+	PROCESS_SECTION_IN_ALL_MODULES(RigDef::File::KEYWORD_FLEXBODIES, std::shared_ptr<RigDef::Flexbody>, flexbodies, ProcessFlexbody);
 
 	// Section 'submeshes'
 	PROCESS_SECTION_IN_ALL_MODULES(RigDef::File::KEYWORD_SUBMESH, RigDef::Submesh, submeshes, ProcessSubmesh);

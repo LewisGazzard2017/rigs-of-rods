@@ -29,7 +29,7 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 #include "Streamable.h"
 
 #include <OgreTimer.h>
-#include <OgreOverlayElement.h>
+
 
 /** 
 * Represents an entire rig (any vehicle type)

@@ -28,6 +28,7 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 /////////////////////////////////////////////////////////////////////////////
 
 class DashboardListener;
+namespace Ogre { class Overlay; } // Forward
 
 class Dashboard : public ZeroedMemoryAllocator
 {

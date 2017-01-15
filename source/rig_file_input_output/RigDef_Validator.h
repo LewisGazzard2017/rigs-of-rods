@@ -72,7 +72,7 @@ public:
 	/**
 	* Prepares the validation.
 	*/
-	void Setup(boost::shared_ptr<RigDef::File> file);
+	void Setup(std::shared_ptr<RigDef::File> file);
 
 	/**
 	* Adds a vehicle module to the validated configuration.
@@ -105,7 +105,7 @@ private:
 	/**
 	* Checks if a module contains a section.
 	*/
-	bool HasModuleKeyword(boost::shared_ptr<RigDef::File::Module> module, RigDef::File::Keyword keyword);
+	bool HasModuleKeyword(std::shared_ptr<RigDef::File::Module> module, RigDef::File::Keyword keyword);
 
 	bool CheckSpecialNodeZero();
 
@@ -145,8 +145,8 @@ private:
 /* -------------------------------------------------------------------------- */
 
 	std::list<Message> m_messages;
-	boost::shared_ptr<RigDef::File> m_file; //!< The parsed input file.
-	std::list<boost::shared_ptr<RigDef::File::Module>> m_selected_modules;
+	std::shared_ptr<RigDef::File> m_file; //!< The parsed input file.
+	std::list<std::shared_ptr<RigDef::File::Module>> m_selected_modules;
 	bool m_check_beams;
 
 };

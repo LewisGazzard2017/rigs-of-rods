@@ -22,6 +22,10 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 #include "Console.h"
 #include "ResourceBuffer.h"
 #include "TruckHUD.h"
+#include "OverlayWrapper.h"
+
+#include <Overlay\OgreOverlay.h>
+#include <Overlay\OgreOverlayManager.h>
 
 using namespace Ogre;
 

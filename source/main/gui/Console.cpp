@@ -285,7 +285,7 @@ void Console::eventCommandAccept(MyGUI::Edit* _sender)
 			else if (args[1] == "jupiter")
 				gValue = -50;
 			else
-				gValue = boost::lexical_cast<float>(args[1].c_str());
+				gValue = std::lexical_cast<float>(args[1].c_str());
 
 			gEnv->terrainManager->setGravity(gValue);
 			putMessage(CONSOLE_MSGTYPE_INFO, CONSOLE_SYSTEM_REPLY, _L("Gravity set to: ") + StringConverter::toString(gValue), "information.png");
@@ -297,7 +297,7 @@ void Console::eventCommandAccept(MyGUI::Edit* _sender)
 			{
 				IWater* water = gEnv->terrainManager->getWater();
 				water->setCamera(gEnv->mainCamera);
-				water->setHeight(boost::lexical_cast<float>(args[1].c_str()));
+				water->setHeight(std::lexical_cast<float>(args[1].c_str()));
 				water->update();
 			}
 			return;

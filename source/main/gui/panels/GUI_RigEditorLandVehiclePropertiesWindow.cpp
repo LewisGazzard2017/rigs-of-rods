@@ -76,8 +76,8 @@ void CLASS::CancelButtonClicked(MyGUI::Widget* sender)
 }
 
 void CLASS::Import(
-	boost::shared_ptr<RigDef::Engine> engine,
-	boost::shared_ptr<RigDef::Engoption> engoption
+	std::shared_ptr<RigDef::Engine> engine,
+	std::shared_ptr<RigDef::Engoption> engoption
 	)
 {
 	// SECTION "ENGINE"
@@ -118,8 +118,8 @@ void CLASS::Import(
 }
 
 void CLASS::Export(
-	boost::shared_ptr<RigDef::Engine> engine,
-	boost::shared_ptr<RigDef::Engoption> engoption
+	std::shared_ptr<RigDef::Engine> engine,
+	std::shared_ptr<RigDef::Engoption> engoption
 	)
 {
 	// SECTION "ENGINE"

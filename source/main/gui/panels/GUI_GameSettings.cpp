@@ -989,14 +989,14 @@ void CLASS::LoadKeyMap()
 
 			//Thanks stackoverflow and boost..
 			try {
-				if (boost::starts_with(Application::GetInputEngine()->eventIDToName(mapIt->first).c_str(), m_keymap_group->getCaption()))
+				if (std::starts_with(Application::GetInputEngine()->eventIDToName(mapIt->first).c_str(), m_keymap_group->getCaption()))
 				{
 					m_keymapping->addItem(Application::GetInputEngine()->eventIDToName(mapIt->first).c_str());
 					m_keymapping->setSubItemNameAt(1, m_keymapping->getItemCount() -1, vecIt->configline);
 				}
 				
 			}
-			catch (boost::bad_lexical_cast) {
+			catch (std::bad_lexical_cast) {
 				LOG("Keymapping Error #1"); //Temporary
 			}
 
@@ -1037,14 +1037,14 @@ void CLASS::OnKeymapTypeChange(MyGUI::ComboBox* _sender, size_t _index)
 			//Thanks stackoverflow and boost..
 			try 
 			{
-				if (boost::starts_with(Application::GetInputEngine()->eventIDToName(mapIt->first).c_str(), _sender->getItemNameAt(_index)))
+				if (std::starts_with(Application::GetInputEngine()->eventIDToName(mapIt->first).c_str(), _sender->getItemNameAt(_index)))
 				{
 					m_keymapping->addItem(Application::GetInputEngine()->eventIDToName(mapIt->first).c_str());
 					m_keymapping->setSubItemNameAt(1, m_keymapping->getItemCount() - 1, vecIt->configline);
 				}
 
 			}
-			catch (boost::bad_lexical_cast) {
+			catch (std::bad_lexical_cast) {
 				LOG("Keymapping Error #2"); //Temporary
 			}
 		}
