@@ -32,6 +32,8 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 #include "RoRPrerequisites.h"
 #include "Ogre.h"
 
+#include <Overlay/OgreFont.h>
+
 namespace Ogre {
 
 class MovableText : public MovableObject, public Renderable

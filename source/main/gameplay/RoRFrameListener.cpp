@@ -19,7 +19,7 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "RoRFrameListener.h"
 
-#include <OgreFontManager.h>
+#include <Overlay/OgreFontManager.h>
 
 #include <OgreRTShaderSystem.h>
 #include <OgreTerrain.h>

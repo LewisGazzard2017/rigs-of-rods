@@ -25,6 +25,9 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 #include "SkyManager.h"
 #include "TerrainManager.h"
 
+#include <Overlay/OgreOverlayManager.h>
+#include <Overlay/OgreOverlayElement.h>
+
 using namespace Ogre;
 
 Envmap::Envmap() :

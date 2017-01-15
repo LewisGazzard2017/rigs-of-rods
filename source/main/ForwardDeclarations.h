@@ -90,6 +90,10 @@ namespace Ogre
 	class MovableText;
 	class TerrainGroup;
 	class ConfigFile;
+	class Font;
+	class OverlayManager;
+	class OverlayElement;
+	class Overlay;
 }
 
 class AeroEngine;

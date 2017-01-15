@@ -28,7 +28,8 @@
 #include "BeamEngine.h"
 #include "InputEngine.h"
 
-#include <OgreOverlayManager.h>
+#include <Overlay/OgreOverlayManager.h>
+#include <Overlay/OgreOverlayElement.h>
 
 using namespace RoR;
 

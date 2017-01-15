@@ -20,7 +20,7 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 #include "WriteTextToTexture.h"
 #include "OgreHardwarePixelBuffer.h"
 #include "OgreTexture.h"
-#include "OgreFont.h"
+#include "Overlay/OgreFont.h"
 
 #include "OgreTextureManager.h"
 #include "OgreMaterial.h"
