@@ -78,12 +78,13 @@ void SkinManager::parseScript(DataStreamPtr& stream, const String& groupName)
 			{
 				// No current skin
 				// So first valid data should be skin name
+				/* TEMPORARY|SKYX
 				pSkin = (Skin *)create(line, groupName).getPointer();
 				if (pSkin)
 				{
 					pSkin->_notifyOrigin(stream->getName());
 					stream->skipLine("{");
-				}
+				}*/
 			} else
 			{
 				// Already in skin
