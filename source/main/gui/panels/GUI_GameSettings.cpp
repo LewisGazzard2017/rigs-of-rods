@@ -42,15 +42,15 @@
 #include "Settings.h"
 
 #include <MyGUI.h>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/lexical_cast.hpp>
+#include <algorithm>
+//#include <boost/lexical_cast.hpp>
 #ifdef USE_OPENAL
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alext.h>
 #endif // USE_OPENAL
 
-#include <dirent.h>
+//#include <dirent.h>
 
 using namespace RoR;
 using namespace GUI;
@@ -987,18 +987,17 @@ void CLASS::LoadKeyMap()
 			if (m_keymap_group->getCaption() == "")
 				m_keymap_group->setIndexSelected(0); //at least select something
 
-			//Thanks stackoverflow and boost..
-			try {
-				if (std::starts_with(Application::GetInputEngine()->eventIDToName(mapIt->first).c_str(), m_keymap_group->getCaption()))
+			const char* event_name = Application::GetInputEngine()->eventIDToName(mapIt->first).c_str();
+			const char* caption = m_keymap_group->getCaption().asUTF8_c_str();
+
+
+
+				if (strcmp(event_name, caption) == 0)
 				{
 					m_keymapping->addItem(Application::GetInputEngine()->eventIDToName(mapIt->first).c_str());
 					m_keymapping->setSubItemNameAt(1, m_keymapping->getItemCount() -1, vecIt->configline);
 				}
-				
-			}
-			catch (std::bad_lexical_cast) {
-				LOG("Keymapping Error #1"); //Temporary
-			}
+
 
 			//m_key_name->
 			// print event name

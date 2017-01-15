@@ -36,7 +36,7 @@
 #include "RigDef_File.h"
 
 #include <OgreString.h>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace RigDef
 {

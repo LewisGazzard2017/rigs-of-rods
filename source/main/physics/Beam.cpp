@@ -75,6 +75,9 @@ along with Rigs of Rods.  If not, see <http://www.gnu.org/licenses/>.
 #include "RigDef_Parser.h"
 #include "RigDef_Validator.h"
 
+#include <Overlay/OgreOverlayManager.h>
+#include <Overlay/OgreOverlayElement.h>
+
 // some gcc fixes
 #if OGRE_PLATFORM == OGRE_PLATFORM_LINUX
 #pragma GCC diagnostic ignored "-Wfloat-equal"

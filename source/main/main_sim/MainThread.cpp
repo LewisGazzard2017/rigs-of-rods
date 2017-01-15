@@ -73,6 +73,7 @@
 
 #include <OgreRoot.h>
 #include <OgreString.h>
+#include <Overlay/OgreOverlayManager.h>
 
 // Global instance of GlobalEnvironment used throughout the game.
 GlobalEnvironment *gEnv; 

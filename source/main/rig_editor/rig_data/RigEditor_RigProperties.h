@@ -32,7 +32,7 @@
 #include "RigEditor_ForwardDeclarations.h"
 #include "RoRPrerequisites.h"
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace RoR
 {

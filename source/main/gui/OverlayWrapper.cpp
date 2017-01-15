@@ -39,7 +39,7 @@
 #include "GlobalEnvironment.h"
 #include "IHeightFinder.h"
 #include "Language.h"
-#include "OgreFontManager.h"
+#include <Overlay\OgreFontManager.h>
 #include "OgreSubsystem.h"
 #include "RoRVersion.h"
 #include "ScrewProp.h"
@@ -48,6 +48,9 @@
 #include "TruckHUD.h"
 #include "TurboProp.h"
 #include "Utils.h"
+
+#include <Overlay/OgreOverlayManager.h>
+#include <Overlay/OgreOverlayElement.h>
 
 using namespace Ogre;
 
