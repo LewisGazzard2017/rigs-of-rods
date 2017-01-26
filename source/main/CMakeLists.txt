@@ -27,6 +27,7 @@ set( SOURCE_FILES
   GlobalEnvironment.h
   MainMenu.{h,cpp}
   RoRPrerequisites.h
+  audio/MumbleIntegration.{h,cpp}  
   audio/Sound.{h,cpp}
   audio/SoundManager.{h,cpp}
   audio/SoundScriptManager.{h,cpp}
@@ -235,7 +236,6 @@ set( SOURCE_FILES
   utils/InterThreadStoreVector.h
   utils/Language.{h,cpp}
   utils/MeshObject.{h,cpp}
-  utils/MumbleIntegration.{h,cpp}
   utils/PlatformUtils.{h,cpp}
   utils/RoRWindowEventUtilities.{h,cpp}
   utils/Settings.{h,cpp}

@@ -269,11 +269,7 @@ void MainMenu::JoinMultiplayerServer()
     ChatSystem::SendStreamSetup();
 
 #ifdef USE_MUMBLE
-    if (! m_is_mumble_created)
-    {
-        new MumbleIntegration();
-        m_is_mumble_created = true;
-    }
+    SoundScriptManager::getSingleton().CheckAndCreateMumble();
 #endif // USE_MUMBLE
 
     String terrain_name = Networking::GetTerrainName();
