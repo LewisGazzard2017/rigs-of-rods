@@ -24,6 +24,7 @@
 
 #include "Application.h"
 #include "Beam.h"
+#include "MumbleIntegration.h"
 #include "Settings.h"
 #include "Sound.h"
 #include "SoundManager.h"

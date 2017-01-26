@@ -40,6 +40,7 @@
 #include "EnvironmentMap.h"
 #include "ForceFeedback.h"
 #include "GUI_LoadingWindow.h"
+#include "GUI_TopMenubar.h"
 #include "GUIManager.h"
 #include "Heathaze.h"
 #include "IHeightFinder.h"
@@ -141,6 +142,8 @@ RoRFrameListener::RoRFrameListener(RoR::ForceFeedback* ff) :
     m_stats_on(0),
     m_time(0),
     m_time_until_next_toggle(0),
+    m_advanced_truck_repair(false),
+    m_advanced_truck_repair_timer(0.f),
     m_truck_info_on(false)
 {
 }
@@ -1909,11 +1912,6 @@ void RoRFrameListener::windowResized(Ogre::RenderWindow* rw)
         return;
     LOG("*** windowResized");
 
-    // Update mouse screen width/height
-    unsigned int width, height, depth;
-    int left, top;
-    rw->getMetrics(width, height, depth, left, top);
-
     if (RoR::App::GetOverlayWrapper())
         RoR::App::GetOverlayWrapper()->windowResized();
     if (gEnv->surveyMap)
@@ -2242,6 +2240,10 @@ bool RoRFrameListener::LoadTerrain()
 
 void RoRFrameListener::CleanupAfterSimulation()
 {
+#ifdef USE_ANGELSCRIPT
+    ScriptEngine::getSingleton().SetFrameListener(nullptr);
+#endif
+
 #ifdef USE_MYGUI
     if (gEnv->surveyMap)
         gEnv->surveyMap->setVisibility(false);
@@ -2287,6 +2289,10 @@ void RoRFrameListener::CleanupAfterSimulation()
 
 bool RoRFrameListener::SetupGameplayLoop()
 {
+#ifdef USE_ANGELSCRIPT
+    ScriptEngine::getSingleton().SetFrameListener(this);
+#endif
+
     auto* loading_window = App::GetGuiManager()->GetLoadingWindow();
 
     LOG("Loading base resources");
@@ -2473,6 +2479,9 @@ void RoRFrameListener::EnterGameplayLoop()
     RoR::Mirrors::Init();
 
     App::GetOgreSubsystem()->GetOgreRoot()->addFrameListener(this);
+    RoRWindowEventUtilities::addWindowEventListener(App::GetOgreSubsystem()->GetRenderWindow(), this);
+    App::GetGuiManager()->GetTopMenubar()->SetSimController(this);
+    BeamFactory::getSingleton().SetSimController(this);
 
     unsigned long timeSinceLastFrame = 1;
     unsigned long startTime = 0;
@@ -2535,5 +2544,8 @@ void RoRFrameListener::EnterGameplayLoop()
     /* RESTORE ENVIRONMENT */
 
     App::GetOgreSubsystem()->GetOgreRoot()->removeFrameListener(this);
+    RoRWindowEventUtilities::removeWindowEventListener(App::GetOgreSubsystem()->GetRenderWindow(), this);
+    App::GetGuiManager()->GetTopMenubar()->SetSimController(nullptr);
+    BeamFactory::getSingleton().SetSimController(nullptr);
 }
 
