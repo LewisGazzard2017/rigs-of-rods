@@ -274,6 +274,7 @@ Beam* BeamFactory::CreateLocalRigInstance(
     std::string out_path = RoR::App::GetSysUserDir() + PATH_SLASH + "profiler" + PATH_SLASH + ROR_PROFILE_RIG_LOADING_OUTFILE;
     ::Profiler::DumpHtml(out_path.c_str());
 #endif
+    b->SetSimController(m_sim_controller);
     return b;
 }
 
@@ -1014,7 +1015,9 @@ void BeamFactory::updateVisual(float dt)
         }
     }
 
-    RoR::Mirrors::Update(getCurrentTruck());
+    m_sim_controller->GetLegacyMirrors()->Update(getCurrentTruck(),
+        gEnv->mainCamera->getPosition(), gEnv->mainCamera->getDirection(), // Temporary mess ~ only_a_ptr. 01/2017
+        gEnv->mainCamera->getFOVy(), gEnv->mainCamera->getAspectRatio());  // Temporary mess
 }
 
 void BeamFactory::update(float dt)
