@@ -2053,7 +2053,7 @@ String CacheSystem::filenamesSHA1()
 
 void CacheSystem::fillTerrainDetailInfo(CacheEntry& entry, Ogre::DataStreamPtr ds, Ogre::String fname)
 {
-    TerrainManager tm;
+    TerrainManager tm(nullptr); // TODO: Create a standalone terrn2 parser
     tm.loadTerrainConfigBasics(ds);
 
     //parsing the current file

@@ -140,8 +140,10 @@ unsigned int getNumberOfCPUCores()
     return cores;
 }
 
-BeamFactory::BeamFactory() :
-    m_current_truck(-1)
+using namespace RoR;
+
+BeamFactory::BeamFactory(RoRFrameListener* sim_controller)
+    : m_current_truck(-1)
     , m_dt_remainder(0.0f)
     , m_forced_active(false)
     , m_free_truck(0)
@@ -149,11 +151,11 @@ BeamFactory::BeamFactory() :
     , m_physics_frames(0)
     , m_physics_steps(2000)
     , m_previous_truck(-1)
+    , m_simulated_truck(0)
     , m_simulation_speed(1.0f)
-    , m_sim_controller(nullptr)
+    , m_sim_controller(sim_controller)
 {
-    for (int t = 0; t < MAX_TRUCKS; t++)
-        m_trucks[t] = 0;
+    memset(m_trucks, 0, MAX_TRUCKS * sizeof(void*));
 
     if (RoR::App::GetAppMultithread())
     {
@@ -227,6 +229,7 @@ Beam* BeamFactory::CreateLocalRigInstance(
     }
 
     Beam* b = new Beam(
+        m_sim_controller,
         truck_num,
         pos,
         rot,
@@ -274,7 +277,6 @@ Beam* BeamFactory::CreateLocalRigInstance(
     std::string out_path = RoR::App::GetSysUserDir() + PATH_SLASH + "profiler" + PATH_SLASH + ROR_PROFILE_RIG_LOADING_OUTFILE;
     ::Profiler::DumpHtml(out_path.c_str());
 #endif
-    b->SetSimController(m_sim_controller);
     return b;
 }
 
@@ -324,6 +326,7 @@ int BeamFactory::CreateRemoteInstance(RoRnet::TruckStreamRegister* reg)
     }
     RoR::RigLoadingProfiler p; // TODO: Placeholder. Use it
     Beam* b = new Beam(
+        m_sim_controller,
         truck_num,
         pos,
         Quaternion::ZERO,
@@ -802,10 +805,11 @@ void BeamFactory::CleanUpAllTrucks() // Called after simulation finishes
         if (m_trucks[i] == nullptr)
             continue; // This is how things currently work (but not for long...) ~ only_a_ptr, 01/2017
 
-        if (m_current_truck == m_trucks[i]->trucknum)
-        {
-            this->setCurrentTruck(-1);
-        }
+        // DO NOT // if (m_current_truck == m_trucks[i]->trucknum)
+        // DO NOT // {
+        // DO NOT //     this->setCurrentTruck(-1); ---- Would call back to sim controller to do various updates.
+        // DO NOT // }
+
         delete m_trucks[i];
         m_trucks[i] = nullptr;
     }

@@ -29,7 +29,7 @@ class TerrainManager : public ZeroedMemoryAllocator
 {
 public:
 
-    TerrainManager();
+    TerrainManager(RoRFrameListener* sim_controller);
     ~TerrainManager();
 
     void loadTerrain(Ogre::String filename);
@@ -65,6 +65,7 @@ public:
     TerrainObjectManager* getObjectManager() { return object_manager; };
 
     ShadowManager* getShadowManager() { return shadow_manager; };
+    RoRFrameListener* GetSimController() { return m_sim_controller; }
 
     // preloaded trucks
     void loadPreloadedTrucks();
@@ -75,6 +76,7 @@ public:
 protected:
 
     RoR::ConfigFile m_terrain_config;
+    RoRFrameListener* m_sim_controller;
 
     // subsystems
     Character* character;
@@ -110,7 +112,6 @@ protected:
 
     // internal methods
     void initCamera();
-    void initCollisions();
     void initTerrainCollisions();
     void initDashboards();
     void initEnvironmentMap();

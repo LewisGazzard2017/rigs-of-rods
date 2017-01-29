@@ -32,6 +32,7 @@
 #include "Language.h"
 #include "Network.h"
 #include "PlayerColours.h"
+#include "RoRFrameListener.h"
 
 using namespace RoR;
 using namespace GUI;
@@ -246,7 +247,7 @@ void MpClientList::updateSlot(player_row_t* row, RoRnet::UserInfo c, bool self)
         row->userTruckOKRemoteImg->setPosition(x, y);
         x -= 10;
 
-        int ok = BeamFactory::getSingleton().checkStreamsOK(c.uniqueid);
+        int ok = m_sim_controller->GetBeamFactory()->checkStreamsOK(c.uniqueid);
         if (ok == 0)
         {
             row->userTruckOKImg->setImageTexture("arrow_down_red.png");
@@ -266,7 +267,7 @@ void MpClientList::updateSlot(player_row_t* row, RoRnet::UserInfo c, bool self)
             row->userTruckOKImg->setUserString("tooltip", tmp.asUTF8());
         }
 
-        int rok = BeamFactory::getSingleton().checkStreamsRemoteOK(c.uniqueid);
+        int rok = m_sim_controller->GetBeamFactory()->checkStreamsRemoteOK(c.uniqueid);
         if (rok == 0)
         {
             row->userTruckOKRemoteImg->setImageTexture("arrow_up_red.png");

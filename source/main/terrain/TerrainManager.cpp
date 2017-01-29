@@ -51,8 +51,9 @@
 using namespace RoR;
 using namespace Ogre;
 
-TerrainManager::TerrainManager() :
-    m_terrain_config()
+TerrainManager::TerrainManager(RoRFrameListener* sim_controller)
+    : m_sim_controller(sim_controller)
+    , m_terrain_config()
     , character(0)
     , collisions(0)
     , dashboard(0)
@@ -280,7 +281,8 @@ void TerrainManager::initSubSystems()
     initObjects();
 
     PROGRESS_WINDOW(19, _L("Initializing Collision Subsystem"));
-    initCollisions();
+    collisions = new Collisions(m_sim_controller);
+    gEnv->collisions = collisions;
 
     PROGRESS_WINDOW(19, _L("Initializing Script Subsystem"));
     initScripting();
@@ -685,12 +687,6 @@ void TerrainManager::loadTerrainObjects()
     object_manager->postLoad();
 }
 
-void TerrainManager::initCollisions()
-{
-    collisions = new Collisions();
-    gEnv->collisions = collisions;
-}
-
 void TerrainManager::initTerrainCollisions()
 {
     String tractionMapConfig = m_terrain_config.GetStringEx("TractionMap", "General");
@@ -753,7 +749,7 @@ void TerrainManager::initScripting()
 void TerrainManager::setGravity(float value)
 {
     gravity = value;
-    BeamFactory::getSingleton().recalcGravityMasses();
+    m_sim_controller->GetBeamFactory()->recalcGravityMasses();
 }
 
 void TerrainManager::initSurveyMap()
