@@ -64,6 +64,7 @@
 #include "RoRFrameListener.h"
 #include "ScrewProp.h"
 #include "Settings.h"
+#include "Skidmark.h"
 #include "Skin.h"
 #include "SlideNode.h"
 #include "SoundScriptManager.h"
@@ -4428,6 +4429,8 @@ void RigSpawner::ProcessFlexBodyWheel(RigDef::FlexBodyWheel & def)
         node_indices
         );
 
+    this->CreateWheelSkidmarks(static_cast<unsigned>(m_rig->free_wheel));
+
     m_rig->free_flexbody++;
 
     /* Advance */
@@ -4497,6 +4500,8 @@ void RigSpawner::ProcessMeshWheel(RigDef::MeshWheel & meshwheel_def)
         meshwheel_def.rim_radius,
         meshwheel_def.side != RigDef::MeshWheel::SIDE_RIGHT
         );
+
+    CreateWheelSkidmarks(wheel_index);
 }
 
 void RigSpawner::ProcessMeshWheel2(RigDef::MeshWheel & def)
@@ -4571,6 +4576,8 @@ void RigSpawner::ProcessMeshWheel2(RigDef::MeshWheel & def)
         def.rim_radius,
         def.side != RigDef::MeshWheel::SIDE_RIGHT
         );
+
+    CreateWheelSkidmarks(wheel_index);
 }
 
 void RigSpawner::BuildMeshWheelVisuals(
@@ -4981,7 +4988,16 @@ unsigned int RigSpawner::AddWheel(RigDef::Wheel & wheel_def)
 
     CreateWheelVisuals(wheel_index, wheel_def, base_node_index);
 
+    CreateWheelSkidmarks(wheel_index);
+
     return wheel_index;
+}
+
+void RigSpawner::CreateWheelSkidmarks(unsigned int wheel_index)
+{
+    // Always create, even if disabled by config
+    m_rig->skidtrails[wheel_index] = new RoR::Skidmark(
+        m_sim_controller->GetSkidmarkConf(), m_sim_controller, &m_rig->wheels[wheel_index], m_rig->beamsRoot, 300, 20);
 }
 
 #if 0 // refactored into pieces
@@ -5339,6 +5355,8 @@ unsigned int RigSpawner::AddWheel2(RigDef::Wheel2 & wheel_2_def)
     Ogre::Real length_1 = (axis_node_1->RelPosition - wheel.arm->RelPosition).length();
     Ogre::Real length_2 = (axis_node_2->RelPosition - wheel.arm->RelPosition).length();
     wheel.near_attach = (length_1 < length_2) ? axis_node_1 : axis_node_2;
+
+    CreateWheelSkidmarks(static_cast<unsigned>(m_rig->free_wheel));
 
     /* Advance */
     unsigned int wheel_index = m_rig->free_wheel;

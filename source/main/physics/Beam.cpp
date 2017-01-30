@@ -177,8 +177,6 @@ Beam::~Beam()
         deletion_Entities.clear();
     }
 
-    // delete skidmarks as well?!
-
     // delete wings
     for (int i = 0; i < free_wing; i++)
     {
@@ -230,6 +228,13 @@ Beam::~Beam()
             vwheels[i].cnode->removeAndDestroyAllChildren();
             gEnv->sceneManager->destroySceneNode(vwheels[i].cnode);
         }
+    }
+
+    // delete skidmarks
+    for (int i = 0; i < free_wheel; ++i)
+    {
+        delete skidtrails[i];
+        skidtrails[i] = nullptr;
     }
 
     // delete cablight
@@ -2851,11 +2856,6 @@ void Beam::updateSkidmarks()
         // ignore wheels without data
         if (wheels[i].lastContactInner == Vector3::ZERO && wheels[i].lastContactOuter == Vector3::ZERO)
             continue;
-        // create skidmark object for wheels with data if not existing
-        if (!skidtrails[i])
-        {
-            skidtrails[i] = new Skidmark(&wheels[i], beamsRoot, 300, 20);
-        }
 
         skidtrails[i]->updatePoint();
         if (skidtrails[i] && wheels[i].isSkiding)
