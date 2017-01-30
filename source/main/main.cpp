@@ -57,7 +57,7 @@
 #include "OgreSubsystem.h"
 #include "OverlayWrapper.h"
 #include "OutProtocol.h"
-#include "PlayerColours.h"
+
 #include "RoRFrameListener.h"
 #include "Scripting.h"
 #include "Settings.h"
@@ -257,9 +257,6 @@ int main(int argc, char *argv[])
 #endif
 
         RoR::App::GetInputEngine()->windowResized(App::GetOgreSubsystem()->GetRenderWindow());
-
-        // initiate player colours
-        PlayerColours::getSingleton();
 
         MainMenu main_obj;
         

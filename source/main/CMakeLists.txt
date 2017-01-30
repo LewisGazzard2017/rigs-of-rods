@@ -46,7 +46,6 @@ set( SOURCE_FILES
   gameplay/LandVehicleSimulation.{h,cpp}
   gameplay/MaterialReplacer.{h,cpp}
   gameplay/OutProtocol.{h,cpp}
-  gameplay/PlayerColours.{h,cpp}
   gameplay/PositionStorage.{h,cpp}
   gameplay/ProceduralManager.{h,cpp}
   gameplay/Replay.{h,cpp}
