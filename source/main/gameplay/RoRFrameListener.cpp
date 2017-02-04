@@ -127,6 +127,7 @@ RoRFrameListener::RoRFrameListener(RoR::ForceFeedback* ff, RoR::SkidmarkConfig* 
     m_force_feedback(ff),
     m_skidmark_conf(skid_conf),
     m_hide_gui(false),
+    m_was_app_window_closed(false),
     m_is_dir_arrow_visible(false),
     m_is_pace_reset_pressed(false),
     m_last_cache_selection(nullptr),
@@ -1934,7 +1935,9 @@ void RoRFrameListener::windowResized(Ogre::RenderWindow* rw)
 //Unattach OIS before window shutdown (very important under Linux)
 void RoRFrameListener::windowClosed(Ogre::RenderWindow* rw)
 {
-    LOG("*** windowClosed");
+    // No on-screen rendering must be performed after window is closed -> crashes!
+    LOG("[RoR|Simulation] Received \"WindowClosed\" event. Stopping rendering.");
+    m_was_app_window_closed = true;
 }
 
 void RoRFrameListener::windowMoved(Ogre::RenderWindow* rw)
@@ -2261,7 +2264,7 @@ void RoRFrameListener::CleanupAfterSimulation()
 #endif //USE_MYGUI
     auto loading_window = App::GetGuiManager()->GetLoadingWindow();
 
-    loading_window->setProgress(0, _L("Unloading Terrain"));
+    loading_window->setProgress(0, _L("Unloading Terrain"), !m_was_app_window_closed);
 
     RoR::App::GetGuiManager()->GetMainSelector()->Reset();
 
@@ -2270,17 +2273,17 @@ void RoRFrameListener::CleanupAfterSimulation()
 
     RoR::App::DestroyOverlayWrapper();
 
-    loading_window->setProgress(15, _L("Unloading Terrain"));
+    loading_window->setProgress(15, _L("Unloading Terrain"), !m_was_app_window_closed);
 
     //Unload all vehicules
     m_beam_factory.CleanUpAllTrucks();
-    loading_window->setProgress(30, _L("Unloading Terrain"));
+    loading_window->setProgress(30, _L("Unloading Terrain"), !m_was_app_window_closed);
 
     delete gEnv->player;
     gEnv->player = nullptr;
     m_character_factory.DeleteAllRemoteCharacters();
 
-    loading_window->setProgress(45, _L("Unloading Terrain"));
+    loading_window->setProgress(45, _L("Unloading Terrain"), !m_was_app_window_closed);
 
     if (gEnv->terrainManager != nullptr)
     {
@@ -2288,13 +2291,13 @@ void RoRFrameListener::CleanupAfterSimulation()
         delete(gEnv->terrainManager);
         gEnv->terrainManager = nullptr;
     }
-    loading_window->setProgress(60, _L("Unloading Terrain"));
+    loading_window->setProgress(60, _L("Unloading Terrain"), !m_was_app_window_closed);
 
     App::DeleteSceneMouse();
-    loading_window->setProgress(75, _L("Unloading Terrain"));
+    loading_window->setProgress(75, _L("Unloading Terrain"), !m_was_app_window_closed);
 
     //Reinit few things
-    loading_window->setProgress(100, _L("Unloading Terrain"));
+    loading_window->setProgress(100, _L("Unloading Terrain"), !m_was_app_window_closed);
     // hide loading window
     App::GetGuiManager()->SetVisible_LoadingWindow(false);
 }
