@@ -198,7 +198,7 @@ BeamFactory::BeamFactory(RoRFrameListener* sim_controller)
 BeamFactory::~BeamFactory()
 {
     delete gEnv->threadPool;
-    m_particle_manager.Shutdown();
+    m_particle_manager.DustManDiscard(gEnv->sceneManager); // TODO: de-globalize SceneManager
 }
 
 #define LOADRIG_PROFILER_CHECKPOINT(ENTRY_ID) rig_loading_profiler.Checkpoint(RoR::RigLoadingProfiler::ENTRY_ID);
