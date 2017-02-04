@@ -193,7 +193,6 @@ class ThreadPool;
 class ThreadWorker;
 class TorqueCurve;
 class TruckEditor;
-class TruckHUD;
 class Turbojet;
 class Turboprop;
 class VideoCamera;
