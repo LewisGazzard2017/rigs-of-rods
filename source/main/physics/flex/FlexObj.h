@@ -78,11 +78,14 @@ struct CabTexcoord
 /// Submesh for old-style actor body (the "cab")
 struct CabSubmesh
 {
-	CabSubmesh(): backmesh_type(0), texcoords_pos(0), cabs_pos(0) {}
+	enum BackmeshType { BACKMESH_NONE, BACKMESH_OPAQUE, BACKMESH_TRANSPARENT };
 
-	int    backmesh_type; // 0=none, 1=opaque, 2=transparent
-	size_t texcoords_pos;
-	size_t cabs_pos;
+	CabSubmesh(): backmesh_type(BACKMESH_NONE), texcoords_first(0), texcoords_last(0), cabs_first(0), cabs_last(0) {}
+	size_t GetTriangleCount() { return (cabs_last - cabs_first) + 1; }
+
+	BackmeshType    backmesh_type;
+	size_t          texcoords_first, texcoords_last; // Indexes to shared texcoords array
+	size_t          cabs_first, cabs_last; // Indexes to shared cab-triangles array
 };
 
 /// A visual mesh, forming a chassis for softbody actor

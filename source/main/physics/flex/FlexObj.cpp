@@ -44,9 +44,9 @@ FlexObj::FlexObj(node_t *nds, std::vector<CabTexcoord>& texcoords, int numtriang
 		Ogre::SubMesh* submesh = msh->createSubMesh();
         switch (submesh_defs[j].backmesh_type)
 		{
-		case 1:  submesh->setMaterialName(backtexname);  break;
-		case 2:  submesh->setMaterialName(transtexname); break;
-		default: submesh->setMaterialName(texname);
+		case CabSubmesh::BACKMESH_OPAQUE:       submesh->setMaterialName(backtexname);  break;
+		case CabSubmesh::BACKMESH_TRANSPARENT:  submesh->setMaterialName(transtexname); break;
+		default:                                submesh->setMaterialName(texname);
 		}
 		m_submeshes.push_back(submesh);
     };
@@ -128,11 +128,7 @@ FlexObj::FlexObj(node_t *nds, std::vector<CabTexcoord>& texcoords, int numtriang
     /// Set parameters of the submeshes
     for (size_t j=0; j<m_submeshes.size(); j++)
     {
-        size_t index_count;
-		if (j == 0)
-			index_count = 3*submesh_defs[j].cabs_pos;
-		else
-			index_count = 3*(submesh_defs[j].cabs_pos-submesh_defs[j-1].cabs_pos); // 3 indices per triangle
+        size_t index_count = submesh_defs[j].GetTriangleCount() * 3;
         m_submeshes[j]->useSharedVertices = true;
         /// Allocate index buffer of the requested number of vertices (ibufCount)
         HardwareIndexBufferSharedPtr ibuf = HardwareBufferManager::getSingleton().createIndexBuffer(
@@ -141,11 +137,7 @@ FlexObj::FlexObj(node_t *nds, std::vector<CabTexcoord>& texcoords, int numtriang
              HardwareBuffer::HBU_STATIC_WRITE_ONLY);
 
         /// Upload the index data to the card
-		unsigned short* faces_ptr;
-		if (j == 0)
-			faces_ptr = &faces[0];
-		else
-			faces_ptr = &faces[submesh_defs[j-1].cabs_pos * 3];
+		unsigned short* faces_ptr = &faces[submesh_defs[j].cabs_first * 3];
         ibuf->writeData(0, ibuf->getSizeInBytes(), faces_ptr, true);
         m_submeshes[j]->indexData->indexBuffer = ibuf;
         m_submeshes[j]->indexData->indexCount = index_count;
@@ -170,21 +162,21 @@ void FlexObj::scale(float factor)
     }
 }
 
-//find the zeroed id of the node v in the context of the tidx triangle
+//find the zeroed id of the node v in the context of the tidx triangle // ### TODO: Eliminate this weirdness!
 int FlexObj::findID(int tidx, int v, std::vector<CabSubmesh>& submeshes)
 {
     //first: find the context from the triangle index tidx
-    int context;
+    size_t context;
     for (context=0; context<submeshes.size()+1; context++) 
 	{
-		if (tidx < submeshes[context].cabs_pos)
+		if (static_cast<unsigned int>(tidx) < (submeshes[context].cabs_last + 1))
 		{
 			context--;
 			break;
 		}
 	}
     //okay, now search in the vertice block corresponding to the context
-	for (size_t j=submeshes[context].texcoords_pos; j<submeshes[context+1].texcoords_pos; j++)
+	for (size_t j=(submeshes[context].texcoords_last+1); j<(submeshes[context+1].texcoords_last+1); j++)
 	{
 		if (nodeIDs[j]==v)
 			return j;

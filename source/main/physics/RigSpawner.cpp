@@ -1546,6 +1546,10 @@ void RigSpawner::ProcessSubmesh(RigDef::Submesh & def)
         return;
     }
 
+	CabSubmesh submesh;
+	submesh.texcoords_first = m_oldstyle_cab_texcoords.size();
+	submesh.cabs_first = m_rig->free_cab;
+
     /* TEXCOORDS */
 
     std::vector<RigDef::Texcoord>::iterator texcoord_itor = def.texcoords.begin();
@@ -1673,18 +1677,16 @@ void RigSpawner::ProcessSubmesh(RigDef::Submesh & def)
         m_rig->free_cab++;
     }
 
-	//close the current mesh
-	CabSubmesh submesh;
-	submesh.texcoords_pos = m_oldstyle_cab_texcoords.size();
-	submesh.cabs_pos = static_cast<unsigned int>(m_rig->free_cab);
-	submesh.backmesh_type = 0; // Submesh type NONE
+	// Close mesh	
+	submesh.texcoords_last = m_oldstyle_cab_texcoords.size() - 1;
+	submesh.cabs_last = static_cast<unsigned int>(m_rig->free_cab - 1);
+	submesh.backmesh_type = CabSubmesh::BACKMESH_NONE;
 	m_oldstyle_cab_submeshes.push_back(submesh);
 
     /* BACKMESH */
 
     if (def.backmesh)
     {
-
         // Check limit
         if (! CheckCabLimit(1))
         {
@@ -1692,54 +1694,56 @@ void RigSpawner::ProcessSubmesh(RigDef::Submesh & def)
         }
 
         // === add an extra front mesh ===
-        //texcoords
-		int uv_start = (m_oldstyle_cab_submeshes.size()==1) ? 0 : (m_oldstyle_cab_submeshes.rbegin()+1)->texcoords_pos;
-        for (int i=uv_start; i<m_oldstyle_cab_submeshes.back().texcoords_pos; i++)
+		CabSubmesh backmesh_a;
+		backmesh_a.backmesh_type   = CabSubmesh::BACKMESH_TRANSPARENT;
+		backmesh_a.cabs_first      = m_rig->free_cab;
+		backmesh_a.texcoords_first = m_oldstyle_cab_texcoords.size();
+
+        for (size_t i=submesh.texcoords_first; i <= submesh.texcoords_last; ++i) // Clone texcoords
         {
 			m_oldstyle_cab_texcoords.push_back(m_oldstyle_cab_texcoords[i]);
         }
-        //cab
-        int cab_start =  (m_oldstyle_cab_submeshes.size()==1) ? 0 : (m_oldstyle_cab_submeshes.rbegin()+1)->cabs_pos;
-        for (int i=cab_start; i<m_oldstyle_cab_submeshes.back().cabs_pos; i++)
+
+        for (size_t i=submesh.cabs_first; i <= submesh.cabs_last; ++i) // Clone cabs
         {
-            m_rig->cabs[m_rig->free_cab*3]=m_rig->cabs[i*3];
+            m_rig->cabs[m_rig->free_cab*3]  =m_rig->cabs[i*3];
             m_rig->cabs[m_rig->free_cab*3+1]=m_rig->cabs[i*3+1];
             m_rig->cabs[m_rig->free_cab*3+2]=m_rig->cabs[i*3+2];
             m_rig->free_cab++;
         }
+
 		// Finalize
-		CabSubmesh submesh;
-		submesh.backmesh_type = 2; // Type = transparent
-		submesh.texcoords_pos = m_oldstyle_cab_texcoords.size();
-		submesh.cabs_pos      = static_cast<unsigned int>(m_rig->free_cab);
-		m_oldstyle_cab_submeshes.push_back(submesh);
+		backmesh_a.texcoords_last = m_oldstyle_cab_texcoords.size() - 1;
+		backmesh_a.cabs_last      = static_cast<unsigned int>(m_rig->free_cab - 1);
+		m_oldstyle_cab_submeshes.push_back(backmesh_a);
 
         // === add an extra back mesh ===
-        //texcoords
-        uv_start = (m_oldstyle_cab_submeshes.size()==1) ? 0 : (m_oldstyle_cab_submeshes.rbegin()+1)->texcoords_pos;
-        for (int i=uv_start; i<m_oldstyle_cab_submeshes.back().texcoords_pos; i++)
+		CabSubmesh backmesh_b;
+		backmesh_b.backmesh_type   = CabSubmesh::BACKMESH_OPAQUE;
+		backmesh_b.cabs_first      = m_rig->free_cab;
+		backmesh_b.texcoords_first = m_oldstyle_cab_texcoords.size();
+
+        for (size_t i=submesh.texcoords_first; i <= submesh.texcoords_last; ++i) // Clone texcoords
         {
 			m_oldstyle_cab_texcoords.push_back(m_oldstyle_cab_texcoords[i]);
         }
 
-        //cab
-        cab_start =  (m_oldstyle_cab_submeshes.size()==1) ? 0 : (m_oldstyle_cab_submeshes.rbegin()+1)->cabs_pos;
-        for (int i=cab_start; i<m_oldstyle_cab_submeshes.back().cabs_pos; i++)
+        for (size_t i=submesh.cabs_first; i <= submesh.cabs_last; ++i) // Clone cabs
         {
-            m_rig->cabs[m_rig->free_cab*3]=m_rig->cabs[i*3+1];
-            m_rig->cabs[m_rig->free_cab*3+1]=m_rig->cabs[i*3];
+            m_rig->cabs[m_rig->free_cab*3]  =m_rig->cabs[i*3];
+            m_rig->cabs[m_rig->free_cab*3+1]=m_rig->cabs[i*3+1];
             m_rig->cabs[m_rig->free_cab*3+2]=m_rig->cabs[i*3+2];
             m_rig->free_cab++;
         }
-    
-        //close the current mesh
-		CabSubmesh submesh2;
-		submesh2.texcoords_pos = m_oldstyle_cab_texcoords.size();
-		submesh2.cabs_pos = static_cast<unsigned int>(m_rig->free_cab);
-		submesh2.backmesh_type = 1; // Submesh type OPAQUE
-		m_oldstyle_cab_submeshes.push_back(submesh2);
+
+		// Finalize
+		backmesh_b.texcoords_last = m_oldstyle_cab_texcoords.size() - 1;
+		backmesh_b.cabs_last      = static_cast<unsigned int>(m_rig->free_cab - 1);
+		m_oldstyle_cab_submeshes.push_back(backmesh_b);
     }
 }
+
+
 
 void RigSpawner::ProcessFlexbody(std::shared_ptr<RigDef::Flexbody> def)
 {
