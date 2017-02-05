@@ -42,16 +42,12 @@ FlexObj::FlexObj(node_t *nds, std::vector<CabTexcoord>& texcoords, int numtriang
     for (size_t j=0; j<submesh_defs.size(); j++)
     {
 		Ogre::SubMesh* submesh = msh->createSubMesh();
-		char* material_name = texname;
-        if (j < (submesh_defs.size() - 1))
+        switch (submesh_defs[j].backmesh_type)
 		{
-			CabSubmesh def = submesh_defs[j + 1];
-			if (def.backmesh_type == 1)
-				material_name = backtexname;
-			else if (def.backmesh_type == 2)
-				material_name = transtexname;
+		case 1:  submesh->setMaterialName(backtexname);  break;
+		case 2:  submesh->setMaterialName(transtexname); break;
+		default: submesh->setMaterialName(texname);
 		}
-		submesh->setMaterialName(texname);
 		m_submeshes.push_back(submesh);
     };
 
