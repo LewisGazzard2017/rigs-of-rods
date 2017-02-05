@@ -30,29 +30,80 @@
 #include <OgreSubMesh.h>
 #include <OgreHardwareBuffer.h>
 
+/*
+How traditional softbody visuals work
+=====================================
+
+1. User adds one or more "submesh" sections to a truckfile
+   http://docs.rigsofrods.org/vehicle-creation/fileformat-truck/#submesh
+
+2. RigDef::Parser reads truckfile and creates RigDef::Submesh instances
+
+3. RigSpawner begins spawning the actor (class Beam: public rig_t).
+   These fields come into play:
+     int            rig_t::subtexcoords[MAX_SUBMESHES]; ---- Spawn-only:
+     int            rig_t::subcabs[MAX_SUBMESHES];
+     int            rig_t::free_sub;                 ---- Spawn-only: Submesh counter, used for indexing multiple other arrays.
+	 int            rig_t::cabs[MAX_CABS*3];         ---- SIM: Used all over the place for collisions
+ 	 int            rig_t::free_cab;
+     int            rig_t::subisback[MAX_SUBMESHES]; ---- Spawn-only: drives material assignment in FlexObj ctor.
+
+	 Hierarchy:
+	     free_sub ---- Master submesh index
+		     subcabs[free_sub]      -> index to cabs ??
+			 subtexcoords[free_sub] -> index to texcoords??
+			 subisback[free_sub]    -> value: 0=no/1=yes/2=yes+trans
+
+		 free_cab ---- cab node counter
+		     cabs[free_cab] -> cab node index (node 0/3)
+
+         free_collcab ---- collision triangle counter
+		     collcabs[free_collcab] -> cab triangle (not node!) index
+			 nodex[cabs[collcabs[i*3  ]]] -> cab triangle node 0
+			 nodex[cabs[collcabs[i*3+1]]] -> cab triangle node 1
+			 nodex[cabs[collcabs[i*3+2]]] -> cab triangle node 2
+			 
+   
+
+*/
+
+/// Texture coordinates for old-style actor body (the "cab")
+struct CabTexcoord
+{
+	int    node_id;
+	float  texcoord_u;
+	float  texcoord_v;
+};
+
+/// Submesh for old-style actor body (the "cab")
+struct CabSubmesh
+{
+	CabSubmesh(): backmesh_type(0), texcoords_pos(0), cabs_pos(0) {}
+
+	int    backmesh_type; // 0=none, 1=opaque, 2=transparent
+	size_t texcoords_pos;
+	size_t cabs_pos;
+};
+
+/// A visual mesh, forming a chassis for softbody actor
+/// At most one instance is created per actor.
 class FlexObj : public ZeroedMemoryAllocator
 {
 public:
 
     FlexObj(
         node_t* nds,
-        int numtexcoords,
-        Ogre::Vector3* texcoords,
+        std::vector<CabTexcoord>& texcoords,
         int numtriangles,
         int* triangles,
-        int numsubmeshes,
-        int* subtexindex,
-        int* subtriindex,
+        std::vector<CabSubmesh>& submeshes,
         char* texname,
         char* name,
-        int* subisback,
         char* backtexname,
         char* transtexname);
 
     ~FlexObj();
 
-    //find the zeroed id of the node v in the context of the tidx triangle
-    int findID(int tidx, int v, int numsubmeshes, int* subtexindex, int* subtriindex);
     //with normals
     Ogre::Vector3 updateVertices();
     //with normals
@@ -62,7 +113,7 @@ public:
 
 private:
 
-    struct CoVertice_t
+    struct CabCoVertice_t
     {
         Ogre::Vector3 vertex;
         Ogre::Vector3 normal;
@@ -70,20 +121,23 @@ private:
         Ogre::Vector2 texcoord;
     };
 
-    struct posVertice_t
+    struct CabPosVertice_t
     {
         Ogre::Vector3 vertex;
     };
 
-    struct norVertice_t
+    struct CabNorVertice_t
     {
         Ogre::Vector3 normal;
         //Ogre::Vector3 color;
         Ogre::Vector2 texcoord;
     };
+
+	///find the zeroed id of the node v in the context of the tidx triangle
+	int findID(int tidx, int v, std::vector<CabSubmesh>& submeshes);
 
     Ogre::MeshPtr msh;
-    Ogre::SubMesh** subs;
+    std::vector<Ogre::SubMesh*> m_submeshes;
     Ogre::VertexDeclaration* decl;
     Ogre::HardwareVertexBufferSharedPtr vbuf;
 
@@ -94,19 +148,19 @@ private:
     union
     {
         float* shadowposvertices;
-        posVertice_t* coshadowposvertices;
+        CabPosVertice_t* coshadowposvertices;
     };
 
     union
     {
         float* shadownorvertices;
-        norVertice_t* coshadownorvertices;
+        CabNorVertice_t* coshadownorvertices;
     };
 
     union
     {
         float* vertices;
-        CoVertice_t* covertices;
+        CabCoVertice_t* covertices;
     };
 
     //nodes
