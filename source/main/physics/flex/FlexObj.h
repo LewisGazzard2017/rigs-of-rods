@@ -29,6 +29,7 @@
 #include <OgreMesh.h>
 #include <OgreSubMesh.h>
 #include <OgreHardwareBuffer.h>
+#include <vector>
 
 /*
 How traditional softbody visuals work
@@ -85,7 +86,7 @@ struct CabSubmesh
 
 	BackmeshType    backmesh_type;
 	size_t          texcoords_first, texcoords_last; // Indexes to shared texcoords array
-	size_t          cabs_first, cabs_last; // Indexes to shared cab-triangles array
+	size_t          cabs_first, cabs_last; // Indexes to shared cab-triangles array. Referenced object is a single cab-node, not a cab-triangle.
 };
 
 /// A visual mesh, forming a chassis for softbody actor
@@ -115,6 +116,22 @@ public:
     void scale(float factor);
 
 private:
+
+    struct FlexObjVertex
+    {
+        Ogre::Vector3 position;
+        Ogre::Vector3 normal;
+        Ogre::Vector2 texcoord;
+    };
+
+    void  UpdateVertices();
+
+    std::vector<FlexObjVertex>      m_vertex_buffer; /// Local copy. Formatted for direct upload.
+    std::vector<node_t*>            m_vertex_nodes; /// Per-vertex node 
+    std::vector<Ogre::uint16>       m_index_buffer; // Local copy. Formatted for direct upload.
+    std::vector<float>              m_sref; // Old logic, not sure what it is ~only_a_ptr, 02/2017
+
+    /// ****** ## the old
 
     struct CabCoVertice_t
     {
@@ -172,4 +189,5 @@ private:
     node_t* nodes;
 
     float* sref;
+    int triangleCount;
 };
