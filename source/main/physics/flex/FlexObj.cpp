@@ -30,7 +30,7 @@ FlexObj::FlexObj(node_t *nds, std::vector<CabTexcoord>& texcoords, int numtriang
 	             char* texname, char* name, char* backtexname, char* transtexname)
 {
     unsigned int i;
-    triangleCount = numtriangles;
+    int triangleCount = numtriangles;
 
     gEnv->sceneManager=gEnv->sceneManager;
     nodes=nds;

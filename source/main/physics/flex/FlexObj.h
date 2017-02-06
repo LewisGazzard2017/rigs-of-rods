@@ -120,7 +120,6 @@ private:
     {
         Ogre::Vector3 vertex;
         Ogre::Vector3 normal;
-        //Ogre::Vector3 color;
         Ogre::Vector2 texcoord;
     };
 
@@ -132,7 +131,6 @@ private:
     struct CabNorVertice_t
     {
         Ogre::Vector3 normal;
-        //Ogre::Vector3 color;
         Ogre::Vector2 texcoord;
     };
 
@@ -172,8 +170,6 @@ private:
     size_t ibufCount;
     unsigned short* faces;
     node_t* nodes;
-    int nbrays;
 
     float* sref;
-    int triangleCount;
 };
