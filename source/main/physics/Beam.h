@@ -315,15 +315,9 @@ public:
     void updateDebugOverlay();
     void setDebugOverlayState(int mode);
 
-    //! @{ dynamic physical properties
     Ogre::Real brake;
-    Ogre::Vector3 affforce;
-    Ogre::Vector3 ffforce;
-    Ogre::Real affhydro;
-    Ogre::Real ffhydro;
 
     bool left_blink_on, right_blink_on, warn_blink_on;
-    //! @}
 
     
     //! @{ calc forces euler division
@@ -566,7 +560,7 @@ public:
     /**
     * TIGHT LOOP; Physics; 
     */
-    void calcForcesEulerCompute(int doUpdate, Ogre::Real dt, int step = 0, int maxsteps = 1);
+    void calcForcesEulerCompute(bool doUpdate, Ogre::Real dt, int step = 0, int maxsteps = 1);
 
     /**
     * TIGHT LOOP; Physics; 
@@ -579,6 +573,9 @@ public:
 
 
     void UpdatePropAnimations(const float dt);
+
+    inline Ogre::Vector3 GetFFVehicleForces() const { return m_force_sensors.out_vehicle_forces; }
+    inline float         GetFFHydroForces() const   { return m_force_sensors.out_hydros_forces; }
 
 protected:
 
@@ -774,4 +771,20 @@ protected:
      * @return a pair containing the rail, and the distant to the SlideNode
      */
     std::pair<RailGroup*, Ogre::Real> getClosestRailOnTruck( Beam* truck, const SlideNode& node);
+
+    struct VehicleForceSensors
+    {
+        inline void Reset()
+        {
+            accu_vehicle_forces = 0;
+            accu_hydros_forces  = 0;
+            out_vehicle_forces  = 0;
+            out_hydros_forces   = 0;
+        };
+
+        Ogre::Vector3 accu_vehicle_forces;
+        float         accu_hydros_forces;
+        Ogre::Vector3 out_vehicle_forces;
+        float         out_hydros_forces;
+    } m_force_sensors; ///< Data for ForceFeedback devices
 };
