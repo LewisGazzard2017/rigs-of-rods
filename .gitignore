@@ -20,6 +20,7 @@ bin/plugins.cfg
 bin/RelWithDebInfo/
 source/version_info/version_def.h
 source/version_info/version_info.cpp
+tools/windows/installer/thirdparty/*
 ror-dependencies-*.zip
 dependencies-*.zip
 _build
