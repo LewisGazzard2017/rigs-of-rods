@@ -51,7 +51,7 @@
 #include "Mirrors.h"
 #include "MumbleIntegration.h"
 #include "OgreSubsystem.h"
-#include "OutProtocol.h"
+#include "OutGaugeProtocol.h"
 #include "OverlayWrapper.h"
 #include "Replay.h"
 #include "RoRVersion.h"
@@ -1545,7 +1545,7 @@ bool RoRFrameListener::frameStarted(const FrameEvent& evt)
     RoR::App::GetInputEngine()->Capture();
     auto s = App::GetActiveSimState();
 
-    //if (gEnv->collisions) 	printf("> ground model used: %s\n", gEnv->collisions->last_used_ground_model->name);
+	RoR::Application::GetMainThreadLogic()->CheckAndConnectOutGaugeProtocol();
     //
     if ((simRUNNING(s) || simEDITOR(s)) && !simPAUSED(s))
     {

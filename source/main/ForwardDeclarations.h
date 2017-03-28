@@ -157,7 +157,7 @@ class MeshObject;
 class Mirror;
 class Network;
 class OverlayWrapper;
-class OutProtocol;
+class OutGaugeProtocol;
 class PointColDetector;
 class PositionStorage;
 class ProceduralManager;
