@@ -349,5 +349,38 @@ std::string SanitizeUtf8String(std::string const& str_in)
     return str_out;
 }
 
+    void TokenizeRawBufferLines(std::vector<const char*>& lines, void* raw_data, size_t len)
+    {
+        char* data = (char*)raw_data;
+        size_t pos = 0;
+        const char* line_start = data;
+        for (;;)
+        {
+            if (data[pos] == '\n')
+            {
+                data[pos] = 0;
+                if (pos != 0 && data[pos - 1] == '\r')
+                {
+                    data[pos - 1] = 0;
+                }
+                lines.push_back(line_start);
+                ++pos;
+                if (pos == len)
+                {
+                    break;
+                }
+                line_start = data + pos;
+            }
+            else
+            {
+                ++pos;
+                if (pos == len)
+                {
+                    break;
+                }
+            }
+        }
+    }
+
 } // namespace Utils
 } // namespace RoR

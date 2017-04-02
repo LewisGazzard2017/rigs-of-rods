@@ -278,9 +278,6 @@ void TerrainObjectManager::loadObjectConfigFile(Ogre::String tobj_name)
     {
         proceduralManager->addObject(po);
     }
-            Ogre::ColourValue BackgroundColour = Ogre::ColourValue::White;//Ogre::ColourValue(0.1337f, 0.1337f, 0.1337f, 1.0f);
-            Ogre::ColourValue GridColour = Ogre::ColourValue(0.2f, 0.2f, 0.2f, 1.0f);
-
 
     // Vehicles
     for (TObjVehicle veh : tobj->vehicles)
@@ -316,31 +313,10 @@ void TerrainObjectManager::loadObjectConfigFile(Ogre::String tobj_name)
     }
 }
 
-void TerrainObjectManager::ProcessTree(
-    float yawfrom, float yawto,
-    float scalefrom, float scaleto,
-    char* ColorMap, char* DensityMap, char* treemesh, char* treeCollmesh,
-    float gridspacing, float highdens,
-    int minDist, int maxDist, int mapsizex, int mapsizez)
+void TerrainObjectManager::ProcessForestsJson(Json::Value& jterrn)
 {
-    if (strnlen(ColorMap, 3) == 0)
-    {
-        LOG("tree ColorMap map zero!");
-        return;
-    }
-    if (strnlen(DensityMap, 3) == 0)
-    {
-        LOG("tree DensityMap zero!");
-        return;
-    }
-    Forests::DensityMap *densityMap = Forests::DensityMap::load(DensityMap, Forests::CHANNEL_COLOR);
-    if (!densityMap)
-    {
-        LOG("could not load densityMap: "+String(DensityMap));
-        return;
-    }
-    densityMap->setFilter(Forests::MAPFILTER_BILINEAR);
-    //densityMap->setMapBounds(TRect(0, 0, mapsizex, mapsizez));
+    int mapsizex = jterrn["otc"]["world_size_x"].asInt();
+    int mapsizez = jterrn["otc"]["world_size_z"].asInt();
 
     paged_geometry_t paged;
     paged.geom = new PagedGeometry();
@@ -351,8 +327,6 @@ void TerrainObjectManager::ProcessTree(
     Ogre::TRect<Ogre::Real> bounds = TBounds(0, 0, mapsizex, mapsizez);
     paged.geom->setBounds(bounds);
 
-    //Set up LODs
-    //trees->addDetailLevel<EntityPage>(50);
     float min = minDist * terrainManager->getPagedDetailFactor();
     if (min < 10)
         min = 10;
@@ -368,6 +342,16 @@ void TerrainObjectManager::ProcessTree(
     {
         treeLoader->setColorMap(ColorMap);
     }
+
+}
+
+void TerrainObjectManager::ProcessTree(
+    float yawfrom, float yawto,
+    float scalefrom, float scaleto,
+    char* ColorMap, char* DensityMap, char* treemesh, char* treeCollmesh,
+    float gridspacing, float highdens,
+    int minDist, int maxDist, int mapsizex, int mapsizez)
+{
 
     Entity* curTree = gEnv->sceneManager->createEntity(String("paged_") + treemesh + TOSTRING(pagedGeometry.size()), treemesh);
 

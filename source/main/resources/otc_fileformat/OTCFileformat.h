@@ -95,7 +95,7 @@ class OTCParser
 {
 public:
     bool                      LoadMasterConfig(Ogre::DataStreamPtr &ds, const char* filename);
-    bool                      LoadPageConfig(Ogre::DataStreamPtr &ds, OTCPage& page, const char* filename);
+    bool                      LoadPageConfig(Ogre::DataStreamPtr &ds, OTCPage& page);
     std::shared_ptr<OTCFile>  GetDefinition() { return m_def; };
 
 private:

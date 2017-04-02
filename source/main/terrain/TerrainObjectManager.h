@@ -23,6 +23,8 @@
 
 #include "RoRPrerequisites.h"
 
+#include "json/json.h"
+
 #ifdef USE_PAGED
 #include "BatchPage.h"
 #include "GrassLoader.h"
@@ -153,5 +155,9 @@ protected:
     std::vector<object_t> objects;
 
     void proceduralTests();
+
+    // ----- Deployment ------
+
+    void ProcessForestsJson(Json::Value& json);
 };
 

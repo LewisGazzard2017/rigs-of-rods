@@ -107,6 +107,10 @@ std::string TrimBlanksAndLinebreaks(std::string const& input);
 std::string SanitizeUtf8String(std::string const& str_in);
 
     inline std::string& TrimStr(std::string& s) { Ogre::StringUtil::trim(s); return s; }
+
+    /// @param lines output
+    /// @param raw_data in-out
+    void TokenizeRawBufferLines(std::vector<const char*>& lines, void* raw_data, size_t len);
 }
 
 namespace Color {

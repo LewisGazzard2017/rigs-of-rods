@@ -116,7 +116,7 @@ bool RoR::OTCParser::LoadPageConfig(Ogre::DataStreamPtr &ds, RoR::OTCPage& page,
             Ogre::StringVector args = Ogre::StringUtil::split(line_sane, ",");
             if (args.size() < 3)
             {
-                LOG(std::string("[RoR|Terrain] Invalid OTC page config: [") + filename + "]");
+                LOG("[RoR|Terrain] Invalid OTC page config: [" + page.layerconf_filename + "]");
                 return false;
             }
 

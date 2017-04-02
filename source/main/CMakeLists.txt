@@ -224,6 +224,7 @@ set( SOURCE_FILES
   terrain/OgreTerrainPSSMMaterialGenerator.{h,cpp}
   terrain/TerrainGeometryManager.{h,cpp}
   terrain/TerrainManager.{h,cpp}
+  terrain/Terrn2Deployment.{h,cpp}
   terrain/TerrainObjectManager.{h,cpp}
   terrain/map/SurveyMapEntity.{h,cpp}
   terrain/map/SurveyMapManager.{h,cpp}
