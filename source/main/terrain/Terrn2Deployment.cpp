@@ -2,7 +2,6 @@
 #include "Terrn2Deployment.h"
 
 #include "RoRPrerequisites.h"
-#include "TinyDir.h"
 #include "TObjFileFormat.h"
 #include "Utils.h"
 
@@ -12,65 +11,93 @@
 using namespace RoR;
 
 #define LOGSTREAM Ogre::LogManager::getSingleton().stream() << "[RoR|DeployTerrn2] "
-#define ERRSTREAM LOGSTREAM << "ERROR Error in [" << m_terrn2.name << "]:"
+#define ERRSTREAM LOGSTREAM << "ERROR in [" << m_terrn2.name << "]:"
 
-bool Terrn2Deployer::DeployTerrn2(Terrn2Def& def, const char* zip_path)
+bool Terrn2Deployer::DeployTerrn2(std::string terrn2_filename)
 {
-    // INIT
-    this->ResetContext();
-    m_terrn2 = def;
-    m_json_col_meshes = Json::arrayValue;
-    m_json_forests = Json::objectValue;
+    auto& ogre_resources = Ogre::ResourceGroupManager::getSingleton();
 
-    // OPEN ZIP
-    m_zip_path = zip_path;
-    if (mz_zip_reader_init_file(&m_zip, zip_path, 0) == MZ_FALSE)
+    // PROCESS .TERRRN2
+    try
     {
-        ERRSTREAM << "Failed to open [" << zip_path << "].";
-        mz_zip_reader_end(&m_zip);
-        return;
+        // create the Stream
+        const std::string group_name = ogre_resources.findGroupContainingResource(terrn2_filename);
+        Ogre::DataStreamPtr stream = ogre_resources.openResource(terrn2_filename, group_name);
+
+        // Parse the file
+        Terrn2Parser parser;
+        const bool loaded_ok = parser.LoadTerrn2(m_terrn2, stream);
+
+        // Report messages
+        if (parser.GetMessages().size() > 0)
+        {
+            LOGSTREAM << "Terrn2 parser messages:";
+            for (std::string const& msg : parser.GetMessages())
+                LOGSTREAM << '\t' << msg;
+        }
+
+        // Error?
+        if (!loaded_ok)
+            return false;
+    }
+    catch (...)
+    {
+        this->HandleException("processing .terrn2 file");
     }
 
-    // LOAD OTC (ogre terrain conf)
-    if (! this->CheckAndLoadOTC())
+    // PROCESS .OTC (ogre terrain conf)
+    try
     {
-        mz_zip_reader_end(&m_zip);
-        return false;
+        if (! this->CheckAndLoadOTC())
+        {
+            return false; // Error already logged
+        }
+    }
+    catch (...)
+    {
+        this->HandleException("processing .otc file(s)");
     }
 
     // LOAD TOBJ FILES (terrain objects)
-    std::vector<const char*> lines;
-    lines.reserve(5000);
-    std::vector<std::shared_ptr<TObjFile> > tobj_list;
-    for (std::string& tobj_filename : def.tobj_files)
+    try
     {
-        size_t data_size = 0;
-        std::unique_ptr<void> raw_data = this->ExtractFileZip(tobj_filename.c_str(), &data_size);
-        if (raw_data == nullptr)
+        for (std::string const& tobj_filename : m_terrn2.tobj_files)
         {
-            mz_zip_reader_end(&m_zip); // Error already logged
-            return nullptr;
+            // create the Stream
+            const std::string group_name = ogre_resources.findGroupContainingResource(tobj_filename);
+            Ogre::DataStreamPtr stream = ogre_resources.openResource(tobj_filename, group_name);
+
+            // Parse the file
+            TObjParser parser;
+            parser.Prepare();
+            bool error = false;
+            while (!stream->eof())
+            {
+                if (!parser.ProcessLine(stream->getLine().c_str()))
+                {
+                    LOGSTREAM << "Error reading .tobj file '" << tobj_filename << "'";
+                    error = true;
+                    break;
+                }
+            }
+
+            // Persist the data
+            if (!error)
+                m_tobj_list.push_back(parser.Finalize());
         }
-        Utils::TokenizeRawBufferLines(lines, raw_data.get(), data_size);
-        TObjParser parser;
-        parser.Prepare();
-        for (const char* line : lines)
-        {
-            if (!parser.ProcessLine(line)) { break; }
-        }
-        tobj_list.push_back(parser.Finalize());
-        lines.clear(); // Doesn't de-allocate capacity
+    }
+    catch (...)
+    {
+        this->HandleException("processing .tobj file(s)");
     }
 
-    // TOBJ: GRASS
-    this->ProcessTobjGrassJson(tobj_list);
+    // COMPOSE JSON
+    m_json_root = Json::objectValue;
+    this->ProcessTerrn2Json();
+    this->ProcessOtcJson();
+    this->ProcessTobjJson();
 
-    // TOBJ: TREES
-    
-
-    object_manager->postLoad(); // bakes the geometry and things
-
-    // TODO: write JSON
+    // TODO: write out JSON
 }
 
 bool Terrn2Deployer::CheckAndLoadOTC()
@@ -80,14 +107,11 @@ bool Terrn2Deployer::CheckAndLoadOTC()
         return true;
     }
 
-    size_t otc_len;
-    std::unique_ptr<void> otc_raw = this->ExtractFileZip(m_terrn2.ogre_ter_conf_filename.c_str(), &otc_len);
-    if (otc_raw == nullptr)
-    {
-        return false; // Error already logged
-    }
+    auto& ogre_resources = Ogre::ResourceGroupManager::getSingleton();
+    const std::string& group_name = ogre_resources.findGroupContainingResource(m_terrn2.ogre_ter_conf_filename);
+    Ogre::DataStreamPtr otc_stream = ogre_resources.openResource(m_terrn2.ogre_ter_conf_filename, group_name);
+
     OTCParser parser;
-    Ogre::DataStreamPtr otc_stream = Ogre::DataStreamPtr(new Ogre::MemoryDataStream(otc_raw.get(), otc_len));
     if (! parser.LoadMasterConfig(otc_stream, m_terrn2.ogre_ter_conf_filename.c_str()))
     {
         return false; // Error already logged
@@ -95,9 +119,9 @@ bool Terrn2Deployer::CheckAndLoadOTC()
 
     for (OTCPage& page : parser.GetDefinition()->pages)
     {
-        size_t page_len;
-        std::unique_ptr<void> page_raw = this->ExtractFileZip(page.layerconf_filename.c_str(), &page_len);
-        Ogre::DataStreamPtr page_stream = Ogre::DataStreamPtr(new Ogre::MemoryDataStream(page_raw.get(), page_len));
+        const std::string& page_group_name = ogre_resources.findGroupContainingResource(m_terrn2.ogre_ter_conf_filename);
+        Ogre::DataStreamPtr page_stream = ogre_resources.openResource(m_terrn2.ogre_ter_conf_filename, group_name);
+
         if (! parser.LoadPageConfig(page_stream, page))
         {
             return false; // Error already logged
@@ -108,34 +132,36 @@ bool Terrn2Deployer::CheckAndLoadOTC()
     return true;
 }
 
-bool Terrn2Deployer::ProcessOtcJson()
+void Terrn2Deployer::ProcessOtcJson()
 {
-    m_json_otc["world_size_x"]            = m_otc->world_size_x           ;
-    m_json_otc["world_size_y"]            = m_otc->world_size_y           ;
-    m_json_otc["world_size_z"]            = m_otc->world_size_z           ;
-    m_json_otc["page_size"]               = m_otc->page_size              ;
-    m_json_otc["world_size"]              = m_otc->world_size             ;
-    m_json_otc["pages_max_x"]             = m_otc->pages_max_x            ;
-    m_json_otc["pages_max_z"]             = m_otc->pages_max_z            ;
-    m_json_otc["max_pixel_error"]         = m_otc->max_pixel_error        ;
-    m_json_otc["batch_size_min"]          = m_otc->batch_size_min         ;
-    m_json_otc["batch_size_max"]          = m_otc->batch_size_max         ;
-    m_json_otc["layer_blendmap_size"]     = m_otc->layer_blendmap_size    ;
-    m_json_otc["composite_map_size"]      = m_otc->composite_map_size     ;
-    m_json_otc["composite_map_distance"]  = m_otc->composite_map_distance ;
-    m_json_otc["skirt_size"]              = m_otc->skirt_size             ;
-    m_json_otc["lightmap_size"]           = m_otc->lightmap_size          ;
-    m_json_otc["lightmap_enabled"]        = m_otc->lightmap_enabled       ;
-    m_json_otc["norm_map_enabled"]        = m_otc->norm_map_enabled       ;
-    m_json_otc["spec_map_enabled"]        = m_otc->spec_map_enabled       ;
-    m_json_otc["parallax_enabled"]        = m_otc->parallax_enabled       ;
-    m_json_otc["global_colormap_enabled"] = m_otc->global_colormap_enabled;
-    m_json_otc["recv_dyn_shadows_depth"]  = m_otc->recv_dyn_shadows_depth ;
-    m_json_otc["blendmap_dbg_enabled"]    = m_otc->blendmap_dbg_enabled   ;
-    m_json_otc["disable_cache"]           = m_otc->disable_cache          ;
-    m_json_otc["is_flat"]                 = m_otc->is_flat                ;
+    Json::Value json_otc = Json::objectValue;
 
-    m_json_otc["pages"] = Json::arrayValue;
+    json_otc["world_size_x"]            = m_otc->world_size_x           ;
+    json_otc["world_size_y"]            = m_otc->world_size_y           ;
+    json_otc["world_size_z"]            = m_otc->world_size_z           ;
+    json_otc["page_size"]               = m_otc->page_size              ;
+    json_otc["world_size"]              = m_otc->world_size             ;
+    json_otc["pages_max_x"]             = m_otc->pages_max_x            ;
+    json_otc["pages_max_z"]             = m_otc->pages_max_z            ;
+    json_otc["max_pixel_error"]         = m_otc->max_pixel_error        ;
+    json_otc["batch_size_min"]          = m_otc->batch_size_min         ;
+    json_otc["batch_size_max"]          = m_otc->batch_size_max         ;
+    json_otc["layer_blendmap_size"]     = m_otc->layer_blendmap_size    ;
+    json_otc["composite_map_size"]      = m_otc->composite_map_size     ;
+    json_otc["composite_map_distance"]  = m_otc->composite_map_distance ;
+    json_otc["skirt_size"]              = m_otc->skirt_size             ;
+    json_otc["lightmap_size"]           = m_otc->lightmap_size          ;
+    json_otc["lightmap_enabled"]        = m_otc->lightmap_enabled       ;
+    json_otc["norm_map_enabled"]        = m_otc->norm_map_enabled       ;
+    json_otc["spec_map_enabled"]        = m_otc->spec_map_enabled       ;
+    json_otc["parallax_enabled"]        = m_otc->parallax_enabled       ;
+    json_otc["global_colormap_enabled"] = m_otc->global_colormap_enabled;
+    json_otc["recv_dyn_shadows_depth"]  = m_otc->recv_dyn_shadows_depth ;
+    json_otc["blendmap_dbg_enabled"]    = m_otc->blendmap_dbg_enabled   ;
+    json_otc["disable_cache"]           = m_otc->disable_cache          ;
+    json_otc["is_flat"]                 = m_otc->is_flat                ;
+
+    json_otc["pages"] = Json::arrayValue;
     for (OTCPage& page : m_otc->pages)
     {
         Json::Value jpage = Json::objectValue;
@@ -165,28 +191,10 @@ bool Terrn2Deployer::ProcessOtcJson()
             jpage["layers"].append(jlayer);
         }
 
-        m_json_otc["pages"].append(jpage);
+        json_otc["pages"].append(jpage);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    m_json_root["ogre_terrain_conf"] = json_otc;
 }
 
 void Terrn2Deployer::ProcessTerrn2Json()
@@ -202,26 +210,62 @@ void Terrn2Deployer::ProcessTerrn2Json()
     t2_start_pos["y"] = m_terrn2.start_position.y;
     t2_start_pos["z"] = m_terrn2.start_position.z;
 
-    m_json_terrn2["ambient_color"]        = t2_amb_color;
-    m_json_terrn2["start_position"]       = t2_start_pos;
-    m_json_terrn2["category_id"]          = m_terrn2.category_id        ;  // Int   
-    m_json_terrn2["guid"]                 = m_terrn2.guid               ;  // String
-    m_json_terrn2["version"]              = m_terrn2.version            ;  // Int   
-    m_json_terrn2["gravity"]              = m_terrn2.gravity            ;  // Float 
-    m_json_terrn2["caelum_config"]        = m_terrn2.caelum_config      ;  // String
-    m_json_terrn2["cubemap_config"]       = m_terrn2.cubemap_config     ;  // String
-    m_json_terrn2["caelum_fog_start"]     = m_terrn2.caelum_fog_start   ;  // Int   
-    m_json_terrn2["caelum_fog_end"]       = m_terrn2.caelum_fog_end     ;  // Int   
-    m_json_terrn2["has_water"]            = m_terrn2.has_water          ;  // Bool  
-    m_json_terrn2["hydrax_conf_file"]     = m_terrn2.hydrax_conf_file   ;  // String
-    m_json_terrn2["traction_map_file"]    = m_terrn2.traction_map_file  ;  // String
-    m_json_terrn2["water_height"]         = m_terrn2.water_height       ;  // Float 
-    m_json_terrn2["water_bottom_height"]  = m_terrn2.water_bottom_height;  // Float
+    Json::Value json_terrn2 = Json::objectValue;
+    json_terrn2["ambient_color"]        = t2_amb_color;
+    json_terrn2["start_position"]       = t2_start_pos;
+    json_terrn2["category_id"]          = m_terrn2.category_id        ;  // Int
+    json_terrn2["guid"]                 = m_terrn2.guid               ;  // String
+    json_terrn2["version"]              = m_terrn2.version            ;  // Int
+    json_terrn2["gravity"]              = m_terrn2.gravity            ;  // Float
+    json_terrn2["caelum_config"]        = m_terrn2.caelum_config      ;  // String
+    json_terrn2["cubemap_config"]       = m_terrn2.cubemap_config     ;  // String
+    json_terrn2["caelum_fog_start"]     = m_terrn2.caelum_fog_start   ;  // Int
+    json_terrn2["caelum_fog_end"]       = m_terrn2.caelum_fog_end     ;  // Int
+    json_terrn2["has_water"]            = m_terrn2.has_water          ;  // Bool
+    json_terrn2["hydrax_conf_file"]     = m_terrn2.hydrax_conf_file   ;  // String
+    json_terrn2["traction_map_file"]    = m_terrn2.traction_map_file  ;  // String
+    json_terrn2["water_height"]         = m_terrn2.water_height       ;  // Float
+    json_terrn2["water_bottom_height"]  = m_terrn2.water_bottom_height;  // Float
+
+    m_json_root["general"] = json_terrn2;
 }
 
-void Terrn2Deployer::ProcessTobjGrassJson(std::vector<std::shared_ptr<TObjFile> >& tobj_list)
+void Terrn2Deployer::ProcessTobjJson()
 {
-    for (std::shared_ptr<TObjFile> tobj : tobj_list)
+    Json::Value json_tobj = Json::objectValue;
+
+    for (std::shared_ptr<TObjFile> tobj : m_tobj_list)
+    {
+        // Grid
+        if (tobj->grid_enabled)
+        {
+            json_tobj["grid_enabled"] = Json::Value(true);
+            json_tobj["grid_position_x"] = Json::Value(tobj->grid_position.x);
+            json_tobj["grid_position_y"] = Json::Value(tobj->grid_position.y);
+            json_tobj["grid_position_z"] = Json::Value(tobj->grid_position.z);
+        }
+
+        // Collision triangle count
+        Json::Value json_num_tris = json_tobj["num_collision_triangles"];
+        if (json_num_tris.isNull() || (json_num_tris.isIntegral() && (tobj->num_collision_triangles > static_cast<long>(json_num_tris.asInt()))))
+        {
+            json_tobj["num_collision_triangles"] = Json::Value(tobj->num_collision_triangles);
+        }
+    }
+
+    m_json_root["terrain_objects"] = json_tobj;
+    m_json_root["collision_meshes"] = Json::arrayValue;
+
+    m_json_root["terrain_objects"]["grass"] = Json::arrayValue;
+    this->ProcessTobjGrassJson();
+
+    m_json_root["terrain_objects"]["trees"] = Json::arrayValue;
+    this->ProcessTobjTreesJson();
+}
+
+void Terrn2Deployer::ProcessTobjGrassJson()
+{
+    for (std::shared_ptr<TObjFile> tobj : m_tobj_list)
     {
         for (TObjGrass& grass : tobj->grass)
         {
@@ -244,14 +288,15 @@ void Terrn2Deployer::ProcessTobjGrassJson(std::vector<std::shared_ptr<TObjFile> 
             json["material_name"]        = grass.material_name;
             json["color_map_filename"]   = grass.color_map_filename;
             json["density_map_filename"] = grass.density_map_filename;
-            m_json_grass.append(json);
+
+            m_json_root["terrain_objects"]["grass"].append(json);
         }
     }
 }
 
-void Terrn2Deployer::ProcessTobjTreesJson(std::vector<std::shared_ptr<TObjFile> >& tobj_list)
+void Terrn2Deployer::ProcessTobjTreesJson()
 {
-    for (std::shared_ptr<TObjFile> tobj : tobj_list)
+    for (std::shared_ptr<TObjFile> tobj : m_tobj_list)
     {
         for (TObjTree& tree : tobj->trees)
         {
@@ -273,7 +318,6 @@ void Terrn2Deployer::ProcessTobjTreesJson(std::vector<std::shared_ptr<TObjFile> 
             }
 
             // Generate trees
-            Json::Value jtrees = Json::arrayValue;
             float max_x = (float) m_otc->world_size_x;
             float max_z = (float) m_otc->world_size_z;
             Ogre::TRect<float> bounds = Forests::TBounds(0, 0, max_x, max_z);
@@ -298,7 +342,7 @@ void Terrn2Deployer::ProcessTobjTreesJson(std::vector<std::shared_ptr<TObjFile> 
                         jtree["pos_z"] = pos_z;
                         jtree["yaw"]   = yaw;
                         jtree["scale"] = scale;
-                        jtrees.append(jtree);
+                        m_json_root["terrain_objects"]["trees"].append(jtree);
                         if (tree.collision_mesh[0] != 0) // Non-empty cstring?
                         {
                             Ogre::Quaternion rot(Ogre::Degree(yaw), Ogre::Vector3::UNIT_Y);
@@ -339,7 +383,7 @@ void Terrn2Deployer::ProcessTobjTreesJson(std::vector<std::shared_ptr<TObjFile> 
                             jtree["pos_z"] = pos_z;
                             jtree["yaw"]   = yaw;
                             jtree["scale"] = scale;
-                            jtrees.append(jtree);
+                            m_json_root["terrain_objects"]["trees"].append(jtree);
                             if (tree.collision_mesh[0] != 0)
                             {
                                 Ogre::Quaternion rot(Ogre::Degree(yaw), Ogre::Vector3::UNIT_Y);
@@ -350,6 +394,7 @@ void Terrn2Deployer::ProcessTobjTreesJson(std::vector<std::shared_ptr<TObjFile> 
                     }
                 }
             }
+
         }
     }
 }
@@ -357,28 +402,19 @@ void Terrn2Deployer::ProcessTobjTreesJson(std::vector<std::shared_ptr<TObjFile> 
 void Terrn2Deployer::AddCollMeshJson(const char* name, float pos_x, float pos_z, Ogre::Quaternion rot, Ogre::Vector3 scale)
 {
     Json::Value jcolmesh;
-    jcolmesh["name"]   = name;
-    jcolmesh["pos_x"]  = pos_x;
-    jcolmesh["pos_z"]  = pos_z;
+
+    jcolmesh["name"]    = name;
+    jcolmesh["pos_x"]   = pos_x;
+    jcolmesh["pos_z"]   = pos_z;
     jcolmesh["scale_x"] = scale.x;
     jcolmesh["scale_y"] = scale.y;
     jcolmesh["scale_z"] = scale.z;
-    jcolmesh["rotq_x"] = rot.x;
-    jcolmesh["rotq_y"] = rot.y;
-    jcolmesh["rotq_z"] = rot.z;
-    jcolmesh["rotq_w"] = rot.w;
-    m_json_col_meshes.append(jcolmesh);
-}
+    jcolmesh["rotq_x"]  = rot.x;
+    jcolmesh["rotq_y"]  = rot.y;
+    jcolmesh["rotq_z"]  = rot.z;
+    jcolmesh["rotq_w"]  = rot.w;
 
-std::unique_ptr<void> Terrn2Deployer::ExtractFileZip(const char* filename, size_t* len)
-{
-    std::unique_ptr<void> raw_data = std::make_unique<void>(mz_zip_reader_extract_file_to_heap(&m_zip, filename, len, 0));
-    if (raw_data == nullptr)
-    {
-        ERRSTREAM << "Failed to uncompress file [" << filename << "] from archive [" << m_zip_path << "]";
-        return nullptr;
-    }
-    return raw_data;
+    m_json_root["collision_meshes"].append(jcolmesh);
 }
 
 void Terrn2Deployer::LoadCommonODefPlain(const char* full_path, const char* name_only)
@@ -405,26 +441,16 @@ void Terrn2Deployer::LoadCommonODefPlain(const char* full_path, const char* name
     m_common_odefs[name_only] = parser.Finalize();
 }
 
-void Terrn2Deployer::LoadCommonODefFiles(const char* dir_path)
+void Terrn2Deployer::HandleException(const char* action)
 {
-    tinydir_dir dir;       memset(&dir,  0, sizeof(tinydir_dir ));
-    tinydir_file file;     memset(&file, 0, sizeof(tinydir_file));
-
-    tinydir_open(&dir, dir_path);
-
-    while (dir.has_next)
+    try { throw; } // Rethrow
+    catch (Ogre::Exception& e)
     {
-        tinydir_readfile(&dir, &file);
-        if (file.is_reg && !strcmp(file.extension, "odef"))
-        {
-            this->LoadCommonODefPlain(file.path, file.name);
-        }
-        tinydir_next(&dir);
+        LOGSTREAM << "Error " << action << ", message: " << e.getFullDescription();
     }
-}
-
-void Terrn2Deployer::ResetContext()
-{
-    memset(&m_zip, 0, sizeof(m_zip));
+    catch (std::exception& e)
+    {
+        LOGSTREAM << "Error " << action << ", message: " << e.what();
+    }
 }
 

@@ -30,7 +30,7 @@
 using namespace RoR;
 using namespace Ogre;
 
-const std::string   VALUE_NOT_FOUND("@@NotFound!!");
+const std::string   VALUE_NOT_FOUND("<<$$NotFound!!>>");
 
 bool Terrn2Parser::LoadTerrn2(Terrn2Def& def, Ogre::DataStreamPtr &ds)
 {

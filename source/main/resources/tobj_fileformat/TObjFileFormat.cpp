@@ -88,18 +88,21 @@ bool TObjParser::ProcessCurrentLine()
     {
         return false;
     }
+
     if (!strncmp(m_cur_line, "collision-tris", 14))
     {
         sscanf(m_cur_line, "collision-tris %ld", &m_def->num_collision_triangles);
         return true;
     }
+
     if (!strncmp(m_cur_line, "grid", 4))
-    {        
+    {
         Ogre::Vector3 & pos = m_def->grid_position;
         sscanf(m_cur_line, "grid %f, %f, %f", &pos.x, &pos.y, &pos.z); // No error check by design
         m_def->grid_enabled = true;
         return true;
     }
+
     if (!strncmp(m_cur_line, "trees", 5))
     {
         TObjTree tree;
@@ -114,6 +117,7 @@ bool TObjParser::ProcessCurrentLine()
         m_def->trees.push_back(tree);
         return true; 
     }
+
     if (!strncmp(m_cur_line, "grass", 5) || !strncmp(m_cur_line, "grass2", 6))
     {
         TObjGrass grass;
@@ -143,6 +147,7 @@ bool TObjParser::ProcessCurrentLine()
         m_def->grass.push_back(grass);
         return true;
     }
+
     if (!strncmp("begin_procedural_roads", m_cur_line, 22))
     {
         m_in_procedural_road = true;
@@ -155,7 +160,7 @@ bool TObjParser::ProcessCurrentLine()
         m_def->proc_objects.push_back(m_cur_procedural_obj);
         m_cur_procedural_obj = ProceduralObject();
     }
-    
+
     if (m_in_procedural_road)
     {
         ProceduralPoint point;
