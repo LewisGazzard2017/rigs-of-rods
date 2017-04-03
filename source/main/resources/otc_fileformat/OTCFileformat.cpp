@@ -28,6 +28,11 @@
 
 #include <algorithm>
 
+#define OTC_PAGE_MATERIAL_LAYERS  "[LayerConfig]"
+#define OTC_PAGE_MATERIAL_CUSTOM  "[CustomMaterial]"
+
+using namespace RoR;
+
 bool RoR::OTCParser::LoadMasterConfig(Ogre::DataStreamPtr &ds, const char* filename)
 {
     std::string file_basename, file_ext;
@@ -95,24 +100,59 @@ bool RoR::OTCParser::LoadMasterConfig(Ogre::DataStreamPtr &ds, const char* filen
     return true;
 }
 
-bool RoR::OTCParser::LoadPageConfig(Ogre::DataStreamPtr &ds, RoR::OTCPage& page, const char* filename)
+bool IsBlankOrCommentOtcLine(const char* str)
+{
+    size_t i = 0;
+    while (str[i] != '\0')
+        if ((str[i] != ' ') && (str[i] != '\t'))
+            return ((str[i] == ';') || (str[i] == '/'));
+        else
+            ++i;
+
+    return false;
+}
+
+void ReadOtcLine(char* line_buf, const int LINE_BUF_LEN, Ogre::DataStreamPtr &ds)
+{
+    ds->readLine(line_buf, LINE_BUF_LEN);
+    while (IsBlankOrCommentOtcLine(line_buf))
+        ds->readLine(line_buf, LINE_BUF_LEN);
+}
+
+bool RoR::OTCParser::LoadPageConfig(Ogre::DataStreamPtr &ds, OTCPage& page, const char* filename)
 {
     const int LINE_BUF_LEN = 4000;
     char line_buf[LINE_BUF_LEN];
     try
     {
-        ds->readLine(line_buf, LINE_BUF_LEN);
+        ReadOtcLine(line_buf, LINE_BUF_LEN, ds);
         page.heightmap_filename = RoR::Utils::TrimStr(RoR::Utils::SanitizeUtf8String(std::string(line_buf)));
+        if (page.heightmap_filename.find(".raw") != std::string::npos)
+            page.is_heightmap_raw = true;
 
-        ds->readLine(line_buf, LINE_BUF_LEN);
+        // Current line determines the type of config
+        ReadOtcLine(line_buf, LINE_BUF_LEN, ds);
+        if (strcmp(line_buf, OTC_PAGE_MATERIAL_CUSTOM) == 0)
+        {
+            // Only custom material name
+            ReadOtcLine(line_buf, LINE_BUF_LEN, ds);
+            page.custom_material_name = RoR::Utils::TrimStr(RoR::Utils::SanitizeUtf8String(std::string(line_buf)));
+            return;
+        }
+        else if (strcmp(line_buf, OTC_PAGE_MATERIAL_LAYERS) == 0)
+        {
+            // Classic Ogre::Terrain layer setup starting from next line.
+            ReadOtcLine(line_buf, LINE_BUF_LEN, ds);
+        }
+        // else: Classic Ogre::Terrain layer setup starting from current line (the "[LayerConfig] decl. is default and optional")
+
         page.num_layers = PARSEINT(line_buf);
 
         while (!ds->eof())
         {
-            size_t len = ds->readLine(line_buf, LINE_BUF_LEN);
-            if (len == 0 || line_buf[0] == ';' || line_buf[0] == '/') { continue; }
+            ReadOtcLine(line_buf, LINE_BUF_LEN, ds);
 
-            std::string line_sane = RoR::Utils::SanitizeUtf8String(std::string(line_buf));
+            const std::string line_sane = RoR::Utils::SanitizeUtf8String(std::string(line_buf));
             Ogre::StringVector args = Ogre::StringUtil::split(line_sane, ",");
             if (args.size() < 3)
             {
@@ -138,11 +178,6 @@ bool RoR::OTCParser::LoadPageConfig(Ogre::DataStreamPtr &ds, RoR::OTCPage& page,
             }
 
             page.layers.push_back(layer);
-        }
-
-        if (page.heightmap_filename.find(".raw") != std::string::npos)
-        {
-            page.is_heightmap_raw = true;
         }
     }
     catch (...)

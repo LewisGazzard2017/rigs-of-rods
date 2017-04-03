@@ -51,6 +51,7 @@ struct OTCPage
     std::string  pageconf_filename;
     std::string  heightmap_filename;
     bool         was_pageconf_parsed;
+    std::string  custom_material_name;
     int          num_layers;
     int          pos_x, pos_z;
     bool         is_heightmap_raw, raw_flip_x, raw_flip_y;
