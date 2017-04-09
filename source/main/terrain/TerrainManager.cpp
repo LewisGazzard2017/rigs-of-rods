@@ -202,6 +202,8 @@ void TerrainManager::loadTerrain(String filename)
         m_survey_map = new SurveyMapManager();
     }
 
+    PROGRESS_WINDOW(95, _L("Initializing terrain light properties"));
+    geometry_manager->UpdateMainLightPosition(); // Initial update takes a while
     collisions->finishLoadingTerrain();
     LOG(" ===== TERRAIN LOADING DONE " + filename);
 }
@@ -621,7 +623,7 @@ bool TerrainManager::update(float dt)
         object_manager->update(dt);
 
     if (geometry_manager)
-        geometry_manager->update(dt);
+        geometry_manager->UpdateMainLightPosition(); // TODO: Is this necessary? I'm leaving it here just in case ~ only_a_ptr, 04/2017
 
     return true;
 }
