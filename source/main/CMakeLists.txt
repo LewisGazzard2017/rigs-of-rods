@@ -41,7 +41,6 @@ set( SOURCE_FILES
   gameplay/Character.{h,cpp}
   gameplay/CharacterFactory.{h,cpp}
   gameplay/ChatSystem.{h,cpp}
-  gameplay/Landusemap.{h,cpp}
   gameplay/LandVehicleSimulation.{h,cpp}
   gameplay/MaterialReplacer.{h,cpp}
   gameplay/OutProtocol.{h,cpp}
@@ -208,6 +207,7 @@ set( SOURCE_FILES
   physics/water/ScrewProp.{h,cpp}
   resources/CacheSystem.{h,cpp}
   resources/ContentManager.{h,cpp}
+  resources/landuse_fileformat/LandUseFileformat.{h,cpp}  
   resources/otc_fileformat/OTCFileformat.{h,cpp}
   resources/odef_fileformat/ODefFileFormat.{h,cpp}
   resources/rig_def_fileformat/RigDef_File.{h,cpp}
@@ -406,8 +406,9 @@ target_include_directories( ${BINNAME} PRIVATE
  physics/utils
  physics/water
  resources
- resources/odef_fileformat/
- resources/otc_fileformat/
+ resources/landuse_fileformat 
+ resources/odef_fileformat
+ resources/otc_fileformat
  resources/rig_def_fileformat
  resources/terrn2_fileformat
  resources/tobj_fileformat

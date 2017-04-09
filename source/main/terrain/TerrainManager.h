@@ -101,7 +101,6 @@ protected:
     // internal methods
     void initCamera();
     void initCollisions();
-    void initTerrainCollisions();
     void initDashboards();
     void initEnvironmentMap();
     void initFog();

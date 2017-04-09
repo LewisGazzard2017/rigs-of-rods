@@ -31,6 +31,7 @@
 #include "GlowMaterialListener.h"
 #include "GUIManager.h"
 #include "GUI_LoadingWindow.h"
+#include "GUI_TeleportWindow.h"
 #include "HDRListener.h"
 #include "HydraxWater.h"
 #include "Language.h"
@@ -52,8 +53,8 @@
 using namespace RoR;
 using namespace Ogre;
 
-TerrainManager::TerrainManager() :
-      character(0)
+TerrainManager::TerrainManager()
+    : character(0)
     , collisions(0)
     , dashboard(0)
     , envmap(0)
@@ -193,7 +194,10 @@ void TerrainManager::loadTerrain(String filename)
     //finishTerrainDecal();
 
     // init things after loading the terrain
-    initTerrainCollisions();
+    if (!m_def.traction_map_file.empty())
+    {
+        gEnv->collisions->SetupLandUse(m_def.traction_map_file);
+    }
 
     // init the survey map
     if (!RoR::App::GetGfxMinimapDisabled())
@@ -205,23 +209,25 @@ void TerrainManager::loadTerrain(String filename)
     PROGRESS_WINDOW(95, _L("Initializing terrain light properties"));
     geometry_manager->UpdateMainLightPosition(); // Initial update takes a while
     collisions->finishLoadingTerrain();
+
     LOG(" ===== TERRAIN LOADING DONE " + filename);
 }
 
 void TerrainManager::initSubSystems()
 {
     // geometry - ogre terrain things
-    initShadows();
+    this->initShadows();
 
     PROGRESS_WINDOW(15, _L("Initializing Geometry Subsystem"));
-    initGeometry();
+    this->initGeometry();
 
     // objects  - .odef support
     PROGRESS_WINDOW(17, _L("Initializing Object Subsystem"));
-    initObjects();
+    this->initObjects();
 
     PROGRESS_WINDOW(19, _L("Initializing Collision Subsystem"));
-    initCollisions();
+    collisions = new Collisions();
+    gEnv->collisions = collisions;
 
     PROGRESS_WINDOW(19, _L("Initializing Script Subsystem"));
     initScripting();
@@ -241,15 +247,14 @@ void TerrainManager::initSubSystems()
     if (App::GetGfxSkyMode() != App::GFX_SKY_CAELUM) //Caelum has its own fog management
     {
         PROGRESS_WINDOW(29, _L("Initializing Fog Subsystem"));
-        initFog();
+        if (far_clip >= UNLIMITED_SIGHTRANGE)
+            gEnv->sceneManager->setFog(FOG_NONE);
+        else
+            gEnv->sceneManager->setFog(FOG_LINEAR, m_def.ambient_color, 0.000f, far_clip * 0.65f, far_clip*0.9);
     }
 
     PROGRESS_WINDOW(31, _L("Initializing Vegetation Subsystem"));
     initVegetation();
-
-    // water must be done later on
-    //PROGRESS_WINDOW(33, _L("Initializing Water Subsystem"));
-    //initWater();
 
     if (App::GetGfxEnableHdr())
     {
@@ -607,14 +612,6 @@ void TerrainManager::initCollisions()
 {
     collisions = new Collisions();
     gEnv->collisions = collisions;
-}
-
-void TerrainManager::initTerrainCollisions()
-{
-    if (!m_def.traction_map_file.empty())
-    {
-        gEnv->collisions->setupLandUse(m_def.traction_map_file.c_str());
-    }
 }
 
 bool TerrainManager::update(float dt)
