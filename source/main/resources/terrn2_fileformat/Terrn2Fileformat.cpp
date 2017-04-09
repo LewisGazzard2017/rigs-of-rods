@@ -126,6 +126,7 @@ bool Terrn2Parser::LoadTerrn2(Terrn2Def& def, Ogre::DataStreamPtr &ds)
 void Terrn2Parser::ProcessTeleport(Terrn2Def& def, RoR::ConfigFile* file)
 {
     def.teleport_map_image = file->GetStringEx("NavigationMapImage", "Teleport");
+    def.teleport_on_spawn  = file->GetBool    ("DisplayOnSpawn"    , "Teleport");
 
     size_t telepoint_number = 1;
     for (;;)
@@ -171,5 +172,6 @@ Terrn2Def::Terrn2Def():
     water_bottom_height(0),
     caelum_fog_start   (0),
     caelum_fog_end     (0),
-    has_water(false)
+    has_water(false),
+    teleport_on_spawn(false)
 {}

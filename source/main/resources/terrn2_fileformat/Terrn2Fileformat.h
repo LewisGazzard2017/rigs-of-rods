@@ -72,6 +72,7 @@ struct Terrn2Def
     std::string              traction_map_file;
     std::string              custom_material_name;
     std::string              teleport_map_image;
+    bool                     teleport_on_spawn;
 };
 
 class Terrn2Parser
