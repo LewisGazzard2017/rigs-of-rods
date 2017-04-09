@@ -21,6 +21,8 @@
 
 #include "Road2.h"
 
+#define LOGSTREAM Ogre::LogManager::getSingleton().stream() << "[RoR|TObj fileformat] "
+
 using namespace RoR;
 using namespace Ogre;
 
@@ -140,6 +142,16 @@ bool TObjParser::ProcessCurrentLine()
                  grass.color_map_filename,
                  grass.density_map_filename);
         }
+
+        // 0: GRASSTECH_QUAD;       // Grass constructed of randomly placed and rotated quads
+        // 1: GRASSTECH_CROSSQUADS; // Grass constructed of two quads forming a "X" cross shape
+        // 2: GRASSTECH_SPRITE;     // Grass constructed of camera-facing billboard quads
+        if ((grass.technique < 0) || (grass.technique > 2))
+        {
+            LOGSTREAM << "Invalid parameter 'technique': '" << grass.technique << "', falling back to default '1: GRASSTECH_CROSSQUADS'";
+            grass.technique = 1;
+        }
+
         m_def->grass.push_back(grass);
         return true;
     }

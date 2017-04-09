@@ -90,7 +90,7 @@ struct TObjGrass
 {
     TObjGrass():
         range(80),
-        technique(-1),
+        technique(1), // GRASSTECH_CROSSQUADS
         grow_techniq(0),
         sway_speed(0.5f),
         sway_length(0.05f),
