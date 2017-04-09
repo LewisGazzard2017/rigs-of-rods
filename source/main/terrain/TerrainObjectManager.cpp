@@ -165,10 +165,6 @@ void GenerateGridAndPutToScene(Ogre::Vector3 position)
 
 void TerrainObjectManager::loadObjectConfigFile(Ogre::String tobj_name)
 {
-#ifdef USE_MYGUI
-    // Temporarily hacked
-    RoR::App::GetGuiManager()->GetLoadingWindow()->setProgress(50, _L("Loading Terrain Objects"));
-#endif //MYGUI
     std::shared_ptr<TObjFile> tobj;
     try
     {
@@ -249,9 +245,6 @@ void TerrainObjectManager::loadObjectConfigFile(Ogre::String tobj_name)
     {
         proceduralManager->addObject(po);
     }
-            Ogre::ColourValue BackgroundColour = Ogre::ColourValue::White;//Ogre::ColourValue(0.1337f, 0.1337f, 0.1337f, 1.0f);
-            Ogre::ColourValue GridColour = Ogre::ColourValue(0.2f, 0.2f, 0.2f, 1.0f);
-
 
     // Vehicles
     for (TObjVehicle veh : tobj->vehicles)
@@ -325,22 +318,22 @@ void TerrainObjectManager::ProcessTree(
     //Set up LODs
     //trees->addDetailLevel<EntityPage>(50);
     float min = minDist * terrainManager->getPagedDetailFactor();
-            if (min < 10)
-                min = 10;
-            paged.geom->addDetailLevel<BatchPage>(min, min / 2);
-            float max = maxDist * terrainManager->getPagedDetailFactor();
-            if (max < 10)
-                max = 10;
-            paged.geom->addDetailLevel<ImpostorPage>(max, max / 10);
+    if (min < 10)
+        min = 10;
+    paged.geom->addDetailLevel<BatchPage>(min, min / 2);
+    float max = maxDist * terrainManager->getPagedDetailFactor();
+    if (max < 10)
+        max = 10;
+    paged.geom->addDetailLevel<ImpostorPage>(max, max / 10);
     TreeLoader2D *treeLoader = new TreeLoader2D(paged.geom, TBounds(0, 0, mapsizex, mapsizez));
-            paged.geom->setPageLoader(treeLoader);
-            treeLoader->setHeightFunction(&getTerrainHeight);
-            if (String(ColorMap) != "none")
-            {
-                treeLoader->setColorMap(ColorMap);
-            }
+    paged.geom->setPageLoader(treeLoader);
+    treeLoader->setHeightFunction(&getTerrainHeight);
+    if (String(ColorMap) != "none")
+    {
+        treeLoader->setColorMap(ColorMap);
+    }
 
-            Entity* curTree = gEnv->sceneManager->createEntity(String("paged_") + treemesh + TOSTRING(pagedGeometry.size()), treemesh);
+    Entity* curTree = gEnv->sceneManager->createEntity(String("paged_") + treemesh + TOSTRING(pagedGeometry.size()), treemesh);
 
     if (gridspacing > 0)
     {
@@ -365,8 +358,8 @@ void TerrainObjectManager::ProcessTree(
                 }
             }
         }
-
-    } else
+    }
+    else
     {
         float gridsize = 10;
         if (gridspacing < 0 && gridspacing != 0)
@@ -437,8 +430,6 @@ void TerrainObjectManager::ProcessGrass(
         grassLayer->setSwayLength(SwayLength);
         grassLayer->setSwayDistribution(SwayDistribution);
 
-        //String grassdensityTextureFilename = String(DensityMap);
-
         grassLayer->setDensity(Density * terrainManager->getPagedDetailFactor());
         if (techn>10)
             grassLayer->setRenderTechnique(static_cast<GrassTechnique>(techn-10), true);
@@ -458,9 +449,6 @@ void TerrainObjectManager::ProcessGrass(
             grassLayer->setDensityMap(densityMapFilename);
             grassLayer->setDensityMapFilter(MAPFILTER_BILINEAR);
         }
-
-        //grassLayer->setMinimumSize(0.5,0.5);
-        //grassLayer->setMaximumSize(1.0, 1.0);
 
         grassLayer->setMinimumSize(minx, miny);
         grassLayer->setMaximumSize(maxx, maxy);
