@@ -81,12 +81,8 @@ CameraManager::~CameraManager()
     delete ctx.mDof;
 }
 
-bool CameraManager::update(float dt) // Called every frame
+void CameraManager::UpdateCameraManager(float dt) // Called every frame
 {
-    if (RoR::App::GetActiveSimState() == RoR::App::SIM_STATE_PAUSED) { return true; } // Do nothing when paused
-
-    if ( dt == 0 ) return false;
-
     mTransScale = mTransSpeed  * dt;
     mRotScale   = mRotateSpeed * dt;
 
@@ -119,8 +115,6 @@ bool CameraManager::update(float dt) // Called every frame
     {
         switchBehavior(CAMERA_BEHAVIOR_CHARACTER);
     }
-
-    return true;
 }
 
 void CameraManager::switchToNextBehavior(bool force /* = true */)

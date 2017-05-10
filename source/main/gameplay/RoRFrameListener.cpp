@@ -1599,9 +1599,9 @@ bool RoRFrameListener::frameStarted(const FrameEvent& evt)
 
     if (simRUNNING(s) || simPAUSED(s) || simEDITOR(s))
     {
-        if (gEnv->cameraManager != nullptr)
+        if ((gEnv->cameraManager != nullptr) && (!simPAUSED(s)) && (dt != 0.f))
         {
-            gEnv->cameraManager->update(dt);
+            gEnv->cameraManager->UpdateCameraManager(dt);
         }
         if (gEnv->surveyMap != nullptr)
         {

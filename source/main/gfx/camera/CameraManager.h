@@ -65,7 +65,7 @@ public:
     /**
     * TIGHT-LOOP; Called once per frame.
     */
-    bool update(float dt);
+    void UpdateCameraManager(float dt_sec);
 
     void switchBehavior(int newBehavior, bool reset = true);
     void switchToNextBehavior(bool force = true);
