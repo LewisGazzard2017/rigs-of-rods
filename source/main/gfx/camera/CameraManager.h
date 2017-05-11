@@ -69,7 +69,7 @@ public:
     void UpdateCameraManager(float dt_sec);
 
     void switchBehavior(int newBehavior, bool reset = true);
-    void switchToNextBehavior(bool force = true);
+    void switchToNextBehavior();
     void toggleBehavior(int behavior);
 
     bool gameControlsLocked();
