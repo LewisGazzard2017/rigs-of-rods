@@ -23,11 +23,10 @@
 #include "RoRPrerequisites.h"
 
 #include "IBehavior.h"
-#include "IBehaviorManager.h"
 
 #include <OIS.h>
 
-class CameraManager : public IBehaviorManager
+class CameraManager : public ZeroedMemoryAllocator
 {
     friend class RoR::SceneMouse;
 
