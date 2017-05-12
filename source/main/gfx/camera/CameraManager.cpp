@@ -173,7 +173,7 @@ void CameraManager::ActivateNewBehavior(CameraBehaviors behav_id, IBehavior<Came
         }
         else if (reset)
         {
-            m_cam_behav_vehicle_spline->reset(ctx);
+            m_cam_behav_vehicle_spline->ResetOrbitStyleCam();
             m_cam_behav_vehicle_spline->createSpline(ctx);
         }
         ctx.mCurrTruck->GetCameraContext()->behavior = RoR::PerVehicleCameraContext::CAMERA_BEHAVIOR_VEHICLE_SPLINE;
@@ -187,7 +187,7 @@ void CameraManager::ActivateNewBehavior(CameraBehaviors behav_id, IBehavior<Came
         }
         else if ( reset )
         {
-            behav_obj->reset(ctx);
+            m_cam_behav_vehicle_cinecam->ResetOrbitStyleCam();
         }
 
         gEnv->mainCamera->setFOVy(ctx.fovInternal);
@@ -213,7 +213,7 @@ void CameraManager::ActivateNewBehavior(CameraBehaviors behav_id, IBehavior<Came
         }
         else if ( reset )
         {
-            behav_obj->reset(ctx);
+            m_cam_behav_vehicle->ResetOrbitStyleCam();
         }
         ctx.mCurrTruck->GetCameraContext()->behavior = RoR::PerVehicleCameraContext::CAMERA_BEHAVIOR_VEHICLE_3rdPERSON;
         break;
@@ -226,7 +226,7 @@ void CameraManager::ActivateNewBehavior(CameraBehaviors behav_id, IBehavior<Came
         }
         else if (reset)
         {
-            behav_obj->reset(ctx);
+            m_cam_behav_character->ResetOrbitStyleCam();
         }
         break;
 
