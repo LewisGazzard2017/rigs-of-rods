@@ -83,7 +83,6 @@ set( SOURCE_FILES
   gfx/VideoCamera.{h,cpp}
   gfx/Water.{h,cpp}
   gfx/camera/CameraBehaviorCharacter.{h,cpp}
-  gfx/camera/CameraBehaviorFixed.h
   gfx/camera/CameraBehaviorFree.{h,cpp}
   gfx/camera/CameraBehaviorIsometric.h
   gfx/camera/CameraBehaviorOrbit.{h,cpp}
