@@ -267,7 +267,7 @@ void CameraManager::SwitchBehaviorOnVehicleChange(int newBehaviorID, bool reset,
     {
         if (old_vehicle != new_vehicle)
         {
-            currentBehavior->notifyContextChange(ctx);
+            this->NotifyContextChange();
         }
         return;
     }
@@ -369,8 +369,17 @@ void CameraManager::OnReturnToMainMenu()
 
 void CameraManager::NotifyContextChange()
 {
-    if ( !currentBehavior ) return;
-    currentBehavior->notifyContextChange(ctx);
+    switch (currentBehaviorID)
+    {
+    case CAMERA_BEHAVIOR_CHARACTER:
+    case CAMERA_BEHAVIOR_VEHICLE:
+    case CAMERA_BEHAVIOR_VEHICLE_CINECAM:
+    case CAMERA_BEHAVIOR_VEHICLE_SPLINE:
+        reinterpret_cast<CameraBehaviorOrbit*>(currentBehavior)->ResetCamLastLookatPosition();
+        break;
+
+    default:;
+    }
 }
 
 void CameraManager::NotifyVehicleChanged(Beam* old_vehicle, Beam* new_vehicle)
