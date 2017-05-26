@@ -278,12 +278,6 @@ if(WIN32)
   set_target_properties( ${BINNAME} PROPERTIES WIN32_EXECUTABLE YES )
 endif()
 
-
-  copy_lib_files_for_target(${BINNAME} MyGUI)
-  if(ROR_USE_CRASHRPT)
-    copy_lib_files_for_target(${BINNAME} CrashRpt)
-  endif()
-
 ####################################################################################################
 #  PREPROCESSOR DEFINITIONS
 ####################################################################################################
