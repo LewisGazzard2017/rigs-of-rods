@@ -27,11 +27,9 @@ endif()
 file(GLOB sources "*.cpp")
 file(GLOB headers "*.h")
 
-include_directories(${RoR_SOURCE_DIR}/source/protocol)
 include_directories(../main/)
 include_directories(../main/network/)
 include_directories(../main/utils/)
-include_directories(${MYGUI_INCLUDE_DIRS})
 
 add_definitions("-DNOOGRE -D_UNICODE")
 
@@ -41,11 +39,11 @@ add_definitions("-DNOOGRE -D_UNICODE")
 
 
 if(WIN32)
-    add_executable(RoRConfig WIN32 ${sources} ${headers} ${OS_SOURCE} ../main/utils/Settings.cpp ../main/utils/SHA1.cpp ../main/utils/ErrorUtils.cpp ../main/utils/Utils.cpp ../main/utils/ConfigFile.cpp)
+    add_executable(RoRConfig WIN32 ${sources} ${headers} ${OS_SOURCE} ../main/utils/SHA1.cpp ../main/utils/ErrorUtils.cpp)
     target_link_libraries(RoRConfig PRIVATE Version.lib)
 else(WIN32)
     add_definitions ("-fPIC")
-    add_executable(RoRConfig ${sources} ${headers} ${OS_SOURCE} ../main/utils/Settings.cpp ../main/utils/SHA1.cpp ../main/utils/ErrorUtils.cpp ../main/utils/Utils.cpp ../main/utils/ConfigFile.cpp)
+    add_executable(RoRConfig ${sources} ${headers} ${OS_SOURCE}../main/utils/SHA1.cpp ../main/utils/ErrorUtils.cpp)
 ENDIF(WIN32)
 
 
