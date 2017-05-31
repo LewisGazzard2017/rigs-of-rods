@@ -511,6 +511,17 @@ else()
 endif()
 
 
+# --- CrashRpt ---
+find_package( CrashRpt )
+if( TARGET CrashRpt::CrashRpt)
+  target_link_libraries( ${BINNAME} PRIVATE CrashRpt::CrashRpt)
+  target_compile_definitions( ${BINNAME} PRIVATE USE_CRASHRPT )
+else()
+  message( WARNING "Building ${BINNAME} without CrashRpt. Some functionality may be missing." )
+endif()
+
+
+
 ####################################################################################################
 #  POST-BUILD STEPS
 ####################################################################################################
