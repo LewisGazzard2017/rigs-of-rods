@@ -104,11 +104,11 @@ public:
     void HideNotification();
     void CenterSpawnerReportWindow();
     void AdjustPauseMenuPosition();
-    void AdjustMainMenuPosition();
 
     void UpdateSimUtils(float dt, Beam* truck);
     void FrameStepGui(float dt);
     void NewImGuiFrame(float dt);
+    void DrawMainMenuGui();
 
     int getMessageBoxResult(); //TODO
 
