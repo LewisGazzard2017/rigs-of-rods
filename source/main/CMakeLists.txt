@@ -12,7 +12,7 @@ set( SOURCE_FILES
   GlobalEnvironment.h
   MainMenu.{h,cpp}
   RoRPrerequisites.h
-  audio/MumbleIntegration.{h,cpp}  
+  audio/MumbleIntegration.{h,cpp}
   audio/Sound.{h,cpp}
   audio/SoundManager.{h,cpp}
   audio/SoundScriptManager.{h,cpp}
