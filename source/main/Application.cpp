@@ -168,6 +168,8 @@ CacheSystem*           GetCacheSystem        () { return g_cache_system;}
 MainMenu*              GetMainMenu           () { return g_main_menu;}
 RoRFrameListener*      GetSimController      () { return g_sim_controller; }
 
+void SetMainMenu       (MainMenu* obj)                { g_main_menu = obj; }
+void SetSimController  (RoRFrameListener* obj)        { g_sim_controller = obj;}
 void StartOgreSubsystem()
 {
     g_ogre_subsystem = new OgreSubsystem();
