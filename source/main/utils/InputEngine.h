@@ -2,7 +2,7 @@
     This source file is part of Rigs of Rods
     Copyright 2005-2012 Pierre-Michel Ricordel
     Copyright 2007-2012 Thomas Fischer
-    Copyright 2013-2017 Petr Ohlidal
+    Copyright 2013-2017 Petr Ohlidal & contributors
 
     For more information, see http://www.rigsofrods.org/
 
@@ -19,12 +19,375 @@
     along with Rigs of Rods. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/** 
-    @file   InputEngine.h
-    @brief  Input logic.
-*/
-
 #pragma once
+
+/// @file   InputEngine.h
+/// @brief  Input logic using SDL (rewritten from original OIS-logic by Petr Ohlidal, 06/2017)
+///
+/// Design philosophy:
+///     Inputs are read many times each tick, but only updated on user action (once in many ticks).
+///     Thus, reading should be very fast (just read data) while processing input can be slower (update state data).
+///     Further, inputs should be safely readable from multiple threads.
+
+//namespace RoR { // TODO: This would require change in many files, let's postpone it ~ only_a_ptr, 06/2017
+
+class GameInputEvent
+{
+    friend class InputEngine;
+public:
+    GameInputEvent(const char* _name, const char* _def_conf):
+        m_name(_name), m_default_setting(_def_conf), m_value_analog(0.f), m_value_bool(false), m_is_bool_fresh(false)
+    {}
+
+    inline float         GetAnalog() const              { return m_value_analog; }
+    inline bool          GetBool() const                { return m_value_bool; }
+    inline bool          WasTriggered() const           { return (m_value_bool && m_is_bool_fresh); }
+    inline bool          WasReleased() const            { return ((! m_value_bool) && m_is_bool_fresh); }
+
+private:
+    const char* const    m_name;
+    const char* const    m_default_setting;
+    float                m_value_analog;  ///< Updated
+    bool                 m_value_bool;    ///< Updated
+    bool                 m_is_bool_fresh; ///< Updated; signals the `bool` field changed this frame.
+};
+
+
+extern GameInputEvent    EV_AIRPLANE_AIRBRAKES_FULL;
+extern GameInputEvent    EV_AIRPLANE_AIRBRAKES_LESS;
+extern GameInputEvent    EV_AIRPLANE_AIRBRAKES_MORE;
+extern GameInputEvent    EV_AIRPLANE_AIRBRAKES_NONE;
+extern GameInputEvent    EV_AIRPLANE_BRAKE;             ///< normal brake for an aircraft.
+extern GameInputEvent    EV_AIRPLANE_ELEVATOR_DOWN;     ///< pull the elevator down in an aircraft.
+extern GameInputEvent    EV_AIRPLANE_ELEVATOR_UP;       ///< pull the elevator up in an aircraft.
+extern GameInputEvent    EV_AIRPLANE_FLAPS_FULL;        ///< full flaps in an aircraft.
+extern GameInputEvent    EV_AIRPLANE_FLAPS_LESS;        ///< one step less flaps.
+extern GameInputEvent    EV_AIRPLANE_FLAPS_MORE;        ///< one step more flaps.
+extern GameInputEvent    EV_AIRPLANE_FLAPS_NONE;        ///< no flaps.
+extern GameInputEvent    EV_AIRPLANE_PARKING_BRAKE;     ///< airplane parking brake.
+extern GameInputEvent    EV_AIRPLANE_REVERSE;           ///< reverse the turboprops
+extern GameInputEvent    EV_AIRPLANE_RUDDER_LEFT;       ///< rudder left
+extern GameInputEvent    EV_AIRPLANE_RUDDER_RIGHT;      ///< rudder right
+extern GameInputEvent    EV_AIRPLANE_STEER_LEFT;        ///< steer left
+extern GameInputEvent    EV_AIRPLANE_STEER_RIGHT;       ///< steer right
+extern GameInputEvent    EV_AIRPLANE_THROTTLE;
+extern GameInputEvent    EV_AIRPLANE_THROTTLE_AXIS;     ///< throttle axis. Only use this if you have fitting hardware :) (i.e. a Slider)
+extern GameInputEvent    EV_AIRPLANE_THROTTLE_DOWN;     ///< decreases the airplane thrust
+extern GameInputEvent    EV_AIRPLANE_THROTTLE_FULL;     ///< full thrust
+extern GameInputEvent    EV_AIRPLANE_THROTTLE_NO;       ///< no thrust
+extern GameInputEvent    EV_AIRPLANE_THROTTLE_UP;       ///< increase the airplane thrust
+extern GameInputEvent    EV_AIRPLANE_TOGGLE_ENGINES;    ///< switch all engines on / off
+
+extern GameInputEvent    EV_BOAT_CENTER_RUDDER; //!< center the rudder
+extern GameInputEvent    EV_BOAT_REVERSE; //!< no thrust
+extern GameInputEvent    EV_BOAT_STEER_LEFT; //!< steer left a step
+extern GameInputEvent    EV_BOAT_STEER_LEFT_AXIS; //!< steer left (analog value!)
+extern GameInputEvent    EV_BOAT_STEER_RIGHT; //!< steer right a step
+extern GameInputEvent    EV_BOAT_STEER_RIGHT_AXIS; //!< steer right (analog value!)
+extern GameInputEvent    EV_BOAT_THROTTLE_AXIS; //!< throttle axis. Only use this if you have fitting hardware :) (i.e. a Slider)
+extern GameInputEvent    EV_BOAT_THROTTLE_DOWN; //!< decrease throttle
+extern GameInputEvent    EV_BOAT_THROTTLE_UP; //!< increase throttle
+
+extern GameInputEvent    EV_SKY_DECREASE_TIME; //!< decrease day-time
+extern GameInputEvent    EV_SKY_DECREASE_TIME_FAST; //!< decrease day-time a lot faster
+extern GameInputEvent    EV_SKY_INCREASE_TIME; //!< increase day-time
+extern GameInputEvent    EV_SKY_INCREASE_TIME_FAST; //!< increase day-time a lot faster
+
+extern GameInputEvent    EV_CAMERA_CHANGE; //!< change camera mode
+extern GameInputEvent    EV_CAMERA_DOWN;
+extern GameInputEvent    EV_CAMERA_FREE_MODE;
+extern GameInputEvent    EV_CAMERA_FREE_MODE_FIX;
+extern GameInputEvent    EV_CAMERA_LOOKBACK; //!< look back (toggles between normal and lookback)
+extern GameInputEvent    EV_CAMERA_RESET; //!< reset the camera position
+extern GameInputEvent    EV_CAMERA_ROTATE_DOWN; //!< rotate camera down
+extern GameInputEvent    EV_CAMERA_ROTATE_LEFT; //!< rotate camera left
+extern GameInputEvent    EV_CAMERA_ROTATE_RIGHT; //!< rotate camera right
+extern GameInputEvent    EV_CAMERA_ROTATE_UP; //!< rotate camera up
+extern GameInputEvent    EV_CAMERA_SWIVEL_DOWN; //!< swivel camera down
+extern GameInputEvent    EV_CAMERA_SWIVEL_LEFT; //!< swivel camera left
+extern GameInputEvent    EV_CAMERA_SWIVEL_RIGHT; //!< swivel camera right
+extern GameInputEvent    EV_CAMERA_SWIVEL_UP; //!< swivel camera up
+extern GameInputEvent    EV_CAMERA_UP;
+extern GameInputEvent    EV_CAMERA_ZOOM_IN; //!< zoom camera in
+extern GameInputEvent    EV_CAMERA_ZOOM_IN_FAST; //!< zoom camera in faster
+extern GameInputEvent    EV_CAMERA_ZOOM_OUT; //!< zoom camera out
+extern GameInputEvent    EV_CAMERA_ZOOM_OUT_FAST; //!< zoom camera out faster
+
+extern GameInputEvent    EV_CHARACTER_BACKWARDS; //!< step backwards with the character
+extern GameInputEvent    EV_CHARACTER_FORWARD; //!< step forward with the character
+extern GameInputEvent    EV_CHARACTER_JUMP; //!< let the character jump
+extern GameInputEvent    EV_CHARACTER_LEFT; //!< rotate character left
+extern GameInputEvent    EV_CHARACTER_RIGHT; //!< rotate character right
+extern GameInputEvent    EV_CHARACTER_ROT_DOWN;
+extern GameInputEvent    EV_CHARACTER_ROT_UP;
+extern GameInputEvent    EV_CHARACTER_RUN; //!< let the character run
+extern GameInputEvent    EV_CHARACTER_SIDESTEP_LEFT; //!< sidestep to the left
+extern GameInputEvent    EV_CHARACTER_SIDESTEP_RIGHT; //!< sidestep to the right
+
+extern GameInputEvent    EV_COMMANDS_01; //!< Command 1
+extern GameInputEvent    EV_COMMANDS_02; //!< Command 2
+extern GameInputEvent    EV_COMMANDS_03; //!< Command 3
+extern GameInputEvent    EV_COMMANDS_04; //!< Command 4
+extern GameInputEvent    EV_COMMANDS_05; //!< Command 5
+extern GameInputEvent    EV_COMMANDS_06; //!< Command 6
+extern GameInputEvent    EV_COMMANDS_07; //!< Command 7
+extern GameInputEvent    EV_COMMANDS_08; //!< Command 8
+extern GameInputEvent    EV_COMMANDS_09; //!< Command 9
+extern GameInputEvent    EV_COMMANDS_10; //!< Command 10
+extern GameInputEvent    EV_COMMANDS_11; //!< Command 11
+extern GameInputEvent    EV_COMMANDS_12; //!< Command 12
+extern GameInputEvent    EV_COMMANDS_13; //!< Command 13
+extern GameInputEvent    EV_COMMANDS_14; //!< Command 14
+extern GameInputEvent    EV_COMMANDS_15; //!< Command 15
+extern GameInputEvent    EV_COMMANDS_16; //!< Command 16
+extern GameInputEvent    EV_COMMANDS_17; //!< Command 17
+extern GameInputEvent    EV_COMMANDS_18; //!< Command 18
+extern GameInputEvent    EV_COMMANDS_19; //!< Command 19
+extern GameInputEvent    EV_COMMANDS_20; //!< Command 20
+extern GameInputEvent    EV_COMMANDS_21; //!< Command 21
+extern GameInputEvent    EV_COMMANDS_22; //!< Command 22
+extern GameInputEvent    EV_COMMANDS_23; //!< Command 23
+extern GameInputEvent    EV_COMMANDS_24; //!< Command 24
+extern GameInputEvent    EV_COMMANDS_25; //!< Command 25
+extern GameInputEvent    EV_COMMANDS_26; //!< Command 26
+extern GameInputEvent    EV_COMMANDS_27; //!< Command 27
+extern GameInputEvent    EV_COMMANDS_28; //!< Command 28
+extern GameInputEvent    EV_COMMANDS_29; //!< Command 29
+extern GameInputEvent    EV_COMMANDS_30; //!< Command 30
+extern GameInputEvent    EV_COMMANDS_31; //!< Command 31
+extern GameInputEvent    EV_COMMANDS_32; //!< Command 32
+extern GameInputEvent    EV_COMMANDS_33; //!< Command 33
+extern GameInputEvent    EV_COMMANDS_34; //!< Command 34
+extern GameInputEvent    EV_COMMANDS_35; //!< Command 35
+extern GameInputEvent    EV_COMMANDS_36; //!< Command 36
+extern GameInputEvent    EV_COMMANDS_37; //!< Command 37
+extern GameInputEvent    EV_COMMANDS_38; //!< Command 38
+extern GameInputEvent    EV_COMMANDS_39; //!< Command 39
+extern GameInputEvent    EV_COMMANDS_40; //!< Command 40
+extern GameInputEvent    EV_COMMANDS_41; //!< Command 41
+extern GameInputEvent    EV_COMMANDS_42; //!< Command 42
+extern GameInputEvent    EV_COMMANDS_43; //!< Command 43
+extern GameInputEvent    EV_COMMANDS_44; //!< Command 44
+extern GameInputEvent    EV_COMMANDS_45; //!< Command 45
+extern GameInputEvent    EV_COMMANDS_46; //!< Command 46
+extern GameInputEvent    EV_COMMANDS_47; //!< Command 47
+extern GameInputEvent    EV_COMMANDS_48; //!< Command 48
+extern GameInputEvent    EV_COMMANDS_49; //!< Command 49
+extern GameInputEvent    EV_COMMANDS_50; //!< Command 50
+extern GameInputEvent    EV_COMMANDS_51; //!< Command 51
+extern GameInputEvent    EV_COMMANDS_52; //!< Command 52
+extern GameInputEvent    EV_COMMANDS_53; //!< Command 53
+extern GameInputEvent    EV_COMMANDS_54; //!< Command 54
+extern GameInputEvent    EV_COMMANDS_55; //!< Command 55
+extern GameInputEvent    EV_COMMANDS_56; //!< Command 56
+extern GameInputEvent    EV_COMMANDS_57; //!< Command 57
+extern GameInputEvent    EV_COMMANDS_58; //!< Command 58
+extern GameInputEvent    EV_COMMANDS_59; //!< Command 59
+extern GameInputEvent    EV_COMMANDS_60; //!< Command 50
+extern GameInputEvent    EV_COMMANDS_61; //!< Command 61
+extern GameInputEvent    EV_COMMANDS_62; //!< Command 62
+extern GameInputEvent    EV_COMMANDS_63; //!< Command 63
+extern GameInputEvent    EV_COMMANDS_64; //!< Command 64
+extern GameInputEvent    EV_COMMANDS_65; //!< Command 65
+extern GameInputEvent    EV_COMMANDS_66; //!< Command 66
+extern GameInputEvent    EV_COMMANDS_67; //!< Command 67
+extern GameInputEvent    EV_COMMANDS_68; //!< Command 68
+extern GameInputEvent    EV_COMMANDS_69; //!< Command 69
+extern GameInputEvent    EV_COMMANDS_70; //!< Command 70
+extern GameInputEvent    EV_COMMANDS_71; //!< Command 71
+extern GameInputEvent    EV_COMMANDS_72; //!< Command 72
+extern GameInputEvent    EV_COMMANDS_73; //!< Command 73
+extern GameInputEvent    EV_COMMANDS_74; //!< Command 74
+extern GameInputEvent    EV_COMMANDS_75; //!< Command 75
+extern GameInputEvent    EV_COMMANDS_76; //!< Command 76
+extern GameInputEvent    EV_COMMANDS_77; //!< Command 77
+extern GameInputEvent    EV_COMMANDS_78; //!< Command 78
+extern GameInputEvent    EV_COMMANDS_79; //!< Command 79
+extern GameInputEvent    EV_COMMANDS_80; //!< Command 80
+extern GameInputEvent    EV_COMMANDS_81; //!< Command 81
+extern GameInputEvent    EV_COMMANDS_82; //!< Command 82
+extern GameInputEvent    EV_COMMANDS_83; //!< Command 83
+extern GameInputEvent    EV_COMMANDS_84; //!< Command 84
+
+extern GameInputEvent    EV_COMMON_ACCELERATE_SIMULATION; //!< accelerate the simulation speed
+extern GameInputEvent    EV_COMMON_DECELERATE_SIMULATION; //!< decelerate the simulation speed
+extern GameInputEvent    EV_COMMON_RESET_SIMULATION_PACE; //!< reset the simulation speed
+extern GameInputEvent    EV_COMMON_AUTOLOCK; //!< unlock autolock hook node
+extern GameInputEvent    EV_COMMON_CONSOLE_TOGGLE; //!< show / hide the console
+extern GameInputEvent    EV_COMMON_ENTER_CHATMODE; //!< enter the chat mode
+extern GameInputEvent    EV_COMMON_ENTER_OR_EXIT_TRUCK; //!< enter or exit a truck
+extern GameInputEvent    EV_COMMON_ENTER_NEXT_TRUCK; //!< enter next truck
+extern GameInputEvent    EV_COMMON_ENTER_PREVIOUS_TRUCK; //!< enter previous truck
+extern GameInputEvent    EV_COMMON_REMOVE_CURRENT_TRUCK; //!< remove current truck
+extern GameInputEvent    EV_COMMON_RESPAWN_LAST_TRUCK; //!< respawn last truck
+extern GameInputEvent    EV_COMMON_FOV_LESS; //!<decreases the current FOV value
+extern GameInputEvent    EV_COMMON_FOV_MORE; //!<increases the current FOV value
+extern GameInputEvent    EV_COMMON_FULLSCREEN_TOGGLE;
+extern GameInputEvent    EV_COMMON_HIDE_GUI; //!< hide all GUI elements
+extern GameInputEvent    EV_COMMON_LOCK; //!< connect hook node to a node in close proximity
+extern GameInputEvent    EV_COMMON_NETCHATDISPLAY;
+extern GameInputEvent    EV_COMMON_NETCHATMODE;
+extern GameInputEvent    EV_COMMON_OUTPUT_POSITION; //!< write current position to log (you can open the logfile and reuse the position)
+extern GameInputEvent    EV_COMMON_GET_NEW_VEHICLE; //!< get new vehicle
+extern GameInputEvent    EV_COMMON_PRESSURE_LESS; //!< decrease tire pressure (note: only very few trucks support this)
+extern GameInputEvent    EV_COMMON_PRESSURE_MORE; //!< increase tire pressure (note: only very few trucks support this)
+extern GameInputEvent    EV_COMMON_QUIT_GAME; //!< exit the game
+extern GameInputEvent    EV_COMMON_REPAIR_TRUCK; //!< repair truck to original condition
+extern GameInputEvent    EV_COMMON_REPLAY_BACKWARD;
+extern GameInputEvent    EV_COMMON_REPLAY_FAST_BACKWARD;
+extern GameInputEvent    EV_COMMON_REPLAY_FAST_FORWARD;
+extern GameInputEvent    EV_COMMON_REPLAY_FORWARD;
+extern GameInputEvent    EV_COMMON_RESCUE_TRUCK; //!< teleport to rescue truck
+extern GameInputEvent    EV_COMMON_RESET_TRUCK; //!< reset truck to original starting position
+extern GameInputEvent    EV_COMMON_ROPELOCK; //!< connect hook node to a node in close proximity
+extern GameInputEvent    EV_COMMON_SAVE_TERRAIN; //!< save terrain mesh to file
+extern GameInputEvent    EV_COMMON_SCREENSHOT; //!< take a screenshot
+extern GameInputEvent    EV_COMMON_SCREENSHOT_BIG; //!< take a BIG screenshot
+extern GameInputEvent    EV_COMMON_SECURE_LOAD; //!< tie a load to the truck
+extern GameInputEvent    EV_COMMON_SEND_CHAT; //!< send the chat text
+extern GameInputEvent    EV_COMMON_SHOW_SKELETON; //!< toggle skeleton display mode
+extern GameInputEvent    EV_COMMON_TOGGLE_TERRAIN_EDITOR; //!< toggle terrain editor
+extern GameInputEvent    EV_COMMON_TOGGLE_CUSTOM_PARTICLES; //!< toggle particle cannon
+extern GameInputEvent    EV_COMMON_TOGGLE_MAT_DEBUG; //!< debug purpose - dont use
+extern GameInputEvent    EV_COMMON_TOGGLE_RENDER_MODE; //!< toggle render mode (solid; wireframe and points)
+extern GameInputEvent    EV_COMMON_TOGGLE_REPLAY_MODE; //!< deprecated key - without function
+extern GameInputEvent    EV_COMMON_TOGGLE_STATS; //!< toggle Ogre statistics (FPS etc.)
+extern GameInputEvent    EV_COMMON_TOGGLE_TRUCK_BEACONS; //!< toggle truck beacons
+extern GameInputEvent    EV_COMMON_TOGGLE_TRUCK_LIGHTS; //!< toggle truck front lights
+extern GameInputEvent    EV_COMMON_TRUCK_INFO; //!< toggle truck HUD
+extern GameInputEvent    EV_COMMON_TRUCK_DESCRIPTION; //!< toggle truck description
+extern GameInputEvent    EV_COMMON_TRUCK_REMOVE;
+extern GameInputEvent    EV_COMMON_TELEPORT_TOGGLE; //!< Enter/exit teleport mode
+
+extern GameInputEvent    EV_GRASS_LESS; //!< EXPERIMENTAL: remove some grass
+extern GameInputEvent    EV_GRASS_MORE; //!< EXPERIMENTAL: add some grass
+extern GameInputEvent    EV_GRASS_MOST; //!< EXPERIMENTAL: set maximum amount of grass
+extern GameInputEvent    EV_GRASS_NONE; //!< EXPERIMENTAL: remove grass completely
+extern GameInputEvent    EV_GRASS_SAVE; //!< EXPERIMENTAL: save changes to the grass density image
+
+extern GameInputEvent    EV_MENU_DOWN; //!< select next element in current category
+extern GameInputEvent    EV_MENU_LEFT; //!< select previous category
+extern GameInputEvent    EV_MENU_RIGHT; //!< select next category
+extern GameInputEvent    EV_MENU_SELECT; //!< select focussed item and close menu
+extern GameInputEvent    EV_MENU_UP; //!< select previous element in current category
+
+extern GameInputEvent    EV_SURVEY_MAP_ALPHA; //!< toggle translucency of overview-map
+extern GameInputEvent    EV_SURVEY_MAP_TOGGLE_ICONS; //!< toggle map icons
+extern GameInputEvent    EV_SURVEY_MAP_TOGGLE_VIEW; //!< toggle map modes
+extern GameInputEvent    EV_SURVEY_MAP_ZOOM_IN; //!< increase survey map scale
+extern GameInputEvent    EV_SURVEY_MAP_ZOOM_OUT; //!< decrease survey map scale
+
+extern GameInputEvent    EV_TRUCK_ACCELERATE; //!< accelerate the truck
+extern GameInputEvent    EV_TRUCK_ACCELERATE_MODIFIER_25; //!< accelerate with 25 percent pedal input
+extern GameInputEvent    EV_TRUCK_ACCELERATE_MODIFIER_50; //!< accelerate with 50 percent pedal input
+extern GameInputEvent    EV_TRUCK_ANTILOCK_BRAKE; //!< toggle antilockbrake system
+extern GameInputEvent    EV_TRUCK_AUTOSHIFT_DOWN; //!< shift automatic transmission one gear down
+extern GameInputEvent    EV_TRUCK_AUTOSHIFT_UP; //!< shift automatic transmission one gear up
+extern GameInputEvent    EV_TRUCK_BLINK_LEFT; //!< toggle left direction indicator (blinker)
+extern GameInputEvent    EV_TRUCK_BLINK_RIGHT; //!< toggle right direction indicator (blinker)
+extern GameInputEvent    EV_TRUCK_BLINK_WARN; //!< toggle all direction indicators
+extern GameInputEvent    EV_TRUCK_BRAKE; //!< brake
+extern GameInputEvent    EV_TRUCK_BRAKE_MODIFIER_25; //!< brake with 25 percent pedal input
+extern GameInputEvent    EV_TRUCK_BRAKE_MODIFIER_50; //!< brake with 50 percent pedal input
+extern GameInputEvent    EV_TRUCK_CRUISE_CONTROL; //!< toggle cruise control
+extern GameInputEvent    EV_TRUCK_CRUISE_CONTROL_ACCL;//!< increase target speed / rpm
+extern GameInputEvent    EV_TRUCK_CRUISE_CONTROL_DECL;//!< decrease target speed / rpm
+extern GameInputEvent    EV_TRUCK_CRUISE_CONTROL_READJUST; //!< match target speed / rpm with current truck speed / rpm
+extern GameInputEvent    EV_TRUCK_HORN; //!< truck horn
+extern GameInputEvent    EV_TRUCK_LEFT_MIRROR_LEFT;
+extern GameInputEvent    EV_TRUCK_LEFT_MIRROR_RIGHT;
+extern GameInputEvent    EV_TRUCK_LIGHTTOGGLE01; //!< toggle custom light 1
+extern GameInputEvent    EV_TRUCK_LIGHTTOGGLE02; //!< toggle custom light 2
+extern GameInputEvent    EV_TRUCK_LIGHTTOGGLE03; //!< toggle custom light 3
+extern GameInputEvent    EV_TRUCK_LIGHTTOGGLE04; //!< toggle custom light 4
+extern GameInputEvent    EV_TRUCK_LIGHTTOGGLE05; //!< toggle custom light 5
+extern GameInputEvent    EV_TRUCK_LIGHTTOGGLE06; //!< toggle custom light 6
+extern GameInputEvent    EV_TRUCK_LIGHTTOGGLE07; //!< toggle custom light 7
+extern GameInputEvent    EV_TRUCK_LIGHTTOGGLE08; //!< toggle custom light 8
+extern GameInputEvent    EV_TRUCK_LIGHTTOGGLE09; //!< toggle custom light 9
+extern GameInputEvent    EV_TRUCK_LIGHTTOGGLE10; //!< toggle custom light 10
+extern GameInputEvent    EV_TRUCK_MANUAL_CLUTCH; //!< manual clutch (for manual transmission)
+extern GameInputEvent    EV_TRUCK_PARKING_BRAKE; //!< toggle parking brake
+extern GameInputEvent    EV_TRUCK_RIGHT_MIRROR_LEFT;
+extern GameInputEvent    EV_TRUCK_RIGHT_MIRROR_RIGHT;
+extern GameInputEvent    EV_TRUCK_SHIFT_DOWN; //!< shift one gear down in manual transmission mode
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR01; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR02; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR03; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR04; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR05; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR06; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR07; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR08; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR09; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR10; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR11; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR12; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR13; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR14; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR15; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR16; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR17; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR18; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_GEAR_REVERSE; //!< shift directly into this gear
+extern GameInputEvent    EV_TRUCK_SHIFT_HIGHRANGE; //!< select high range (13-18) for H-shaft
+extern GameInputEvent    EV_TRUCK_SHIFT_LOWRANGE; //!< select low range (1-6) for H-shaft
+extern GameInputEvent    EV_TRUCK_SHIFT_MIDRANGE; //!< select middle range (7-12) for H-shaft
+extern GameInputEvent    EV_TRUCK_SHIFT_NEUTRAL; //!< shift to neutral gear in manual transmission mode
+extern GameInputEvent    EV_TRUCK_SHIFT_UP; //!< shift one gear up in manual transmission mode
+extern GameInputEvent    EV_TRUCK_STARTER; //!< hold to start the engine
+extern GameInputEvent    EV_TRUCK_STEER_LEFT; //!< steer left
+extern GameInputEvent    EV_TRUCK_STEER_RIGHT; //!< steer right
+extern GameInputEvent    EV_TRUCK_SWITCH_SHIFT_MODES; //!< toggle between transmission modes
+extern GameInputEvent    EV_TRUCK_TOGGLE_AXLE_LOCK;
+extern GameInputEvent    EV_TRUCK_TOGGLE_CONTACT; //!< toggle ignition
+extern GameInputEvent    EV_TRUCK_TOGGLE_FORWARDCOMMANDS; //!< toggle forwardcommands
+extern GameInputEvent    EV_TRUCK_TOGGLE_IMPORTCOMMANDS; //!< toggle importcommands
+extern GameInputEvent    EV_TRUCK_TOGGLE_VIDEOCAMERA; //!< toggle videocamera update
+extern GameInputEvent    EV_TRUCK_TRACTION_CONTROL; //!< toggle antilockbrake system
+
+extern GameInputEvent    EV_TRUCK_SAVE_POS01;
+extern GameInputEvent    EV_TRUCK_SAVE_POS02;
+extern GameInputEvent    EV_TRUCK_SAVE_POS03;
+extern GameInputEvent    EV_TRUCK_SAVE_POS04;
+extern GameInputEvent    EV_TRUCK_SAVE_POS05;
+extern GameInputEvent    EV_TRUCK_SAVE_POS06;
+extern GameInputEvent    EV_TRUCK_SAVE_POS07;
+extern GameInputEvent    EV_TRUCK_SAVE_POS08;
+extern GameInputEvent    EV_TRUCK_SAVE_POS09;
+extern GameInputEvent    EV_TRUCK_SAVE_POS10;
+
+extern GameInputEvent    EV_TRUCK_LOAD_POS01;
+extern GameInputEvent    EV_TRUCK_LOAD_POS02;
+extern GameInputEvent    EV_TRUCK_LOAD_POS03;
+extern GameInputEvent    EV_TRUCK_LOAD_POS04;
+extern GameInputEvent    EV_TRUCK_LOAD_POS05;
+extern GameInputEvent    EV_TRUCK_LOAD_POS06;
+extern GameInputEvent    EV_TRUCK_LOAD_POS07;
+extern GameInputEvent    EV_TRUCK_LOAD_POS08;
+extern GameInputEvent    EV_TRUCK_LOAD_POS09;
+extern GameInputEvent    EV_TRUCK_LOAD_POS10;
+
+extern GameInputEvent    EV_DOF_TOGGLE;
+extern GameInputEvent    EV_DOF_DEBUG;
+extern GameInputEvent    EV_DOF_DEBUG_TOGGLE_FOCUS_MODE;
+extern GameInputEvent    EV_DOF_DEBUG_ZOOM_IN;
+extern GameInputEvent    EV_DOF_DEBUG_ZOOM_OUT;
+extern GameInputEvent    EV_DOF_DEBUG_APERTURE_MORE;
+extern GameInputEvent    EV_DOF_DEBUG_APERTURE_LESS;
+extern GameInputEvent    EV_DOF_DEBUG_FOCUS_IN;
+extern GameInputEvent    EV_DOF_DEBUG_FOCUS_OUT;
+
+extern GameInputEvent    EV_TRUCKEDIT_RELOAD;
+extern GameInputEvent    EV_TOGGLESHADERS;
+
+//} // namespace RoR // See TODO above.
+
+
+
+//                                                             @@@@@@@@@
+// ############################################################## OLD #############################################################
+//                                                             @@@@@@@@@
 
 #include "RoRPrerequisites.h"
 #include "RoRWindowEventUtilities.h"

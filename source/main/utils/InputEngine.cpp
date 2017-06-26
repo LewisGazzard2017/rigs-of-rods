@@ -21,6 +21,344 @@
 
 #include "InputEngine.h"
 
+//namespace RoR { // TODO: This would require change in many files, let's postpone it ~ only_a_ptr, 06/2017
+
+GameInputEvent    EV_AIRPLANE_AIRBRAKES_FULL       ("AIRPLANE_AIRBRAKES_FULL",      "Keyboard CTRL+4");
+GameInputEvent    EV_AIRPLANE_AIRBRAKES_LESS       ("AIRPLANE_AIRBRAKES_LESS",      "Keyboard EXPL+3");
+GameInputEvent    EV_AIRPLANE_AIRBRAKES_MORE       ("AIRPLANE_AIRBRAKES_MORE",      "Keyboard EXPL+4");
+GameInputEvent    EV_AIRPLANE_AIRBRAKES_NONE       ("AIRPLANE_AIRBRAKES_NONE",      "Keyboard CTRL+3");
+GameInputEvent    EV_AIRPLANE_BRAKE                ("AIRPLANE_BRAKE",               "Keyboard B");             ///< normal brake for an aircraft.
+GameInputEvent    EV_AIRPLANE_ELEVATOR_DOWN        ("AIRPLANE_ELEVATOR_DOWN",       "Keyboard DOWN");          ///< pull the elevator down in an aircraft.
+GameInputEvent    EV_AIRPLANE_ELEVATOR_UP          ("AIRPLANE_ELEVATOR_UP",         "Keyboard UP");            ///< pull the elevator up in an aircraft.
+GameInputEvent    EV_AIRPLANE_FLAPS_FULL           ("AIRPLANE_FLAPS_FULL",          "Keyboard CTRL+2");        ///< full flaps in an aircraft.
+GameInputEvent    EV_AIRPLANE_FLAPS_LESS           ("AIRPLANE_FLAPS_LESS",          "Keyboard EXPL+1");        ///< one step less flaps.
+GameInputEvent    EV_AIRPLANE_FLAPS_MORE           ("AIRPLANE_FLAPS_MORE",          "Keyboard EXPL+2");        ///< one step more flaps.
+GameInputEvent    EV_AIRPLANE_FLAPS_NONE           ("AIRPLANE_FLAPS_NONE",          "Keyboard CTRL+1");        ///< no flaps.
+GameInputEvent    EV_AIRPLANE_PARKING_BRAKE        ("AIRPLANE_PARKING_BRAKE",       "Keyboard P");             ///< airplane parking brake.
+GameInputEvent    EV_AIRPLANE_REVERSE              ("AIRPLANE_REVERSE",             "Keyboard R");             ///< reverse the turboprops
+GameInputEvent    EV_AIRPLANE_RUDDER_LEFT          ("AIRPLANE_RUDDER_LEFT",         "Keyboard Z");             ///< rudder left
+GameInputEvent    EV_AIRPLANE_RUDDER_RIGHT         ("AIRPLANE_RUDDER_RIGHT",        "Keyboard X");             ///< rudder right
+GameInputEvent    EV_AIRPLANE_STEER_LEFT           ("AIRPLANE_STEER_LEFT",          "Keyboard LEFT");          ///< steer left
+GameInputEvent    EV_AIRPLANE_STEER_RIGHT          ("AIRPLANE_STEER_RIGHT",         "Keyboard RIGHT");         ///< steer right
+GameInputEvent    EV_AIRPLANE_THROTTLE             ("AIRPLANE_THROTTLE",            "");
+GameInputEvent    EV_AIRPLANE_THROTTLE_AXIS        ("AIRPLANE_THROTTLE_AXIS",       "None");                   ///< throttle axis. Only use this if you have fitting hardware :) (i.e. a Slider)
+GameInputEvent    EV_AIRPLANE_THROTTLE_DOWN        ("AIRPLANE_THROTTLE_DOWN",       "Keyboard EXPL+PGDOWN");   ///< decreases the airplane thrust
+GameInputEvent    EV_AIRPLANE_THROTTLE_FULL        ("AIRPLANE_THROTTLE_FULL",       "Keyboard CTRL+PGUP");     ///< full thrust
+GameInputEvent    EV_AIRPLANE_THROTTLE_NO          ("AIRPLANE_THROTTLE_NO",         "Keyboard CTRL+PGDOWN");   ///< no thrust
+GameInputEvent    EV_AIRPLANE_THROTTLE_UP          ("AIRPLANE_THROTTLE_UP",         "Keyboard EXPL+PGUP");     ///< increase the airplane thrust
+GameInputEvent    EV_AIRPLANE_TOGGLE_ENGINES       ("AIRPLANE_TOGGLE_ENGINES",      "Keyboard CTRL+HOME");     ///< switch all engines on / off
+
+GameInputEvent    EV_BOAT_CENTER_RUDDER            ("BOAT_CENTER_RUDDER",           "KeyboardPGDOWN");         //!< center the rudder
+GameInputEvent    EV_BOAT_REVERSE                  ("BOAT_REVERSE",                 "KeyboardPGUP");           //!< no thrust
+GameInputEvent    EV_BOAT_STEER_LEFT               ("BOAT_STEER_LEFT",              "KeyboardLEFT");           //!< steer left a step
+GameInputEvent    EV_BOAT_STEER_LEFT_AXIS          ("BOAT_STEER_LEFT_AXIS",         "None");                   //!< steer left (analog value!)
+GameInputEvent    EV_BOAT_STEER_RIGHT              ("BOAT_STEER_RIGHT",             "KeyboardRIGHT");          //!< steer right a step
+GameInputEvent    EV_BOAT_STEER_RIGHT_AXIS         ("BOAT_STEER_RIGHT_AXIS",        "None");                   //!< steer right (analog value!)
+GameInputEvent    EV_BOAT_THROTTLE_AXIS            ("BOAT_THROTTLE_AXIS",           "None");                   //!< throttle axis. Only use this if you have fitting hardware :) (i.e. a Slider)
+GameInputEvent    EV_BOAT_THROTTLE_DOWN            ("BOAT_THROTTLE_DOWN",           "KeyboardDOWN");           //!< decrease throttle
+GameInputEvent    EV_BOAT_THROTTLE_UP              ("BOAT_THROTTLE_UP",             "KeyboardUP");             //!< increase throttle
+
+GameInputEvent    EV_SKY_DECREASE_TIME             ("SKY_DECREASE_TIME",            "Keyboard EXPL+SUBTRACT"); //!< decrease day-time
+GameInputEvent    EV_SKY_DECREASE_TIME_FAST        ("SKY_DECREASE_TIME_FAST",       "Keyboard SHIFT+SUBTRACT");//!< decrease day-time a lot faster
+GameInputEvent    EV_SKY_INCREASE_TIME             ("SKY_INCREASE_TIME",            "Keyboard EXPL+ADD");      //!< increase day-time
+GameInputEvent    EV_SKY_INCREASE_TIME_FAST        ("SKY_INCREASE_TIME_FAST",       "Keyboard SHIFT+ADD");     //!< increase day-time a lot faster
+
+GameInputEvent    EV_CAMERA_CHANGE                 ("CAMERA_CHANGE",                "Keyboard EXPL+C");        //!< change camera mode
+GameInputEvent    EV_CAMERA_DOWN                   ("CAMERA_DOWN",                  "Keyboard Z");
+GameInputEvent    EV_CAMERA_FREE_MODE              ("CAMERA_FREE_MODE",             "Keyboard EXPL+SHIFT+C");
+GameInputEvent    EV_CAMERA_FREE_MODE_FIX          ("CAMERA_FREE_MODE_FIX",         "Keyboard EXPL+ALT+C");
+GameInputEvent    EV_CAMERA_LOOKBACK               ("CAMERA_LOOKBACK",              "Keyboard NUMPAD1");       //!< look back (toggles between normal and lookback)
+GameInputEvent    EV_CAMERA_RESET                  ("CAMERA_RESET",                 "Keyboard NUMPAD5");       //!< reset the camera position
+GameInputEvent    EV_CAMERA_ROTATE_DOWN            ("CAMERA_ROTATE_DOWN",           "Keyboard NUMPAD2");       //!< rotate camera down
+GameInputEvent    EV_CAMERA_ROTATE_LEFT            ("CAMERA_ROTATE_LEFT",           "Keyboard NUMPAD4");       //!< rotate camera left
+GameInputEvent    EV_CAMERA_ROTATE_RIGHT           ("CAMERA_ROTATE_RIGHT",          "Keyboard NUMPAD6");       //!< rotate camera right
+GameInputEvent    EV_CAMERA_ROTATE_UP              ("CAMERA_ROTATE_UP",             "Keyboard NUMPAD8");       //!< rotate camera up
+GameInputEvent    EV_CAMERA_SWIVEL_DOWN            ("CAMERA_SWIVEL_DOWN",           "Keyboard CTRL+NUMPAD2");  //!< swivel camera down
+GameInputEvent    EV_CAMERA_SWIVEL_LEFT            ("CAMERA_SWIVEL_LEFT",           "Keyboard CTRL+NUMPAD4");  //!< swivel camera left
+GameInputEvent    EV_CAMERA_SWIVEL_RIGHT           ("CAMERA_SWIVEL_RIGHT",          "Keyboard CTRL+NUMPAD6");  //!< swivel camera right
+GameInputEvent    EV_CAMERA_SWIVEL_UP              ("CAMERA_SWIVEL_UP",             "Keyboard CTRL+NUMPAD8");  //!< swivel camera up
+GameInputEvent    EV_CAMERA_UP                     ("CAMERA_UP",                    "Keyboard Q");
+GameInputEvent    EV_CAMERA_ZOOM_IN                ("CAMERA_ZOOM_IN",               "Keyboard EXPL+NUMPAD9");  //!< zoom camera in
+GameInputEvent    EV_CAMERA_ZOOM_IN_FAST           ("CAMERA_ZOOM_IN_FAST",          "Keyboard SHIFT+NUMPAD9"); //!< zoom camera in faster
+GameInputEvent    EV_CAMERA_ZOOM_OUT               ("CAMERA_ZOOM_OUT",              "Keyboard EXPL+NUMPAD3");  //!< zoom camera out
+GameInputEvent    EV_CAMERA_ZOOM_OUT_FAST          ("CAMERA_ZOOM_OUT_FAST",         "Keyboard SHIFT+NUMPAD3"); //!< zoom camera out faster
+
+GameInputEvent    EV_CHARACTER_BACKWARDS           ("CHARACTER_BACKWARDS",          "Keyboard S");             //!< step backwards with the character
+GameInputEvent    EV_CHARACTER_FORWARD             ("CHARACTER_FORWARD",            "Keyboard W");             //!< step forward with the character
+GameInputEvent    EV_CHARACTER_JUMP                ("CHARACTER_JUMP",               "Keyboard SPACE");         //!< let the character jump
+GameInputEvent    EV_CHARACTER_LEFT                ("CHARACTER_LEFT",               "Keyboard LEFT");          //!< rotate character left
+GameInputEvent    EV_CHARACTER_RIGHT               ("CHARACTER_RIGHT",              "Keyboard RIGHT");         //!< rotate character right
+GameInputEvent    EV_CHARACTER_ROT_DOWN            ("CHARACTER_ROT_DOWN",           "Keyboard DOWN");
+GameInputEvent    EV_CHARACTER_ROT_UP              ("CHARACTER_ROT_UP",             "Keyboard UP");
+GameInputEvent    EV_CHARACTER_RUN                 ("CHARACTER_RUN",                "Keyboard SHIFT+W");       //!< let the character run
+GameInputEvent    EV_CHARACTER_SIDESTEP_LEFT       ("CHARACTER_SIDESTEP_LEFT",      "Keyboard A");             //!< sidestep to the left
+GameInputEvent    EV_CHARACTER_SIDESTEP_RIGHT      ("CHARACTER_SIDESTEP_RIGHT",     "Keyboard D");             //!< sidestep to the right
+
+GameInputEvent    EV_COMMANDS_01                   ("COMMANDS_01",                  "Keyboard EXPL+F1");
+GameInputEvent    EV_COMMANDS_02                   ("COMMANDS_02",                  "Keyboard EXPL+F2");
+GameInputEvent    EV_COMMANDS_03                   ("COMMANDS_03",                  "Keyboard EXPL+F3");
+GameInputEvent    EV_COMMANDS_04                   ("COMMANDS_04",                  "Keyboard EXPL+F4");
+GameInputEvent    EV_COMMANDS_05                   ("COMMANDS_05",                  "Keyboard EXPL+F5");
+GameInputEvent    EV_COMMANDS_06                   ("COMMANDS_06",                  "Keyboard EXPL+F6");
+GameInputEvent    EV_COMMANDS_07                   ("COMMANDS_07",                  "Keyboard EXPL+F7");
+GameInputEvent    EV_COMMANDS_08                   ("COMMANDS_08",                  "Keyboard EXPL+F8");
+GameInputEvent    EV_COMMANDS_09                   ("COMMANDS_09",                  "Keyboard EXPL+F9");
+GameInputEvent    EV_COMMANDS_10                   ("COMMANDS_10",                  "Keyboard EXPL+F10");
+GameInputEvent    EV_COMMANDS_11                   ("COMMANDS_11",                  "Keyboard EXPL+F11");
+GameInputEvent    EV_COMMANDS_12                   ("COMMANDS_12",                  "Keyboard EXPL+F12");
+GameInputEvent    EV_COMMANDS_13                   ("COMMANDS_13",                  "Keyboard EXPL+CTRL+F1");
+GameInputEvent    EV_COMMANDS_14                   ("COMMANDS_14",                  "Keyboard EXPL+CTRL+F2");
+GameInputEvent    EV_COMMANDS_15                   ("COMMANDS_15",                  "Keyboard EXPL+CTRL+F3");
+GameInputEvent    EV_COMMANDS_16                   ("COMMANDS_16",                  "Keyboard EXPL+CTRL+F4");
+GameInputEvent    EV_COMMANDS_17                   ("COMMANDS_17",                  "Keyboard EXPL+CTRL+F5");
+GameInputEvent    EV_COMMANDS_18                   ("COMMANDS_18",                  "Keyboard EXPL+CTRL+F6");
+GameInputEvent    EV_COMMANDS_19                   ("COMMANDS_19",                  "Keyboard EXPL+CTRL+F7");
+GameInputEvent    EV_COMMANDS_20                   ("COMMANDS_20",                  "Keyboard EXPL+CTRL+F8");
+GameInputEvent    EV_COMMANDS_21                   ("COMMANDS_21",                  "Keyboard EXPL+CTRL+F9");
+GameInputEvent    EV_COMMANDS_22                   ("COMMANDS_22",                  "Keyboard EXPL+CTRL+F10");
+GameInputEvent    EV_COMMANDS_23                   ("COMMANDS_23",                  "Keyboard EXPL+CTRL+F11");
+GameInputEvent    EV_COMMANDS_24                   ("COMMANDS_24",                  "Keyboard EXPL+CTRL+F12");
+GameInputEvent    EV_COMMANDS_25                   ("COMMANDS_25",                  "Keyboard EXPL+SHIFT+F1");
+GameInputEvent    EV_COMMANDS_26                   ("COMMANDS_26",                  "Keyboard EXPL+SHIFT+F2");
+GameInputEvent    EV_COMMANDS_27                   ("COMMANDS_27",                  "Keyboard EXPL+SHIFT+F3");
+GameInputEvent    EV_COMMANDS_28                   ("COMMANDS_28",                  "Keyboard EXPL+SHIFT+F4");
+GameInputEvent    EV_COMMANDS_29                   ("COMMANDS_29",                  "Keyboard EXPL+SHIFT+F5");
+GameInputEvent    EV_COMMANDS_30                   ("COMMANDS_30",                  "Keyboard EXPL+SHIFT+F6");
+GameInputEvent    EV_COMMANDS_31                   ("COMMANDS_31",                  "Keyboard EXPL+SHIFT+F7");
+GameInputEvent    EV_COMMANDS_32                   ("COMMANDS_32",                  "Keyboard EXPL+SHIFT+F8");
+GameInputEvent    EV_COMMANDS_33                   ("COMMANDS_33",                  "Keyboard EXPL+SHIFT+F9");
+GameInputEvent    EV_COMMANDS_34                   ("COMMANDS_34",                  "Keyboard EXPL+SHIFT+F10");
+GameInputEvent    EV_COMMANDS_35                   ("COMMANDS_35",                  "Keyboard EXPL+SHIFT+F11");
+GameInputEvent    EV_COMMANDS_36                   ("COMMANDS_36",                  "Keyboard EXPL+SHIFT+F12");
+GameInputEvent    EV_COMMANDS_37                   ("COMMANDS_37",                  "Keyboard EXPL+ALT+F1");
+GameInputEvent    EV_COMMANDS_38                   ("COMMANDS_38",                  "Keyboard EXPL+ALT+F2");
+GameInputEvent    EV_COMMANDS_39                   ("COMMANDS_39",                  "Keyboard EXPL+ALT+F3");
+GameInputEvent    EV_COMMANDS_40                   ("COMMANDS_40",                  "Keyboard EXPL+ALT+F4");
+GameInputEvent    EV_COMMANDS_41                   ("COMMANDS_41",                  "Keyboard EXPL+ALT+F5");
+GameInputEvent    EV_COMMANDS_42                   ("COMMANDS_42",                  "Keyboard EXPL+ALT+F6");
+GameInputEvent    EV_COMMANDS_43                   ("COMMANDS_43",                  "Keyboard EXPL+ALT+F7");
+GameInputEvent    EV_COMMANDS_44                   ("COMMANDS_44",                  "Keyboard EXPL+ALT+F8");
+GameInputEvent    EV_COMMANDS_45                   ("COMMANDS_45",                  "Keyboard EXPL+ALT+F9");
+GameInputEvent    EV_COMMANDS_46                   ("COMMANDS_46",                  "Keyboard EXPL+ALT+F10");
+GameInputEvent    EV_COMMANDS_47                   ("COMMANDS_47",                  "Keyboard EXPL+ALT+F11");
+GameInputEvent    EV_COMMANDS_48                   ("COMMANDS_48",                  "Keyboard EXPL+ALT+F12");
+GameInputEvent    EV_COMMANDS_49                   ("COMMANDS_49",                  "Keyboard EXPL+CTRL+SHIFT+F1");
+GameInputEvent    EV_COMMANDS_50                   ("COMMANDS_50",                  "Keyboard EXPL+CTRL+SHIFT+F2");
+GameInputEvent    EV_COMMANDS_51                   ("COMMANDS_51",                  "Keyboard EXPL+CTRL+SHIFT+F3");
+GameInputEvent    EV_COMMANDS_52                   ("COMMANDS_52",                  "Keyboard EXPL+CTRL+SHIFT+F4");
+GameInputEvent    EV_COMMANDS_53                   ("COMMANDS_53",                  "Keyboard EXPL+CTRL+SHIFT+F5");
+GameInputEvent    EV_COMMANDS_54                   ("COMMANDS_54",                  "Keyboard EXPL+CTRL+SHIFT+F6");
+GameInputEvent    EV_COMMANDS_55                   ("COMMANDS_55",                  "Keyboard EXPL+CTRL+SHIFT+F7");
+GameInputEvent    EV_COMMANDS_56                   ("COMMANDS_56",                  "Keyboard EXPL+CTRL+SHIFT+F8");
+GameInputEvent    EV_COMMANDS_57                   ("COMMANDS_57",                  "Keyboard EXPL+CTRL+SHIFT+F9");
+GameInputEvent    EV_COMMANDS_58                   ("COMMANDS_58",                  "Keyboard EXPL+CTRL+SHIFT+F10");
+GameInputEvent    EV_COMMANDS_59                   ("COMMANDS_59",                  "Keyboard EXPL+CTRL+SHIFT+F11");
+GameInputEvent    EV_COMMANDS_60                   ("COMMANDS_60",                  "Keyboard EXPL+CTRL+SHIFT+F12");
+GameInputEvent    EV_COMMANDS_61                   ("COMMANDS_61",                  "Keyboard EXPL+CTRL+ALT+F1");
+GameInputEvent    EV_COMMANDS_62                   ("COMMANDS_62",                  "Keyboard EXPL+CTRL+ALT+F2");
+GameInputEvent    EV_COMMANDS_63                   ("COMMANDS_63",                  "Keyboard EXPL+CTRL+ALT+F3");
+GameInputEvent    EV_COMMANDS_64                   ("COMMANDS_64",                  "Keyboard EXPL+CTRL+ALT+F4");
+GameInputEvent    EV_COMMANDS_65                   ("COMMANDS_65",                  "Keyboard EXPL+CTRL+ALT+F5");
+GameInputEvent    EV_COMMANDS_66                   ("COMMANDS_66",                  "Keyboard EXPL+CTRL+ALT+F6");
+GameInputEvent    EV_COMMANDS_67                   ("COMMANDS_67",                  "Keyboard EXPL+CTRL+ALT+F7");
+GameInputEvent    EV_COMMANDS_68                   ("COMMANDS_68",                  "Keyboard EXPL+CTRL+ALT+F8");
+GameInputEvent    EV_COMMANDS_69                   ("COMMANDS_69",                  "Keyboard EXPL+CTRL+ALT+F9");
+GameInputEvent    EV_COMMANDS_70                   ("COMMANDS_70",                  "Keyboard EXPL+CTRL+ALT+F10");
+GameInputEvent    EV_COMMANDS_71                   ("COMMANDS_71",                  "Keyboard EXPL+CTRL+ALT+F11");
+GameInputEvent    EV_COMMANDS_72                   ("COMMANDS_72",                  "Keyboard EXPL+CTRL+ALT+F12");
+GameInputEvent    EV_COMMANDS_73                   ("COMMANDS_73",                  "Keyboard EXPL+CTRL+SHIFT+ALT+F1");
+GameInputEvent    EV_COMMANDS_74                   ("COMMANDS_74",                  "Keyboard EXPL+CTRL+SHIFT+ALT+F2");
+GameInputEvent    EV_COMMANDS_75                   ("COMMANDS_75",                  "Keyboard EXPL+CTRL+SHIFT+ALT+F3");
+GameInputEvent    EV_COMMANDS_76                   ("COMMANDS_76",                  "Keyboard EXPL+CTRL+SHIFT+ALT+F4");
+GameInputEvent    EV_COMMANDS_77                   ("COMMANDS_77",                  "Keyboard EXPL+CTRL+SHIFT+ALT+F5");
+GameInputEvent    EV_COMMANDS_78                   ("COMMANDS_78",                  "Keyboard EXPL+CTRL+SHIFT+ALT+F6");
+GameInputEvent    EV_COMMANDS_79                   ("COMMANDS_79",                  "Keyboard EXPL+CTRL+SHIFT+ALT+F7");
+GameInputEvent    EV_COMMANDS_80                   ("COMMANDS_80",                  "Keyboard EXPL+CTRL+SHIFT+ALT+F8");
+GameInputEvent    EV_COMMANDS_81                   ("COMMANDS_81",                  "Keyboard EXPL+CTRL+SHIFT+ALT+F9");
+GameInputEvent    EV_COMMANDS_82                   ("COMMANDS_82",                  "Keyboard EXPL+CTRL+SHIFT+ALT+F10");
+GameInputEvent    EV_COMMANDS_83                   ("COMMANDS_83",                  "Keyboard EXPL+CTRL+SHIFT+ALT+F11");
+GameInputEvent    EV_COMMANDS_84                   ("COMMANDS_84",                  "Keyboard EXPL+CTRL+SHIFT+ALT+F12");
+
+GameInputEvent    EV_COMMON_ACCELERATE_SIMULATION  ("COMMON_ACCELERATE_SIMULATION", "Keyboard CTRL+EQUALS");   //!< accelerate the simulation speed
+GameInputEvent    EV_COMMON_DECELERATE_SIMULATION  ("COMMON_DECELERATE_SIMULATION", "Keyboard SHIFT+EQUALS");  //!< decelerate the simulation speed
+GameInputEvent    EV_COMMON_RESET_SIMULATION_PACE  ("COMMON_RESET_SIMULATION_PACE", "Keyboard BACKSLASH");     //!< reset the simulation speed
+GameInputEvent    EV_COMMON_AUTOLOCK               ("COMMON_AUTOLOCK",              "Keyboard EXPL+ALT+L");    //!< unlock autolock hook node
+GameInputEvent    EV_COMMON_CONSOLE_TOGGLE         ("COMMON_CONSOLE_TOGGLE",        "Keyboard EXPL+GRAVE");    //!< show / hide the console
+GameInputEvent    EV_COMMON_ENTER_CHATMODE         ("COMMON_ENTER_CHATMODE",        "Keyboard Y");             //!< enter the chat mode
+GameInputEvent    EV_COMMON_ENTER_OR_EXIT_TRUCK    ("COMMON_ENTER_OR_EXIT_TRUCK",   "Keyboard RETURN");               //!< enter or exit a truck
+GameInputEvent    EV_COMMON_ENTER_NEXT_TRUCK       ("COMMON_ENTER_NEXT_TRUCK",      "Keyboard EXPL+CTRL+RBRACKET");   //!< enter next truck
+GameInputEvent    EV_COMMON_ENTER_PREVIOUS_TRUCK   ("COMMON_ENTER_PREVIOUS_TRUCK",  "Keyboard EXPL+CTRL+LBRACKET");   //!< enter previous truck
+GameInputEvent    EV_COMMON_REMOVE_CURRENT_TRUCK   ("COMMON_REMOVE_CURRENT_TRUCK",  "Keyboard EXPL+CTRL+DELETE");     //!< remove current truck
+GameInputEvent    EV_COMMON_RESPAWN_LAST_TRUCK     ("COMMON_RESPAWN_LAST_TRUCK",    "Keyboard EXPL+CTRL+PERIOD");     //!< respawn last truck
+GameInputEvent    EV_COMMON_FOV_LESS               ("COMMON_FOV_LESS",              "Keyboard EXPL+NUMPAD7");         //!<decreases the current FOV value
+GameInputEvent    EV_COMMON_FOV_MORE               ("COMMON_FOV_MORE",              "Keyboard EXPL+CTRL+NUMPAD7");    //!<increases the current FOV value
+GameInputEvent    EV_COMMON_FULLSCREEN_TOGGLE      ("COMMON_FULLSCREEN_TOGGLE",     "Keyboard EXPL+ALT+RETURN");
+GameInputEvent    EV_COMMON_HIDE_GUI               ("COMMON_HIDE_GUI",              "Keyboard EXPL+U");               //!< hide all GUI elements
+GameInputEvent    EV_COMMON_LOCK                   ("COMMON_LOCK",                  "Keyboard EXPL+L");               //!< connect hook node to a node in close proximity
+GameInputEvent    EV_COMMON_NETCHATDISPLAY         ("COMMON_NETCHATDISPLAY",        "Keyboard EXPL+SHIFT+U");
+GameInputEvent    EV_COMMON_NETCHATMODE            ("COMMON_NETCHATMODE",           "Keyboard EXPL+CTRL+U");
+GameInputEvent    EV_COMMON_OUTPUT_POSITION        ("COMMON_OUTPUT_POSITION",       "Keyboard H");                    //!< write current position to log (you can open the logfile and reuse the position)
+GameInputEvent    EV_COMMON_GET_NEW_VEHICLE        ("COMMON_GET_NEW_VEHICLE",       "Keyboard EXPL+CTRL+G");          //!< get new vehicle
+GameInputEvent    EV_COMMON_PRESSURE_LESS          ("COMMON_PRESSURE_LESS",         "Keyboard LBRACKET");             //!< decrease tire pressure (note: only very few trucks support this)
+GameInputEvent    EV_COMMON_PRESSURE_MORE          ("COMMON_PRESSURE_MORE",         "Keyboard RBRACKET");             //!< increase tire pressure (note: only very few trucks support this)
+GameInputEvent    EV_COMMON_QUIT_GAME              ("COMMON_QUIT_GAME",             "Keyboard EXPL+ESCAPE");          //!< exit the game
+GameInputEvent    EV_COMMON_REPAIR_TRUCK           ("COMMON_REPAIR_TRUCK",          "Keyboard BACK");                 //!< repair truck to original condition
+GameInputEvent    EV_COMMON_REPLAY_BACKWARD        ("COMMON_REPLAY_BACKWARD",       "Keyboard EXPL+LEFT");
+GameInputEvent    EV_COMMON_REPLAY_FAST_BACKWARD   ("COMMON_REPLAY_FAST_BACKWARD",  "Keyboard EXPL+SHIFT+LEFT");
+GameInputEvent    EV_COMMON_REPLAY_FAST_FORWARD    ("COMMON_REPLAY_FAST_FORWARD",   "Keyboard EXPL+SHIFT+RIGHT");
+GameInputEvent    EV_COMMON_REPLAY_FORWARD         ("COMMON_REPLAY_FORWARD",        "Keyboard EXPL+RIGHT");
+GameInputEvent    EV_COMMON_RESCUE_TRUCK           ("COMMON_RESCUE_TRUCK",          "Keyboard EXPL+R");               //!< teleport to rescue truck
+GameInputEvent    EV_COMMON_RESET_TRUCK            ("COMMON_RESET_TRUCK",           "Keyboard I");                    //!< reset truck to original starting position
+GameInputEvent    EV_COMMON_ROPELOCK               ("COMMON_ROPELOCK",              "Keyboard EXPL+CTRL+L");          //!< connect hook node to a node in close proximity
+GameInputEvent    EV_COMMON_SAVE_TERRAIN           ("COMMON_SAVE_TERRAIN",          "Keyboard EXPL+ALT+SHIF+CTRL+M"); //!< save terrain mesh to file (currently unused)
+GameInputEvent    EV_COMMON_SCREENSHOT             ("COMMON_SCREENSHOT",            "Keyboard EXPL+SYSRQ");           //!< take a screenshot
+GameInputEvent    EV_COMMON_SCREENSHOT_BIG         ("COMMON_SCREENSHOT_BIG",        "Keyboard EXPL+CTRL+SYSRQ");      //!< take a BIG screenshot
+GameInputEvent    EV_COMMON_SECURE_LOAD            ("COMMON_SECURE_LOAD",           "Keyboard O");                    //!< tie a load to the truck
+GameInputEvent    EV_COMMON_SEND_CHAT              ("COMMON_SEND_CHAT",             "Keyboard RETURN");               //!< send the chat text
+GameInputEvent    EV_COMMON_SHOW_SKELETON          ("COMMON_SHOW_SKELETON",         "Keyboard K");                    //!< toggle skeleton display mode
+GameInputEvent    EV_COMMON_TOGGLE_TERRAIN_EDITOR  ("COMMON_TOGGLE_TERRAIN_EDITOR",   "Keyboard EXPL+SHIFT+Y");       //!< toggle terrain editor
+GameInputEvent    EV_COMMON_TOGGLE_CUSTOM_PARTICLES("COMMON_TOGGLE_CUSTOM_PARTICLES", "Keyboard G");                  //!< toggle particle cannon
+GameInputEvent    EV_COMMON_TOGGLE_MAT_DEBUG       ("COMMON_TOGGLE_MAT_DEBUG",        "");                            //!< debug purpose - dont use
+GameInputEvent    EV_COMMON_TOGGLE_RENDER_MODE     ("COMMON_TOGGLE_RENDER_MODE",    "Keyboard E");                    //!< toggle render mode (solid wireframe and points)
+GameInputEvent    EV_COMMON_TOGGLE_REPLAY_MODE     ("COMMON_TOGGLE_REPLAY_MODE",    "Keyboard J");                    //!< deprecated key - without function
+GameInputEvent    EV_COMMON_TOGGLE_STATS           ("COMMON_TOGGLE_STATS",          "Keyboard EXPL+F");               //!< toggle Ogre statistics (FPS etc.)
+GameInputEvent    EV_COMMON_TOGGLE_TRUCK_BEACONS   ("COMMON_TOGGLE_TRUCK_BEACONS",  "Keyboard M");                    //!< toggle truck beacons
+GameInputEvent    EV_COMMON_TOGGLE_TRUCK_LIGHTS    ("COMMON_TOGGLE_TRUCK_LIGHTS",   "Keyboard N");                    //!< toggle truck front lights
+GameInputEvent    EV_COMMON_TRUCK_INFO             ("COMMON_TRUCK_INFO",            "Keyboard EXPL+T");               //!< toggle truck HUD
+GameInputEvent    EV_COMMON_TRUCK_DESCRIPTION      ("COMMON_TRUCK_DESCRIPTION",     "Keyboard EXPL+CTRL+T");          //!< toggle truck description
+GameInputEvent    EV_COMMON_TRUCK_REMOVE           ("COMMON_TRUCK_REMOVE",          "Keyboard EXPL+CTRL+SHIFT+DELETE");
+GameInputEvent    EV_COMMON_TELEPORT_TOGGLE        ("COMMON_TELEPORT_TOGGLE",       "Keyboard EXPL+F2");              //!< Enter/exit teleport mode (Only in character mode)
+
+GameInputEvent    EV_GRASS_LESS                    ("GRASS_LESS",                   ""); //!< EXPERIMENTAL: remove some grass
+GameInputEvent    EV_GRASS_MORE                    ("GRASS_MORE",                   ""); //!< EXPERIMENTAL: add some grass
+GameInputEvent    EV_GRASS_MOST                    ("GRASS_MOST",                   ""); //!< EXPERIMENTAL: set maximum amount of grass
+GameInputEvent    EV_GRASS_NONE                    ("GRASS_NONE",                   ""); //!< EXPERIMENTAL: remove grass completely
+GameInputEvent    EV_GRASS_SAVE                    ("GRASS_SAVE",                   ""); //!< EXPERIMENTAL: save changes to the grass density image
+
+GameInputEvent    EV_MENU_DOWN                     ("MENU_DOWN",                    "Keyboard DOWN");                 //!< select next element in current category
+GameInputEvent    EV_MENU_LEFT                     ("MENU_LEFT",                    "Keyboard LEFT");                 //!< select previous category
+GameInputEvent    EV_MENU_RIGHT                    ("MENU_RIGHT",                   "Keyboard RIGHT");                //!< select next category
+GameInputEvent    EV_MENU_SELECT                   ("MENU_SELECT",                  "Keyboard EXPL+RETURN");          //!< select focussed item and close menu
+GameInputEvent    EV_MENU_UP                       ("MENU_UP",                      "Keyboard UP");                   //select previous element in current category
+
+GameInputEvent    EV_SURVEY_MAP_ALPHA              ("SURVEY_MAP_ALPHA",             "Keyboard EXPL+CTRL+SHIFT+TAB");  //!< toggle translucency of overview-map
+GameInputEvent    EV_SURVEY_MAP_TOGGLE_ICONS       ("SURVEY_MAP_TOGGLE_ICONS",      "Keyboard EXPL+CTRL+SHIFT+ALT+TAB"); //!< toggle map icons
+GameInputEvent    EV_SURVEY_MAP_TOGGLE_VIEW        ("SURVEY_MAP_TOGGLE_VIEW",       "Keyboard EXPL+TAB");             //!< toggle map modes
+GameInputEvent    EV_SURVEY_MAP_ZOOM_IN            ("SURVEY_MAP_ZOOM_IN",           "Keyboard EXPL+CTRL+TAB");        //!< increase survey map scale
+GameInputEvent    EV_SURVEY_MAP_ZOOM_OUT           ("SURVEY_MAP_ZOOM_OUT",          "Keyboard EXPL+SHIFT+TAB");       //!< decrease survey map scale
+
+GameInputEvent    EV_TRUCK_ACCELERATE              ("TRUCK_ACCELERATE",             "Keyboard UP");                   //!< accelerate the truck
+GameInputEvent    EV_TRUCK_ACCELERATE_MODIFIER_25  ("TRUCK_ACCELERATE_MODIFIER_25", "Keyboard ALT+UP");               //!< accelerate with 25 percent pedal input
+GameInputEvent    EV_TRUCK_ACCELERATE_MODIFIER_50  ("TRUCK_ACCELERATE_MODIFIER_50", "Keyboard CTRL+UP");              //!< accelerate with 50 percent pedal input
+GameInputEvent    EV_TRUCK_ANTILOCK_BRAKE          ("TRUCK_ANTILOCK_BRAKE",         "Keyboard EXPL+SHIFT+B");         //!< toggle antilockbrake system
+GameInputEvent    EV_TRUCK_AUTOSHIFT_DOWN          ("TRUCK_AUTOSHIFT_DOWN",         "Keyboard PGDOWN");               //!< shift automatic transmission one gear down
+GameInputEvent    EV_TRUCK_AUTOSHIFT_UP            ("TRUCK_AUTOSHIFT_UP",           "Keyboard PGUP");                 //!< shift automatic transmission one gear up
+GameInputEvent    EV_TRUCK_BLINK_LEFT              ("TRUCK_BLINK_LEFT",             "Keyboard COMMA");                //!< toggle left direction indicator (blinker)
+GameInputEvent    EV_TRUCK_BLINK_RIGHT             ("TRUCK_BLINK_RIGHT",            "Keyboard PERIOD");               //!< toggle right direction indicator (blinker)
+GameInputEvent    EV_TRUCK_BLINK_WARN              ("TRUCK_BLINK_WARN",             "Keyboard MINUS");                //!< toggle all direction indicators
+GameInputEvent    EV_TRUCK_BRAKE                   ("TRUCK_BRAKE",                  "Keyboard DOWN");                 //!< brake
+GameInputEvent    EV_TRUCK_BRAKE_MODIFIER_25       ("TRUCK_BRAKE_MODIFIER_25",      "Keyboard ALT+DOWN");             //!< brake with 25 percent pedal input
+GameInputEvent    EV_TRUCK_BRAKE_MODIFIER_50       ("TRUCK_BRAKE_MODIFIER_50",      "Keyboard CTRL+DOWN");            //!< brake with 50 percent pedal input
+GameInputEvent    EV_TRUCK_CRUISE_CONTROL          ("TRUCK_CRUISE_CONTROL",         "Keyboard EXPL+SPACE");           //!< toggle cruise control
+GameInputEvent    EV_TRUCK_CRUISE_CONTROL_ACCL     ("TRUCK_CRUISE_CONTROL_ACCL",    "Keyboard EXPL+CTRL+R");          //!< increase target speed / rpm
+GameInputEvent    EV_TRUCK_CRUISE_CONTROL_DECL     ("TRUCK_CRUISE_CONTROL_DECL",    "Keyboard EXPL+CTRL+F");          //!< decrease target speed / rpm
+GameInputEvent    EV_TRUCK_CRUISE_CONTROL_READJUST ("TRUCK_CRUISE_CONTROL_READJUST","Keyboard EXPL+CTRL+SPACE");      //!< match target speed / rpm with current truck speed / rpm
+GameInputEvent    EV_TRUCK_HORN                    ("TRUCK_HORN",                   "Keyboard H");                    //!< truck horn
+GameInputEvent    EV_TRUCK_LEFT_MIRROR_LEFT        ("TRUCK_LEFT_MIRROR_LEFT",       "Keyboard EXPL+SEMICOLON");
+GameInputEvent    EV_TRUCK_LEFT_MIRROR_RIGHT       ("TRUCK_LEFT_MIRROR_RIGHT",      "Keyboard EXPL+CTRL+SEMICOLON");
+GameInputEvent    EV_TRUCK_LIGHTTOGGLE01           ("TRUCK_LIGHTTOGGLE01",          "Keyboard EXPL+CTRL+1");          //!< toggle custom light 1
+GameInputEvent    EV_TRUCK_LIGHTTOGGLE02           ("TRUCK_LIGHTTOGGLE02",          "Keyboard EXPL+CTRL+2");          //!< toggle custom light 2
+GameInputEvent    EV_TRUCK_LIGHTTOGGLE03           ("TRUCK_LIGHTTOGGLE03",          "Keyboard EXPL+CTRL+3");          //!< toggle custom light 3
+GameInputEvent    EV_TRUCK_LIGHTTOGGLE04           ("TRUCK_LIGHTTOGGLE04",          "Keyboard EXPL+CTRL+4");          //!< toggle custom light 4
+GameInputEvent    EV_TRUCK_LIGHTTOGGLE05           ("TRUCK_LIGHTTOGGLE05",          "Keyboard EXPL+CTRL+5");          //!< toggle custom light 5
+GameInputEvent    EV_TRUCK_LIGHTTOGGLE06           ("TRUCK_LIGHTTOGGLE06",          "Keyboard EXPL+CTRL+6");          //!< toggle custom light 6
+GameInputEvent    EV_TRUCK_LIGHTTOGGLE07           ("TRUCK_LIGHTTOGGLE07",          "Keyboard EXPL+CTRL+7");          //!< toggle custom light 7
+GameInputEvent    EV_TRUCK_LIGHTTOGGLE08           ("TRUCK_LIGHTTOGGLE08",          "Keyboard EXPL+CTRL+8");          //!< toggle custom light 8
+GameInputEvent    EV_TRUCK_LIGHTTOGGLE09           ("TRUCK_LIGHTTOGGLE09",          "Keyboard EXPL+CTRL+9");          //!< toggle custom light 9
+GameInputEvent    EV_TRUCK_LIGHTTOGGLE10           ("TRUCK_LIGHTTOGGLE10",          "Keyboard EXPL+CTRL+0");          //!< toggle custom light 10
+GameInputEvent    EV_TRUCK_MANUAL_CLUTCH           ("TRUCK_MANUAL_CLUTCH",          "Keyboard LSHIFT");               //!< manual clutch (for manual transmission)
+GameInputEvent    EV_TRUCK_PARKING_BRAKE           ("TRUCK_PARKING_BRAKE",          "Keyboard P");                    //!< toggle parking brake
+GameInputEvent    EV_TRUCK_RIGHT_MIRROR_LEFT       ("TRUCK_RIGHT_MIRROR_LEFT",      "Keyboard EXPL+COLON");                          
+GameInputEvent    EV_TRUCK_RIGHT_MIRROR_RIGHT      ("TRUCK_RIGHT_MIRROR_RIGHT",     "Keyboard EXPL+CTRL+COLON");                            
+GameInputEvent    EV_TRUCK_SHIFT_DOWN              ("TRUCK_SHIFT_DOWN",             "Keyboard Z");                    //!< shift one gear down in manual transmission mode
+GameInputEvent    EV_TRUCK_SHIFT_GEAR01            ("TRUCK_SHIFT_GEAR01",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR02            ("TRUCK_SHIFT_GEAR02",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR03            ("TRUCK_SHIFT_GEAR03",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR04            ("TRUCK_SHIFT_GEAR04",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR05            ("TRUCK_SHIFT_GEAR05",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR06            ("TRUCK_SHIFT_GEAR06",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR07            ("TRUCK_SHIFT_GEAR07",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR08            ("TRUCK_SHIFT_GEAR08",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR09            ("TRUCK_SHIFT_GEAR09",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR10            ("TRUCK_SHIFT_GEAR10",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR11            ("TRUCK_SHIFT_GEAR11",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR12            ("TRUCK_SHIFT_GEAR12",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR13            ("TRUCK_SHIFT_GEAR13",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR14            ("TRUCK_SHIFT_GEAR14",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR15            ("TRUCK_SHIFT_GEAR15",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR16            ("TRUCK_SHIFT_GEAR16",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR17            ("TRUCK_SHIFT_GEAR17",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR18            ("TRUCK_SHIFT_GEAR18",           "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_GEAR_REVERSE      ("TRUCK_SHIFT_GEAR_REVERSE",     "");                              //!< shift directly into this gear
+GameInputEvent    EV_TRUCK_SHIFT_HIGHRANGE         ("TRUCK_SHIFT_HIGHRANGE",        "");                              //!< select high range (13-18) for H-shaft
+GameInputEvent    EV_TRUCK_SHIFT_LOWRANGE          ("TRUCK_SHIFT_LOWRANGE",         "");                              //!< select low range (1-6) for H-shaft
+GameInputEvent    EV_TRUCK_SHIFT_MIDRANGE          ("TRUCK_SHIFT_MIDRANGE",         "");                              //!< select middle range (7-12) for H-shaft
+GameInputEvent    EV_TRUCK_SHIFT_NEUTRAL           ("TRUCK_SHIFT_NEUTRAL",          "Keyboard D");                    //!< shift to neutral gear in manual transmission mode
+GameInputEvent    EV_TRUCK_SHIFT_UP                ("TRUCK_SHIFT_UP",               "Keyboard A");                    //!< shift one gear up in manual transmission mode
+GameInputEvent    EV_TRUCK_STARTER                 ("TRUCK_STARTER",                "Keyboard S");                    //!< hold to start the engine
+GameInputEvent    EV_TRUCK_STEER_LEFT              ("TRUCK_STEER_LEFT",             "Keyboard LEFT");                 //!< steer left
+GameInputEvent    EV_TRUCK_STEER_RIGHT             ("TRUCK_STEER_RIGHT",            "Keyboard RIGHT");                //!< steer right
+GameInputEvent    EV_TRUCK_SWITCH_SHIFT_MODES      ("TRUCK_SWITCH_SHIFT_MODES",     "Keyboard Q");                    //!< toggle between transmission modes
+GameInputEvent    EV_TRUCK_TOGGLE_AXLE_LOCK        ("TRUCK_TOGGLE_AXLE_LOCK",       "Keyboard W");                        
+GameInputEvent    EV_TRUCK_TOGGLE_CONTACT          ("TRUCK_TOGGLE_CONTACT",         "Keyboard X");                    //!< toggle engine ignition
+GameInputEvent    EV_TRUCK_TOGGLE_FORWARDCOMMANDS  ("TRUCK_TOGGLE_FORWARDCOMMANDS", "Keyboard EXPL+CTRL+SHIFT+F");    //!< toggle forwardcommands
+GameInputEvent    EV_TRUCK_TOGGLE_IMPORTCOMMANDS   ("TRUCK_TOGGLE_IMPORTCOMMANDS",  "Keyboard EXPL+CTRL+SHIFT+I");    //!< toggle importcommands
+GameInputEvent    EV_TRUCK_TOGGLE_VIDEOCAMERA      ("TRUCK_TOGGLE_VIDEOCAMERA",     "Keyboard EXPL+CTRL+V");          //!< toggle videocamera update
+GameInputEvent    EV_TRUCK_TRACTION_CONTROL        ("TRUCK_TRACTION_CONTROL",       "Keyboard EXPL+SHIFT+T");         //!< toggle antilockbrake system
+
+GameInputEvent    EV_TRUCK_SAVE_POS01              ("TRUCK_SAVE_POS01",             "Keyboard EXPL+ALT+CTRL+1");
+GameInputEvent    EV_TRUCK_SAVE_POS02              ("TRUCK_SAVE_POS02",             "Keyboard EXPL+ALT+CTRL+2");
+GameInputEvent    EV_TRUCK_SAVE_POS03              ("TRUCK_SAVE_POS03",             "Keyboard EXPL+ALT+CTRL+3");
+GameInputEvent    EV_TRUCK_SAVE_POS04              ("TRUCK_SAVE_POS04",             "Keyboard EXPL+ALT+CTRL+4");
+GameInputEvent    EV_TRUCK_SAVE_POS05              ("TRUCK_SAVE_POS05",             "Keyboard EXPL+ALT+CTRL+5");
+GameInputEvent    EV_TRUCK_SAVE_POS06              ("TRUCK_SAVE_POS06",             "Keyboard EXPL+ALT+CTRL+6");
+GameInputEvent    EV_TRUCK_SAVE_POS07              ("TRUCK_SAVE_POS07",             "Keyboard EXPL+ALT+CTRL+7");
+GameInputEvent    EV_TRUCK_SAVE_POS08              ("TRUCK_SAVE_POS08",             "Keyboard EXPL+ALT+CTRL+8");
+GameInputEvent    EV_TRUCK_SAVE_POS09              ("TRUCK_SAVE_POS09",             "Keyboard EXPL+ALT+CTRL+9");
+GameInputEvent    EV_TRUCK_SAVE_POS10              ("TRUCK_SAVE_POS10",             "Keyboard EXPL+ALT+CTRL+0");
+
+GameInputEvent    EV_TRUCK_LOAD_POS01              ("TRUCK_LOAD_POS01",             "Keyboard EXPL+ALT+1");
+GameInputEvent    EV_TRUCK_LOAD_POS02              ("TRUCK_LOAD_POS02",             "Keyboard EXPL+ALT+2");
+GameInputEvent    EV_TRUCK_LOAD_POS03              ("TRUCK_LOAD_POS03",             "Keyboard EXPL+ALT+3");
+GameInputEvent    EV_TRUCK_LOAD_POS04              ("TRUCK_LOAD_POS04",             "Keyboard EXPL+ALT+4");
+GameInputEvent    EV_TRUCK_LOAD_POS05              ("TRUCK_LOAD_POS05",             "Keyboard EXPL+ALT+5");
+GameInputEvent    EV_TRUCK_LOAD_POS06              ("TRUCK_LOAD_POS06",             "Keyboard EXPL+ALT+6");
+GameInputEvent    EV_TRUCK_LOAD_POS07              ("TRUCK_LOAD_POS07",             "Keyboard EXPL+ALT+7");
+GameInputEvent    EV_TRUCK_LOAD_POS08              ("TRUCK_LOAD_POS08",             "Keyboard EXPL+ALT+8");
+GameInputEvent    EV_TRUCK_LOAD_POS09              ("TRUCK_LOAD_POS09",             "Keyboard EXPL+ALT+9");
+GameInputEvent    EV_TRUCK_LOAD_POS10              ("TRUCK_LOAD_POS10",             "Keyboard EXPL+ALT+0");
+
+GameInputEvent    EV_DOF_TOGGLE                    ("DOF_TOGGLE",                   "Keyboard EXPL+CTRL+D");          ///< turn on Depth of Field on or off
+GameInputEvent    EV_DOF_DEBUG                     ("DOF_DEBUG",                    "Keyboard EXPL+ALT+D");           ///< turn on the Depth of field debug view
+GameInputEvent    EV_DOF_DEBUG_TOGGLE_FOCUS_MODE   ("DOF_DEBUG_TOGGLE_FOCUS_MODE",  "Keyboard EXPL+SPACE");           ///< toggle the DOF focus mode
+GameInputEvent    EV_DOF_DEBUG_ZOOM_IN             ("DOF_DEBUG_ZOOM_IN",            "Keyboard EXPL+Q");
+GameInputEvent    EV_DOF_DEBUG_ZOOM_OUT            ("DOF_DEBUG_ZOOM_OUT",           "Keyboard EXPL+Z");
+GameInputEvent    EV_DOF_DEBUG_APERTURE_MORE       ("DOF_DEBUG_APERTURE_MORE",      "Keyboard EXPL+1");
+GameInputEvent    EV_DOF_DEBUG_APERTURE_LESS       ("DOF_DEBUG_APERTURE_LESS",      "Keyboard EXPL+2");
+GameInputEvent    EV_DOF_DEBUG_FOCUS_IN            ("DOF_DEBUG_FOCUS_IN",           "Keyboard EXPL+3");               ///< move focus in
+GameInputEvent    EV_DOF_DEBUG_FOCUS_OUT           ("DOF_DEBUG_FOCUS_OUT",          "Keyboard EXPL+4");               ///< move focus out
+
+GameInputEvent    EV_TRUCKEDIT_RELOAD              ("TRUCKEDIT_RELOAD",             "Keyboard EXPL+SHIFT+CTRL+R");    ///< reload truck
+GameInputEvent    EV_TOGGLESHADERS                 ("TOGGLESHADERS",                "Keyboard EXPL+SHIFT+CTRL+S");    ///< toggle shader usage
+
+} // namespace RoR
+
+//                                                             @@@@@@@@@
+// ############################################################## OLD #############################################################
+//                                                             @@@@@@@@@
+
+
+
 // some gcc fixes
 #if OGRE_PLATFORM == OGRE_PLATFORM_LINUX
 #pragma GCC diagnostic ignored "-Wfloat-equal"
@@ -46,1751 +384,8 @@
 
 const char* mOISDeviceType[6] = {"Unknown Device", "Keyboard", "Mouse", "JoyStick", "Tablet", "Other Device"};
 
-// LOOOONG list of possible events. see the struct type for the structure ;)
-eventInfo_t eventInfo[] = {
-    {
-        "AIRPLANE_STEER_RIGHT",
-        EV_AIRPLANE_STEER_RIGHT,
-        "Keyboard RIGHT",
-        _L("steer right")
-    },
-    {
-        "AIRPLANE_BRAKE",
-        EV_AIRPLANE_BRAKE,
-        "Keyboard B",
-        _L("normal brake for an aircraft")
-    },
-    {
-        "AIRPLANE_ELEVATOR_DOWN",
-        EV_AIRPLANE_ELEVATOR_DOWN,
-        "Keyboard DOWN",
-        _L("pull the elevator down in an aircraft.")
-    },
-    {
-        "AIRPLANE_ELEVATOR_UP",
-        EV_AIRPLANE_ELEVATOR_UP,
-        "Keyboard UP",
-        _L("pull the elevator up in an aircraft.")
-    },
-    {
-        "AIRPLANE_FLAPS_FULL",
-        EV_AIRPLANE_FLAPS_FULL,
-        "Keyboard CTRL+2",
-        _L("full flaps in an aircraft.")
-    },
-    {
-        "AIRPLANE_FLAPS_LESS",
-        EV_AIRPLANE_FLAPS_LESS,
-        "Keyboard EXPL+1",
-        _L("one step less flaps.")
-    },
-    {
-        "AIRPLANE_FLAPS_MORE",
-        EV_AIRPLANE_FLAPS_MORE,
-        "Keyboard EXPL+2",
-        _L("one step more flaps.")
-    },
-    {
-        "AIRPLANE_FLAPS_NONE",
-        EV_AIRPLANE_FLAPS_NONE,
-        "Keyboard CTRL+1",
-        _L("no flaps.")
-    },
-    {
-        "AIRPLANE_PARKING_BRAKE",
-        EV_AIRPLANE_PARKING_BRAKE,
-        "Keyboard P",
-        _L("airplane parking brake.")
 
-    },
-    {
-        "AIRPLANE_REVERSE",
-        EV_AIRPLANE_REVERSE,
-        "Keyboard R",
-        _L("reverse the turboprops")
-    },
-    {
-        "AIRPLANE_RUDDER_LEFT",
-        EV_AIRPLANE_RUDDER_LEFT,
-        "Keyboard Z",
-        _L("rudder left")
-    },
-    {
-        "AIRPLANE_RUDDER_RIGHT",
-        EV_AIRPLANE_RUDDER_RIGHT,
-        "Keyboard X",
-        _L("rudder right")
-    },
-    {
-        "AIRPLANE_STEER_LEFT",
-        EV_AIRPLANE_STEER_LEFT,
-        "Keyboard LEFT",
-        _L("steer left")
-    },
-    {
-        "AIRPLANE_STEER_RIGHT",
-        EV_AIRPLANE_STEER_RIGHT,
-        "Keyboard RIGHT",
-        _L("steer right")
-    },
-    {
-        "AIRPLANE_THROTTLE_AXIS",
-        EV_AIRPLANE_THROTTLE_AXIS,
-        "None",
-        _L("throttle axis. Only use this if you have fitting hardware :) (i.e. a Slider)")
-    },
-    {
-        "AIRPLANE_THROTTLE_DOWN",
-        EV_AIRPLANE_THROTTLE_DOWN,
-        "Keyboard EXPL+PGDOWN",
-        _L("decreases the airplane thrust")
-    },
-    {
-        "AIRPLANE_THROTTLE_FULL",
-        EV_AIRPLANE_THROTTLE_FULL,
-        "Keyboard CTRL+PGUP",
-        _L("full thrust")
-    },
-    {
-        "AIRPLANE_THROTTLE_NO",
-        EV_AIRPLANE_THROTTLE_NO,
-        "Keyboard CTRL+PGDOWN",
-        _L("no thrust")
-    },
-    {
-        "AIRPLANE_THROTTLE_UP",
-        EV_AIRPLANE_THROTTLE_UP,
-        "Keyboard EXPL+PGUP",
-        _L("increase the airplane thrust")
-    },
-    {
-        "AIRPLANE_TOGGLE_ENGINES",
-        EV_AIRPLANE_TOGGLE_ENGINES,
-        "Keyboard CTRL+HOME",
-        _L("switch all engines on / off")
-    },
-    {
-        "BOAT_CENTER_RUDDER",
-        EV_BOAT_CENTER_RUDDER,
-        "Keyboard PGDOWN",
-        _L("center the rudder")
-    },
-    {
-        "BOAT_REVERSE",
-        EV_BOAT_REVERSE,
-        "Keyboard PGUP",
-        _L("no thrust")
-    },
-    {
-        "BOAT_STEER_LEFT",
-        EV_BOAT_STEER_LEFT,
-        "Keyboard LEFT",
-        _L("steer left a step")
-    },
-    {
-        "BOAT_STEER_LEFT_AXIS",
-        EV_BOAT_STEER_LEFT_AXIS,
-        "None",
-        _L("steer left (analog value!)")
-    },
-    {
-        "BOAT_STEER_RIGHT",
-        EV_BOAT_STEER_RIGHT,
-        "Keyboard RIGHT",
-        _L("steer right a step")
-    },
-    {
-        "BOAT_STEER_RIGHT_AXIS",
-        EV_BOAT_STEER_RIGHT_AXIS,
-        "None",
-        _L("steer right (analog value!)")
-    },
-    {
-        "BOAT_THROTTLE_AXIS",
-        EV_BOAT_THROTTLE_AXIS,
-        "None",
-        _L("throttle axis. Only use this if you have fitting hardware :) (i.e. a Slider)")
-    },
-    {
-        "BOAT_THROTTLE_DOWN",
-        EV_BOAT_THROTTLE_DOWN,
-        "Keyboard DOWN",
-        _L("decrease throttle")
-    },
-    {
-        "BOAT_THROTTLE_UP",
-        EV_BOAT_THROTTLE_UP,
-        "Keyboard UP",
-        _L("increase throttle")
-    },
-    {
-        "SKY_DECREASE_TIME",
-        EV_SKY_DECREASE_TIME,
-        "Keyboard EXPL+SUBTRACT",
-        _L("decrease day-time")
-    },
-    {
-        "SKY_DECREASE_TIME_FAST",
-        EV_SKY_DECREASE_TIME_FAST,
-        "Keyboard SHIFT+SUBTRACT",
-        _L("decrease day-time a lot faster")
-    },
-    {
-        "SKY_INCREASE_TIME",
-        EV_SKY_INCREASE_TIME,
-        "Keyboard EXPL+ADD",
-        _L("increase day-time")
-    },
-    {
-        "SKY_INCREASE_TIME_FAST",
-        EV_SKY_INCREASE_TIME_FAST,
-        "Keyboard SHIFT+ADD",
-        _L("increase day-time a lot faster")
-    },
-    {
-        "CAMERA_CHANGE",
-        EV_CAMERA_CHANGE,
-        "Keyboard EXPL+C",
-        _L("change camera mode")
-    },
-    {
-        "CAMERA_LOOKBACK",
-        EV_CAMERA_LOOKBACK,
-        "Keyboard NUMPAD1",
-        _L("look back (toggles between normal and lookback)")
-    },
-    {
-        "CAMERA_RESET",
-        EV_CAMERA_RESET,
-        "Keyboard NUMPAD5",
-        _L("reset the camera position")
-    },
-    {
-        "CAMERA_ROTATE_DOWN",
-        EV_CAMERA_ROTATE_DOWN,
-        "Keyboard NUMPAD2",
-        _L("rotate camera down")
-    },
-    {
-        "CAMERA_ROTATE_LEFT",
-        EV_CAMERA_ROTATE_LEFT,
-        "Keyboard NUMPAD4",
-        _L("rotate camera left")
-    },
-    {
-        "CAMERA_ROTATE_RIGHT",
-        EV_CAMERA_ROTATE_RIGHT,
-        "Keyboard NUMPAD6",
-        _L("rotate camera right")
-    },
-    {
-        "CAMERA_ROTATE_UP",
-        EV_CAMERA_ROTATE_UP,
-        "Keyboard NUMPAD8",
-        _L("rotate camera up")
-    },
-    {
-        "CAMERA_SWIVEL_DOWN",
-        EV_CAMERA_SWIVEL_DOWN,
-        "Keyboard CTRL+NUMPAD2",
-        _L("swivel camera down")
-    },
-    {
-        "CAMERA_SWIVEL_LEFT",
-        EV_CAMERA_SWIVEL_LEFT,
-        "Keyboard CTRL+NUMPAD4",
-        _L("swivel camera left")
-    },
-    {
-        "CAMERA_SWIVEL_RIGHT",
-        EV_CAMERA_SWIVEL_RIGHT,
-        "Keyboard CTRL+NUMPAD6",
-        _L("swivel camera right")
-    },
-    {
-        "CAMERA_SWIVEL_UP",
-        EV_CAMERA_SWIVEL_UP,
-        "Keyboard CTRL+NUMPAD8",
-        _L("swivel camera up")
-    },
-    {
-        "CAMERA_ZOOM_IN",
-        EV_CAMERA_ZOOM_IN,
-        "Keyboard EXPL+NUMPAD9",
-        _L("zoom camera in")
-    },
-    {
-        "CAMERA_ZOOM_IN_FAST",
-        EV_CAMERA_ZOOM_IN_FAST,
-        "Keyboard SHIFT+NUMPAD9",
-        _L("zoom camera in faster")
-    },
-    {
-        "CAMERA_ZOOM_OUT",
-        EV_CAMERA_ZOOM_OUT,
-        "Keyboard EXPL+NUMPAD3",
-        _L("zoom camera out")
-    },
-    {
-        "CAMERA_ZOOM_OUT_FAST",
-        EV_CAMERA_ZOOM_OUT_FAST,
-        "Keyboard SHIFT+NUMPAD3",
-        _L("zoom camera out faster")
-    },
-    {
-        "CHARACTER_BACKWARDS",
-        EV_CHARACTER_BACKWARDS,
-        "Keyboard S",
-        _L("step backwards with the character")
-    },
-    {
-        "CHARACTER_FORWARD",
-        EV_CHARACTER_FORWARD,
-        "Keyboard W",
-        _L("step forward with the character")
-    },
-    {
-        "CHARACTER_JUMP",
-        EV_CHARACTER_JUMP,
-        "Keyboard SPACE",
-        _L("let the character jump")
-    },
-    {
-        "CHARACTER_LEFT",
-        EV_CHARACTER_LEFT,
-        "Keyboard LEFT",
-        _L("rotate character left")
-    },
-    {
-        "CHARACTER_RIGHT",
-        EV_CHARACTER_RIGHT,
-        "Keyboard RIGHT",
-        _L("rotate character right")
-    },
-    {
-        "CHARACTER_RUN",
-        EV_CHARACTER_RUN,
-        "Keyboard SHIFT+W",
-        _L("let the character run")
-    },
-    {
-        "CHARACTER_SIDESTEP_LEFT",
-        EV_CHARACTER_SIDESTEP_LEFT,
-        "Keyboard A",
-        _L("sidestep to the left")
-    },
-    {
-        "CHARACTER_SIDESTEP_RIGHT",
-        EV_CHARACTER_SIDESTEP_RIGHT,
-        "Keyboard D",
-        _L("sidestep to the right")
-    },
-    {
-        "COMMANDS_01",
-        EV_COMMANDS_01,
-        "Keyboard EXPL+F1",
-        _L("Command 1")
-    },
-    {
-        "COMMANDS_02",
-        EV_COMMANDS_02,
-        "Keyboard EXPL+F2",
-        _L("Command 2")
-    },
-    {
-        "COMMANDS_03",
-        EV_COMMANDS_03,
-        "Keyboard EXPL+F3",
-        _L("Command 3")
-    },
-    {
-        "COMMANDS_04",
-        EV_COMMANDS_04,
-        "Keyboard EXPL+F4",
-        _L("Command 4")
-    },
-    {
-        "COMMANDS_05",
-        EV_COMMANDS_05,
-        "Keyboard EXPL+F5",
-        _L("Command 5")
-    },
-    {
-        "COMMANDS_06",
-        EV_COMMANDS_06,
-        "Keyboard EXPL+F6",
-        _L("Command 6")
-    },
-    {
-        "COMMANDS_07",
-        EV_COMMANDS_07,
-        "Keyboard EXPL+F7",
-        _L("Command 7")
-    },
-    {
-        "COMMANDS_08",
-        EV_COMMANDS_08,
-        "Keyboard EXPL+F8",
-        _L("Command 8")
-    },
-    {
-        "COMMANDS_09",
-        EV_COMMANDS_09,
-        "Keyboard EXPL+F9",
-        _L("Command 9")
-    },
-    {
-        "COMMANDS_10",
-        EV_COMMANDS_10,
-        "Keyboard EXPL+F10",
-        _L("Command 10")
-    },
-    {
-        "COMMANDS_11",
-        EV_COMMANDS_11,
-        "Keyboard EXPL+F11",
-        _L("Command 11")
-    },
-    {
-        "COMMANDS_12",
-        EV_COMMANDS_12,
-        "Keyboard EXPL+F12",
-        _L("Command 12")
-    },
-    {
-        "COMMANDS_13",
-        EV_COMMANDS_13,
-        "Keyboard EXPL+CTRL+F1",
-        _L("Command 13")
-    },
-    {
-        "COMMANDS_14",
-        EV_COMMANDS_14,
-        "Keyboard EXPL+CTRL+F2",
-        _L("Command 14")
-    },
-    {
-        "COMMANDS_15",
-        EV_COMMANDS_15,
-        "Keyboard EXPL+CTRL+F3",
-        _L("Command 15")
-    },
-    {
-        "COMMANDS_16",
-        EV_COMMANDS_16,
-        "Keyboard EXPL+CTRL+F4",
-        _L("Command 16")
-    },
-    {
-        "COMMANDS_17",
-        EV_COMMANDS_17,
-        "Keyboard EXPL+CTRL+F5",
-        _L("Command 17")
-    },
-    {
-        "COMMANDS_18",
-        EV_COMMANDS_18,
-        "Keyboard EXPL+CTRL+F6",
-        _L("Command 18")
-    },
-    {
-        "COMMANDS_19",
-        EV_COMMANDS_19,
-        "Keyboard EXPL+CTRL+F7",
-        _L("Command 19")
-    },
-    {
-        "COMMANDS_20",
-        EV_COMMANDS_20,
-        "Keyboard EXPL+CTRL+F8",
-        _L("Command 20")
-    },
-    {
-        "COMMANDS_21",
-        EV_COMMANDS_21,
-        "Keyboard EXPL+CTRL+F9",
-        _L("Command 21")
-    },
-    {
-        "COMMANDS_22",
-        EV_COMMANDS_22,
-        "Keyboard EXPL+CTRL+F10",
-        _L("Command 22")
-    },
-    {
-        "COMMANDS_23",
-        EV_COMMANDS_23,
-        "Keyboard EXPL+CTRL+F11",
-        _L("Command 23")
-    },
-    {
-        "COMMANDS_24",
-        EV_COMMANDS_24,
-        "Keyboard EXPL+CTRL+F12",
-        _L("Command 24")
-    },
-    {
-        "COMMANDS_25",
-        EV_COMMANDS_25,
-        "Keyboard EXPL+SHIFT+F1",
-        _L("Command 25")
-    },
-    {
-        "COMMANDS_26",
-        EV_COMMANDS_26,
-        "Keyboard EXPL+SHIFT+F2",
-        _L("Command 26")
-    },
-    {
-        "COMMANDS_27",
-        EV_COMMANDS_27,
-        "Keyboard EXPL+SHIFT+F3",
-        _L("Command 27")
-    },
-    {
-        "COMMANDS_28",
-        EV_COMMANDS_28,
-        "Keyboard EXPL+SHIFT+F4",
-        _L("Command 28")
-    },
-    {
-        "COMMANDS_29",
-        EV_COMMANDS_29,
-        "Keyboard EXPL+SHIFT+F5",
-        _L("Command 29")
-    },
-    {
-        "COMMANDS_30",
-        EV_COMMANDS_30,
-        "Keyboard EXPL+SHIFT+F6",
-        _L("Command 30")
-    },
-    {
-        "COMMANDS_31",
-        EV_COMMANDS_31,
-        "Keyboard EXPL+SHIFT+F7",
-        _L("Command 31")
-    },
-    {
-        "COMMANDS_32",
-        EV_COMMANDS_32,
-        "Keyboard EXPL+SHIFT+F8",
-        _L("Command 32")
-    },
-    {
-        "COMMANDS_33",
-        EV_COMMANDS_33,
-        "Keyboard EXPL+SHIFT+F9",
-        _L("Command 33")
-    },
-    {
-        "COMMANDS_34",
-        EV_COMMANDS_34,
-        "Keyboard EXPL+SHIFT+F10",
-        _L("Command 34")
-    },
-    {
-        "COMMANDS_35",
-        EV_COMMANDS_35,
-        "Keyboard EXPL+SHIFT+F11",
-        _L("Command 35")
-    },
-    {
-        "COMMANDS_36",
-        EV_COMMANDS_36,
-        "Keyboard EXPL+SHIFT+F12",
-        _L("Command 36")
-    },
-    {
-        "COMMANDS_37",
-        EV_COMMANDS_37,
-        "Keyboard EXPL+ALT+F1",
-        _L("Command 37")
-    },
-    {
-        "COMMANDS_38",
-        EV_COMMANDS_38,
-        "Keyboard EXPL+ALT+F2",
-        _L("Command 38")
-    },
-    {
-        "COMMANDS_39",
-        EV_COMMANDS_39,
-        "Keyboard EXPL+ALT+F3",
-        _L("Command 39")
-    },
-    {
-        "COMMANDS_40",
-        EV_COMMANDS_40,
-        "Keyboard EXPL+ALT+F4",
-        _L("Command 40")
-    },
-    {
-        "COMMANDS_41",
-        EV_COMMANDS_41,
-        "Keyboard EXPL+ALT+F5",
-        _L("Command 41")
-    },
-    {
-        "COMMANDS_42",
-        EV_COMMANDS_42,
-        "Keyboard EXPL+ALT+F6",
-        _L("Command 42")
-    },
-    {
-        "COMMANDS_43",
-        EV_COMMANDS_43,
-        "Keyboard EXPL+ALT+F7",
-        _L("Command 43")
-    },
-    {
-        "COMMANDS_44",
-        EV_COMMANDS_44,
-        "Keyboard EXPL+ALT+F8",
-        _L("Command 44")
-    },
-    {
-        "COMMANDS_45",
-        EV_COMMANDS_45,
-        "Keyboard EXPL+ALT+F9",
-        _L("Command 45")
-    },
-    {
-        "COMMANDS_46",
-        EV_COMMANDS_46,
-        "Keyboard EXPL+ALT+F10",
-        _L("Command 46")
-    },
-    {
-        "COMMANDS_47",
-        EV_COMMANDS_47,
-        "Keyboard EXPL+ALT+F11",
-        _L("Command 47")
-    },
-    {
-        "COMMANDS_48",
-        EV_COMMANDS_48,
-        "Keyboard EXPL+ALT+F12",
-        _L("Command 48")
-    },
-    {
-        "COMMANDS_49",
-        EV_COMMANDS_49,
-        "Keyboard EXPL+CTRL+SHIFT+F1",
-        _L("Command 49")
-    },
-    {
-        "COMMANDS_50",
-        EV_COMMANDS_50,
-        "Keyboard EXPL+CTRL+SHIFT+F2",
-        _L("Command 50")
-    },
-    {
-        "COMMANDS_51",
-        EV_COMMANDS_51,
-        "Keyboard EXPL+CTRL+SHIFT+F3",
-        _L("Command 51")
-    },
-    {
-        "COMMANDS_52",
-        EV_COMMANDS_52,
-        "Keyboard EXPL+CTRL+SHIFT+F4",
-        _L("Command 52")
-    },
-    {
-        "COMMANDS_53",
-        EV_COMMANDS_53,
-        "Keyboard EXPL+CTRL+SHIFT+F5",
-        _L("Command 53")
-    },
-    {
-        "COMMANDS_54",
-        EV_COMMANDS_54,
-        "Keyboard EXPL+CTRL+SHIFT+F6",
-        _L("Command 54")
-    },
-    {
-        "COMMANDS_55",
-        EV_COMMANDS_55,
-        "Keyboard EXPL+CTRL+SHIFT+F7",
-        _L("Command 55")
-    },
-    {
-        "COMMANDS_56",
-        EV_COMMANDS_56,
-        "Keyboard EXPL+CTRL+SHIFT+F8",
-        _L("Command 56")
-    },
-    {
-        "COMMANDS_57",
-        EV_COMMANDS_57,
-        "Keyboard EXPL+CTRL+SHIFT+F9",
-        _L("Command 57")
-    },
-    {
-        "COMMANDS_58",
-        EV_COMMANDS_58,
-        "Keyboard EXPL+CTRL+SHIFT+F10",
-        _L("Command 58")
-    },
-    {
-        "COMMANDS_59",
-        EV_COMMANDS_59,
-        "Keyboard EXPL+CTRL+SHIFT+F11",
-        _L("Command 59")
-    },
-    {
-        "COMMANDS_60",
-        EV_COMMANDS_60,
-        "Keyboard EXPL+CTRL+SHIFT+F12",
-        _L("Command 60")
-    },
-    {
-        "COMMANDS_61",
-        EV_COMMANDS_61,
-        "Keyboard EXPL+CTRL+ALT+F1",
-        _L("Command 61")
-    },
-    {
-        "COMMANDS_62",
-        EV_COMMANDS_62,
-        "Keyboard EXPL+CTRL+ALT+F2",
-        _L("Command 62")
-    },
-    {
-        "COMMANDS_63",
-        EV_COMMANDS_63,
-        "Keyboard EXPL+CTRL+ALT+F3",
-        _L("Command 63")
-    },
-    {
-        "COMMANDS_64",
-        EV_COMMANDS_64,
-        "Keyboard EXPL+CTRL+ALT+F4",
-        _L("Command 64")
-    },
-    {
-        "COMMANDS_65",
-        EV_COMMANDS_65,
-        "Keyboard EXPL+CTRL+ALT+F5",
-        _L("Command 65")
-    },
-    {
-        "COMMANDS_66",
-        EV_COMMANDS_66,
-        "Keyboard EXPL+CTRL+ALT+F6",
-        _L("Command 66")
-    },
-    {
-        "COMMANDS_67",
-        EV_COMMANDS_67,
-        "Keyboard EXPL+CTRL+ALT+F7",
-        _L("Command 67")
-    },
-    {
-        "COMMANDS_68",
-        EV_COMMANDS_68,
-        "Keyboard EXPL+CTRL+ALT+F8",
-        _L("Command 68")
-    },
-    {
-        "COMMANDS_69",
-        EV_COMMANDS_69,
-        "Keyboard EXPL+CTRL+ALT+F9",
-        _L("Command 69")
-    },
-    {
-        "COMMANDS_70",
-        EV_COMMANDS_70,
-        "Keyboard EXPL+CTRL+ALT+F10",
-        _L("Command 70")
-    },
-    {
-        "COMMANDS_71",
-        EV_COMMANDS_71,
-        "Keyboard EXPL+CTRL+ALT+F11",
-        _L("Command 71")
-    },
-    {
-        "COMMANDS_72",
-        EV_COMMANDS_72,
-        "Keyboard EXPL+CTRL+ALT+F12",
-        _L("Command 72")
-    },
-    {
-        "COMMANDS_73",
-        EV_COMMANDS_73,
-        "Keyboard EXPL+CTRL+SHIFT+ALT+F1",
-        _L("Command 73")
-    },
-    {
-        "COMMANDS_74",
-        EV_COMMANDS_74,
-        "Keyboard EXPL+CTRL+SHIFT+ALT+F2",
-        _L("Command 74")
-    },
-    {
-        "COMMANDS_75",
-        EV_COMMANDS_75,
-        "Keyboard EXPL+CTRL+SHIFT+ALT+F3",
-        _L("Command 75")
-    },
-    {
-        "COMMANDS_76",
-        EV_COMMANDS_76,
-        "Keyboard EXPL+CTRL+SHIFT+ALT+F4",
-        _L("Command 76")
-    },
-    {
-        "COMMANDS_77",
-        EV_COMMANDS_77,
-        "Keyboard EXPL+CTRL+SHIFT+ALT+F5",
-        _L("Command 77")
-    },
-    {
-        "COMMANDS_78",
-        EV_COMMANDS_78,
-        "Keyboard EXPL+CTRL+SHIFT+ALT+F6",
-        _L("Command 78")
-    },
-    {
-        "COMMANDS_79",
-        EV_COMMANDS_79,
-        "Keyboard EXPL+CTRL+SHIFT+ALT+F7",
-        _L("Command 79")
-    },
-    {
-        "COMMANDS_80",
-        EV_COMMANDS_80,
-        "Keyboard EXPL+CTRL+SHIFT+ALT+F8",
-        _L("Command 80")
-    },
-    {
-        "COMMANDS_81",
-        EV_COMMANDS_81,
-        "Keyboard EXPL+CTRL+SHIFT+ALT+F9",
-        _L("Command 81")
-    },
-    {
-        "COMMANDS_82",
-        EV_COMMANDS_82,
-        "Keyboard EXPL+CTRL+SHIFT+ALT+F10",
-        _L("Command 82")
-    },
-    {
-        "COMMANDS_83",
-        EV_COMMANDS_83,
-        "Keyboard EXPL+CTRL+SHIFT+ALT+F11",
-        _L("Command 83")
-    },
-    {
-        "COMMANDS_84",
-        EV_COMMANDS_84,
-        "Keyboard EXPL+CTRL+SHIFT+ALT+F12",
-        _L("Command 84")
-    },
-    {
-        "COMMON_ACCELERATE_SIMULATION",
-        EV_COMMON_ACCELERATE_SIMULATION,
-        "Keyboard CTRL+EQUALS",
-        _L("accelerate the simulation")
-    },
-    {
-        "COMMON_DECELERATE_SIMULATION",
-        EV_COMMON_DECELERATE_SIMULATION,
-        "Keyboard SHIFT+EQUALS",
-        _L("decelerate the simulation")
-    },
-    {
-        "COMMON_RESET_SIMULATION_PACE",
-        EV_COMMON_RESET_SIMULATION_PACE,
-        "Keyboard BACKSLASH",
-        _L("reset the simulation pace")
-    },
-    {
-        "COMMON_CONSOLE_TOGGLE",
-        EV_COMMON_CONSOLE_TOGGLE,
-        "Keyboard EXPL+GRAVE",
-        _L("show / hide the console")
-    },
-    {
-        "COMMON_ENTER_CHATMODE",
-        EV_COMMON_ENTER_CHATMODE,
-        "Keyboard Y",
-        _L("enter the chat")
-    },
-    {
-        "COMMON_SEND_CHAT",
-        EV_COMMON_SEND_CHAT,
-        "Keyboard RETURN",
-        _L("sends the entered text")
-    },
-    {
-        "COMMON_ENTER_OR_EXIT_TRUCK",
-        EV_COMMON_ENTER_OR_EXIT_TRUCK,
-        "Keyboard RETURN",
-        _L("enter or exit a truck")
-    },
-    {
-        "COMMON_ENTER_NEXT_TRUCK",
-        EV_COMMON_ENTER_NEXT_TRUCK,
-        "Keyboard EXPL+CTRL+RBRACKET",
-        _L("enter next truck")
-    },
-    {
-        "COMMON_ENTER_PREVIOUS_TRUCK",
-        EV_COMMON_ENTER_PREVIOUS_TRUCK,
-        "Keyboard EXPL+CTRL+LBRACKET",
-        _L("enter previous truck")
-    },
-    {
-        "COMMON_REMOVE_CURRENT_TRUCK",
-        EV_COMMON_REMOVE_CURRENT_TRUCK,
-        "Keyboard EXPL+CTRL+DELETE",
-        _L("remove current truck")
-    },
-    {
-        "COMMON_RESPAWN_LAST_TRUCK",
-        EV_COMMON_RESPAWN_LAST_TRUCK,
-        "Keyboard EXPL+CTRL+PERIOD",
-        _L("respawn last truck")
-    },
-    {
-        "COMMON_HIDE_GUI",
-        EV_COMMON_HIDE_GUI,
-        "Keyboard EXPL+U",
-        _L("hide all GUI elements")
-    },
-    {
-        "COMMON_LOCK",
-        EV_COMMON_LOCK,
-        "Keyboard EXPL+L",
-        _L("connect hook node to a node in close proximity")
-    },
-    {
-        "COMMON_AUTOLOCK",
-        EV_COMMON_AUTOLOCK,
-        "Keyboard EXPL+ALT+L",
-        _L("unlock autolock hook node")
-    },
-    {
-        "COMMON_ROPELOCK",
-        EV_COMMON_ROPELOCK,
-        "Keyboard EXPL+CTRL+L",
-        _L("connect a rope to a node in close proximity")
-    },
-    {
-        "COMMON_OUTPUT_POSITION",
-        EV_COMMON_OUTPUT_POSITION,
-        "Keyboard H",
-        _L("write current position to log (you can open the logfile and reuse the position)")
-    },
-    {
-        "COMMON_GET_NEW_VEHICLE",
-        EV_COMMON_GET_NEW_VEHICLE,
-        "Keyboard EXPL+CTRL+G",
-        _L("get new vehicle")
-    },
-    {
-        "COMMON_PRESSURE_LESS",
-        EV_COMMON_PRESSURE_LESS,
-        "Keyboard LBRACKET",
-        _L("decrease tire pressure (note: only very few trucks support this)")
-    },
-    {
-        "COMMON_PRESSURE_MORE",
-        EV_COMMON_PRESSURE_MORE,
-        "Keyboard RBRACKET",
-        _L("increase tire pressure (note: only very few trucks support this)")
-    },
-    {
-        "COMMON_QUIT_GAME",
-        EV_COMMON_QUIT_GAME,
-        "Keyboard EXPL+ESCAPE",
-        _L("exit the game")
-    },
-    {
-        "COMMON_REPAIR_TRUCK",
-        EV_COMMON_REPAIR_TRUCK,
-        "Keyboard BACK",
-        _L("repair truck")
-    },
-    {
-        "COMMON_RESCUE_TRUCK",
-        EV_COMMON_RESCUE_TRUCK,
-        "Keyboard EXPL+R",
-        _L("teleport to rescue truck")
-    },
-    {
-        "COMMON_RESET_TRUCK",
-        EV_COMMON_RESET_TRUCK,
-        "Keyboard I",
-        _L("reset truck to original starting position")
-    },
-    {
-        "COMMON_SCREENSHOT",
-        EV_COMMON_SCREENSHOT,
-        "Keyboard EXPL+SYSRQ",
-        _L("take a screenshot")
-    },
-    {
-        "COMMON_SCREENSHOT_BIG",
-        EV_COMMON_SCREENSHOT_BIG,
-        "Keyboard EXPL+CTRL+SYSRQ",
-        _L("take a big screenshot (3 times the screen size)")
-    },
-    {
-        "COMMON_SAVE_TERRAIN",
-        EV_COMMON_SAVE_TERRAIN,
-        "Keyboard EXPL+ALT+SHIF+CTRL+M",
-        _L("save the currently loaded terrain to a mesh file")
-    },
-    {
-        "COMMON_SECURE_LOAD",
-        EV_COMMON_SECURE_LOAD,
-        "Keyboard O",
-        _L("tie a load to the truck")
-    },
-    {
-        "COMMON_SHOW_SKELETON",
-        EV_COMMON_SHOW_SKELETON,
-        "Keyboard K",
-        _L("toggle skeleton display mode")
-    },
-    {
-        "COMMON_TOGGLE_TERRAIN_EDITOR",
-        EV_COMMON_TOGGLE_TERRAIN_EDITOR,
-        "Keyboard EXPL+SHIFT+Y",
-        _L("toggle terrain editor")
-    },
-    {
-        "COMMON_TOGGLE_CUSTOM_PARTICLES",
-        EV_COMMON_TOGGLE_CUSTOM_PARTICLES,
-        "Keyboard G",
-        _L("toggle particle cannon")
-    },
-    {
-        "COMMON_TOGGLE_MAT_DEBUG",
-        EV_COMMON_TOGGLE_MAT_DEBUG,
-        "",
-        _L("debug purpose - dont use")
-    },
-    {
-        "COMMON_TOGGLE_RENDER_MODE",
-        EV_COMMON_TOGGLE_RENDER_MODE,
-        "Keyboard E",
-        _L("toggle render mode (solid, wireframe and points)")
-    },
-    {
-        "COMMON_TOGGLE_REPLAY_MODE",
-        EV_COMMON_TOGGLE_REPLAY_MODE,
-        "Keyboard J",
-        _L("enable or disable replay mode")
-    },
-    {
-        "COMMON_TOGGLE_STATS",
-        EV_COMMON_TOGGLE_STATS,
-        "Keyboard EXPL+F",
-        _L("toggle Ogre statistics (FPS etc.)")
-    },
-    {
-        "COMMON_TOGGLE_TRUCK_BEACONS",
-        EV_COMMON_TOGGLE_TRUCK_BEACONS,
-        "Keyboard M",
-        _L("toggle truck beacons")
-    },
-    {
-        "COMMON_TOGGLE_TRUCK_LIGHTS",
-        EV_COMMON_TOGGLE_TRUCK_LIGHTS,
-        "Keyboard N",
-        _L("toggle truck front lights")
-    },
-    {
-        "COMMON_TRUCK_INFO",
-        EV_COMMON_TRUCK_INFO,
-        "Keyboard EXPL+T",
-        _L("toggle truck HUD")
-    },
-    {
-        "COMMON_TRUCK_DESCRIPTION",
-        EV_COMMON_TRUCK_DESCRIPTION,
-        "Keyboard EXPL+CTRL+T",
-        _L("toggle truck description")
-    },
-    {
-        "COMMON_FOV_LESS",
-        EV_COMMON_FOV_LESS,
-        "Keyboard EXPL+NUMPAD7",
-        _L("decreases the current FOV value")
-    },
-    {
-        "COMMON_FOV_MORE",
-        EV_COMMON_FOV_MORE,
-        "Keyboard EXPL+CTRL+NUMPAD7",
-        _L("increase the current FOV value")
-    },
-    {
-        "GRASS_LESS",
-        EV_GRASS_LESS,
-        "",
-        _L("EXPERIMENTAL: remove some grass")
-    },
-    {
-        "GRASS_MORE",
-        EV_GRASS_MORE,
-        "",
-        _L("EXPERIMENTAL: add some grass")
-    },
-    {
-        "GRASS_MOST",
-        EV_GRASS_MOST,
-        "",
-        _L("EXPERIMENTAL: set maximum amount of grass")
-    },
-    {
-        "GRASS_NONE",
-        EV_GRASS_NONE,
-        "",
-        _L("EXPERIMENTAL: remove grass completely")
-    },
-    {
-        "GRASS_SAVE",
-        EV_GRASS_SAVE,
-        "",
-        _L("EXPERIMENTAL: save changes to the grass density image")
-    },
-    {
-        "MENU_DOWN",
-        EV_MENU_DOWN,
-        "Keyboard DOWN",
-        _L("select next element in current category")
-    },
-    {
-        "MENU_LEFT",
-        EV_MENU_LEFT,
-        "Keyboard LEFT",
-        _L("select previous category")
-    },
-    {
-        "MENU_RIGHT",
-        EV_MENU_RIGHT,
-        "Keyboard RIGHT",
-        _L("select next category")
-    },
-    {
-        "MENU_SELECT",
-        EV_MENU_SELECT,
-        "Keyboard EXPL+RETURN",
-        _L("select focussed item and close menu")
-    },
-    {
-        "MENU_UP",
-        EV_MENU_UP,
-        "Keyboard UP",
-        _L("select previous element in current category")
-    },
-    {
-        "SURVEY_MAP_TOGGLE_ICONS",
-        EV_SURVEY_MAP_TOGGLE_ICONS,
-        "Keyboard EXPL+CTRL+SHIFT+ALT+TAB",
-        _L("toggle map icons")
-    },
-    {
-        "SURVEY_MAP_TOGGLE_VIEW",
-        EV_SURVEY_MAP_TOGGLE_VIEW,
-        "Keyboard EXPL+TAB",
-        _L("toggle map modes")
-    },
-    {
-        "SURVEY_MAP_TOGGLE_ALPHA",
-        EV_SURVEY_MAP_ALPHA,
-        "Keyboard EXPL+CTRL+SHIFT+TAB",
-        _L("toggle translucency of overview-map")
-    },
-    {
-        "SURVEY_MAP_ZOOM_IN",
-        EV_SURVEY_MAP_ZOOM_IN,
-        "Keyboard EXPL+CTRL+TAB",
-        _L("zoom in")
-    },
-    {
-        "SURVEY_MAP_ZOOM_OUT",
-        EV_SURVEY_MAP_ZOOM_OUT,
-        "Keyboard EXPL+SHIFT+TAB",
-        _L("zoom out")
-    },
-    {
-        "TRUCK_ACCELERATE",
-        EV_TRUCK_ACCELERATE,
-        "Keyboard UP",
-        _L("accelerate the truck")
-    },
-    {
-        "TRUCK_ACCELERATE_MODIFIER_25",
-        EV_TRUCK_ACCELERATE_MODIFIER_25,
-        "Keyboard ALT+UP",
-        _L("accelerate with 25 percent pedal input")
-    },
-    {
-        "TRUCK_ACCELERATE_MODIFIER_50",
-        EV_TRUCK_ACCELERATE_MODIFIER_50,
-        "Keyboard CTRL+UP",
-        _L("accelerate with 50 percent pedal input")
-    },
-    {
-        "TRUCK_AUTOSHIFT_DOWN",
-        EV_TRUCK_AUTOSHIFT_DOWN,
-        "Keyboard PGDOWN",
-        _L("shift automatic transmission one gear down")
-    },
-    {
-        "TRUCK_AUTOSHIFT_UP",
-        EV_TRUCK_AUTOSHIFT_UP,
-        "Keyboard PGUP",
-        _L("shift automatic transmission one gear up")
-    },
-    {
-        "TRUCK_BLINK_LEFT",
-        EV_TRUCK_BLINK_LEFT,
-        "Keyboard COMMA",
-        _L("toggle left direction indicator (blinker)")
-    },
-    {
-        "TRUCK_BLINK_RIGHT",
-        EV_TRUCK_BLINK_RIGHT,
-        "Keyboard PERIOD",
-        _L("toggle right direction indicator (blinker)")
-    },
-    {
-        "TRUCK_BLINK_WARN",
-        EV_TRUCK_BLINK_WARN,
-        "Keyboard MINUS",
-        _L("toggle all direction indicators")
-    },
-    {
-        "TRUCK_BRAKE",
-        EV_TRUCK_BRAKE,
-        "Keyboard DOWN",
-        _L("brake")
-    },
-    {
-        "TRUCK_BRAKE_MODIFIER_25",
-        EV_TRUCK_BRAKE_MODIFIER_25,
-        "Keyboard ALT+DOWN",
-        _L("brake with 25 percent pedal input")
-    },
-    {
-        "TRUCK_BRAKE_MODIFIER_50",
-        EV_TRUCK_BRAKE_MODIFIER_50,
-        "Keyboard CTRL+DOWN",
-        _L("brake with 50 percent pedal input")
-    },
-    {
-        "TRUCK_HORN",
-        EV_TRUCK_HORN,
-        "Keyboard H",
-        _L("truck horn")
-    },
-    {
-        "TRUCK_LIGHTTOGGLE1",
-        EV_TRUCK_LIGHTTOGGLE01,
-        "Keyboard EXPL+CTRL+1",
-        _L("toggle custom light 1")
-    },
-    {
-        "TRUCK_LIGHTTOGGLE2",
-        EV_TRUCK_LIGHTTOGGLE02,
-        "Keyboard EXPL+CTRL+2",
-        _L("toggle custom light 2")
-    },
-    {
-        "TRUCK_LIGHTTOGGLE3",
-        EV_TRUCK_LIGHTTOGGLE03,
-        "Keyboard EXPL+CTRL+3",
-        _L("toggle custom light 3")
-    },
-    {
-        "TRUCK_LIGHTTOGGLE4",
-        EV_TRUCK_LIGHTTOGGLE04,
-        "Keyboard EXPL+CTRL+4",
-        _L("toggle custom light 4")
-    },
-    {
-        "TRUCK_LIGHTTOGGLE5",
-        EV_TRUCK_LIGHTTOGGLE05,
-        "Keyboard EXPL+CTRL+5",
-        _L("toggle custom light 5")
-    },
-    {
-        "TRUCK_LIGHTTOGGLE6",
-        EV_TRUCK_LIGHTTOGGLE06,
-        "Keyboard EXPL+CTRL+6",
-        _L("toggle custom light 6")
-    },
-    {
-        "TRUCK_LIGHTTOGGLE7",
-        EV_TRUCK_LIGHTTOGGLE07,
-        "Keyboard EXPL+CTRL+7",
-        _L("toggle custom light 7")
-    },
-    {
-        "TRUCK_LIGHTTOGGLE8",
-        EV_TRUCK_LIGHTTOGGLE08,
-        "Keyboard EXPL+CTRL+8",
-        _L("toggle custom light 8")
-    },
-    {
-        "TRUCK_LIGHTTOGGLE9",
-        EV_TRUCK_LIGHTTOGGLE09,
-        "Keyboard EXPL+CTRL+9",
-        _L("toggle custom light 9")
-    },
-    {
-        "TRUCK_LIGHTTOGGLE10",
-        EV_TRUCK_LIGHTTOGGLE10,
-        "Keyboard EXPL+CTRL+0",
-        _L("toggle custom light 10")
-    },
-    {
-        "TRUCK_MANUAL_CLUTCH",
-        EV_TRUCK_MANUAL_CLUTCH,
-        "Keyboard LSHIFT",
-        _L("manual clutch (for manual transmission)")
-    },
-    {
-        "TRUCK_PARKING_BRAKE",
-        EV_TRUCK_PARKING_BRAKE,
-        "Keyboard P",
-        _L("toggle parking brake")
-    },
-    {
-        "TRUCK_ANTILOCK_BRAKE",
-        EV_TRUCK_ANTILOCK_BRAKE,
-        "Keyboard EXPL+SHIFT+B",
-        _L("toggle antilock brake")
-    },
-    {
-        "TRUCK_TOGGLE_VIDEOCAMERA",
-        EV_TRUCK_TOGGLE_VIDEOCAMERA,
-        "Keyboard EXPL+CTRL+V",
-        _L("toggle videocamera")
-    },
-    {
-        "TRUCK_TRACTION_CONTROL",
-        EV_TRUCK_TRACTION_CONTROL,
-        "Keyboard EXPL+SHIFT+T",
-        _L("toggle traction control")
-    },
-    {
-        "TRUCK_CRUISE_CONTROL",
-        EV_TRUCK_CRUISE_CONTROL,
-        "Keyboard EXPL+SPACE",
-        _L("toggle cruise control")
-    },
-    {
-        "TRUCK_CRUISE_CONTROL_READJUST",
-        EV_TRUCK_CRUISE_CONTROL_READJUST,
-        "Keyboard EXPL+CTRL+SPACE",
-        _L("match target speed / rpm with current truck speed / rpm")
-    },
-    {
-        "TRUCK_CRUISE_CONTROL_ACCL",
-        EV_TRUCK_CRUISE_CONTROL_ACCL,
-        "Keyboard EXPL+CTRL+R",
-        _L("increase target speed / rpm")
-    },
-    {
-        "TRUCK_CRUISE_CONTROL_DECL",
-        EV_TRUCK_CRUISE_CONTROL_DECL,
-        "Keyboard EXPL+CTRL+F",
-        _L("decrease target speed / rpm")
-    },
-    {
-        "TRUCK_SHIFT_DOWN",
-        EV_TRUCK_SHIFT_DOWN,
-        "Keyboard Z",
-        _L("shift one gear down in manual transmission mode")
-    },
-    {
-        "TRUCK_SHIFT_NEUTRAL",
-        EV_TRUCK_SHIFT_NEUTRAL,
-        "Keyboard D",
-        _L("shift to neutral gear in manual transmission mode")
-    },
-    {
-        "TRUCK_SHIFT_UP",
-        EV_TRUCK_SHIFT_UP,
-        "Keyboard A",
-        _L("shift one gear up in manual transmission mode")
-    },
-    {
-        "TRUCK_SHIFT_GEAR_REVERSE",
-        EV_TRUCK_SHIFT_GEAR_REVERSE,
-        "",
-        _L("shift directly to reverse gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR1",
-        EV_TRUCK_SHIFT_GEAR01,
-        "",
-        _L("shift directly to first gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR2",
-        EV_TRUCK_SHIFT_GEAR02,
-        "",
-        _L("shift directly to second gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR3",
-        EV_TRUCK_SHIFT_GEAR03,
-        "",
-        _L("shift directly to third gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR4",
-        EV_TRUCK_SHIFT_GEAR04,
-        "",
-        _L("shift directly to fourth gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR5",
-        EV_TRUCK_SHIFT_GEAR05,
-        "",
-        _L("shift directly to 5th gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR6",
-        EV_TRUCK_SHIFT_GEAR06,
-        "",
-        _L("shift directly to 6th gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR7",
-        EV_TRUCK_SHIFT_GEAR07,
-        "",
-        _L("shift directly to 7th gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR8",
-        EV_TRUCK_SHIFT_GEAR08,
-        "",
-        _L("shift directly to 8th gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR9",
-        EV_TRUCK_SHIFT_GEAR09,
-        "",
-        _L("shift directly to 9th gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR10",
-        EV_TRUCK_SHIFT_GEAR10,
-        "",
-        _L("shift directly to 10th gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR11",
-        EV_TRUCK_SHIFT_GEAR11,
-        "",
-        _L("shift directly to 11th gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR12",
-        EV_TRUCK_SHIFT_GEAR12,
-        "",
-        _L("shift directly to 12th gear")
-    },
 
-    {
-        "TRUCK_SHIFT_GEAR13",
-        EV_TRUCK_SHIFT_GEAR13,
-        "",
-        _L("shift directly to 13th gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR14",
-        EV_TRUCK_SHIFT_GEAR14,
-        "",
-        _L("shift directly to 14th gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR15",
-        EV_TRUCK_SHIFT_GEAR15,
-        "",
-        _L("shift directly to 15th gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR16",
-        EV_TRUCK_SHIFT_GEAR16,
-        "",
-        _L("shift directly to 16th gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR17",
-        EV_TRUCK_SHIFT_GEAR17,
-        "",
-        _L("shift directly to 17th gear")
-    },
-    {
-        "TRUCK_SHIFT_GEAR18",
-        EV_TRUCK_SHIFT_GEAR18,
-        "",
-        _L("shift directly to 18th gear")
-    },
-    {
-        "TRUCK_SHIFT_LOWRANGE",
-        EV_TRUCK_SHIFT_LOWRANGE,
-        "",
-        _L("sets low range (1-6) for H-shaft")
-    },
-    {
-        "TRUCK_SHIFT_MIDRANGE",
-        EV_TRUCK_SHIFT_MIDRANGE,
-        "",
-        _L("sets middle range (7-12) for H-shaft")
-    },
-    {
-        "TRUCK_SHIFT_HIGHRANGE",
-        EV_TRUCK_SHIFT_HIGHRANGE,
-        "",
-        _L("sets high range (13-18) for H-shaft")
-    },
-    {
-        "TRUCK_STARTER",
-        EV_TRUCK_STARTER,
-        "Keyboard S",
-        _L("hold to start the engine")
-    },
-    {
-        "TRUCK_STEER_LEFT",
-        EV_TRUCK_STEER_LEFT,
-        "Keyboard LEFT",
-        _L("steer left")
-    },
-    {
-        "TRUCK_STEER_RIGHT",
-        EV_TRUCK_STEER_RIGHT,
-        "Keyboard RIGHT",
-        _L("steer right")
-    },
-    {
-        "TRUCK_SWITCH_SHIFT_MODES",
-        EV_TRUCK_SWITCH_SHIFT_MODES,
-        "Keyboard Q",
-        _L("toggle between transmission modes")
-    },
-    {
-        "TRUCK_TOGGLE_AXLE_LOCK",
-        EV_TRUCK_TOGGLE_AXLE_LOCK,
-        "Keyboard W",
-        _L("Cycle between available differental models")
-    },
-    {
-        "TRUCK_TOGGLE_CONTACT",
-        EV_TRUCK_TOGGLE_CONTACT,
-        "Keyboard X",
-        _L("toggle ignition")
-    },
-    {
-        "TRUCK_TOGGLE_FORWARDCOMMANDS",
-        EV_TRUCK_TOGGLE_FORWARDCOMMANDS,
-        "Keyboard EXPL+CTRL+SHIFT+F",
-        _L("toggle forwardcommands")
-    },
-    {
-        "TRUCK_TOGGLE_IMPORTCOMMANDS",
-        EV_TRUCK_TOGGLE_IMPORTCOMMANDS,
-        "Keyboard EXPL+CTRL+SHIFT+I",
-        _L("toggle importcommands")
-    },
-
-    // "new" commands
-    {
-        "COMMON_FULLSCREEN_TOGGLE",
-        EV_COMMON_FULLSCREEN_TOGGLE,
-        "Keyboard EXPL+ALT+RETURN",
-        _L("toggle between windowed and fullscreen mode")
-    },
-    {
-        "COMMON_TELEPORT_TOGGLE",
-        EV_COMMON_TELEPORT_TOGGLE,
-        "Keyboard EXPL+F2", // Only in character mode
-        _L("enter/exit teleport mode")
-    },
-    {
-        "CAMERA_FREE_MODE_FIX",
-        EV_CAMERA_FREE_MODE_FIX,
-        "Keyboard EXPL+ALT+C",
-        _L("fix the camera to a position")
-    },
-    {
-        "CAMERA_FREE_MODE",
-        EV_CAMERA_FREE_MODE,
-        "Keyboard EXPL+SHIFT+C",
-        _L("enable / disable free camera mode")
-    },
-    {
-        "TRUCK_LEFT_MIRROR_LEFT",
-        EV_TRUCK_LEFT_MIRROR_LEFT,
-        "Keyboard EXPL+SEMICOLON",
-        _L("move left mirror to the left")
-    },
-    {
-        "TRUCK_LEFT_MIRROR_RIGHT",
-        EV_TRUCK_LEFT_MIRROR_RIGHT,
-        "Keyboard EXPL+CTRL+SEMICOLON",
-        _L("move left mirror to the right")
-    },
-    {
-        "TRUCK_RIGHT_MIRROR_LEFT",
-        EV_TRUCK_RIGHT_MIRROR_LEFT,
-        "Keyboard EXPL+COLON",
-        _L("more right mirror to the left")
-    },
-    {
-        "TRUCK_RIGHT_MIRROR_RIGHT",
-        EV_TRUCK_RIGHT_MIRROR_RIGHT,
-        "Keyboard EXPL+CTRL+COLON",
-        _L("move right mirror to the right")
-    },
-    {
-        "COMMON_REPLAY_FORWARD",
-        EV_COMMON_REPLAY_FORWARD,
-        "Keyboard EXPL+RIGHT",
-        _L("more replay forward")
-    },
-    {
-        "COMMON_REPLAY_BACKWARD",
-        EV_COMMON_REPLAY_BACKWARD,
-        "Keyboard EXPL+LEFT",
-        _L("more replay backward")
-    },
-    {
-        "COMMON_REPLAY_FAST_FORWARD",
-        EV_COMMON_REPLAY_FAST_FORWARD,
-        "Keyboard EXPL+SHIFT+RIGHT",
-        _L("move replay fast forward")
-    },
-    {
-        "COMMON_REPLAY_FAST_BACKWARD",
-        EV_COMMON_REPLAY_FAST_BACKWARD,
-        "Keyboard EXPL+SHIFT+LEFT",
-        _L("move replay fast backward")
-    },
-    {
-        "AIRPLANE_AIRBRAKES_NONE",
-        EV_AIRPLANE_AIRBRAKES_NONE,
-        "Keyboard CTRL+3",
-        _L("no airbrakes")
-    },
-    {
-        "AIRPLANE_AIRBRAKES_FULL",
-        EV_AIRPLANE_AIRBRAKES_FULL,
-        "Keyboard CTRL+4",
-        _L("full airbrakes")
-    },
-    {
-        "AIRPLANE_AIRBRAKES_LESS",
-        EV_AIRPLANE_AIRBRAKES_LESS,
-        "Keyboard EXPL+3",
-        _L("less airbrakes")
-    },
-    {
-        "AIRPLANE_AIRBRAKES_MORE",
-        EV_AIRPLANE_AIRBRAKES_MORE,
-        "Keyboard EXPL+4",
-        _L("more airbrakes")
-    },
-    {
-        "AIRPLANE_THROTTLE",
-        EV_AIRPLANE_THROTTLE,
-        "",
-        _L("airplane throttle")
-    },
-    {
-        "COMMON_TRUCK_REMOVE",
-        EV_COMMON_TRUCK_REMOVE,
-        "Keyboard EXPL+CTRL+SHIFT+DELETE",
-        _L("delete current truck")
-    },
-    {
-        "COMMON_NETCHATDISPLAY",
-        EV_COMMON_NETCHATDISPLAY,
-        "Keyboard EXPL+SHIFT+U",
-        _L("display or hide net chat")
-    },
-    {
-        "COMMON_NETCHATMODE",
-        EV_COMMON_NETCHATMODE,
-        "Keyboard EXPL+CTRL+U",
-        _L("toggle between net chat display modes")
-    },
-    {
-        "CHARACTER_ROT_UP",
-        EV_CHARACTER_ROT_UP,
-        "Keyboard UP",
-        _L("rotate view up")
-    },
-    {
-        "CHARACTER_ROT_DOWN",
-        EV_CHARACTER_ROT_DOWN,
-        "Keyboard DOWN",
-        _L("rotate view down")
-    },
-    {
-        "CAMERA_UP",
-        EV_CAMERA_UP,
-        "Keyboard Q",
-        _L("move camera up")
-    },
-    {
-        "CAMERA_DOWN",
-        EV_CAMERA_DOWN,
-        "Keyboard Z",
-        _L("move camera down")
-    },
-
-    // now position storage
-    {"TRUCK_SAVE_POS1", EV_TRUCK_SAVE_POS01, "Keyboard EXPL+ALT+CTRL+1", _L("save position as slot 1")},
-    {"TRUCK_SAVE_POS2", EV_TRUCK_SAVE_POS02, "Keyboard EXPL+ALT+CTRL+2", _L("save position as slot 2")},
-    {"TRUCK_SAVE_POS3", EV_TRUCK_SAVE_POS03, "Keyboard EXPL+ALT+CTRL+3", _L("save position as slot 3")},
-    {"TRUCK_SAVE_POS4", EV_TRUCK_SAVE_POS04, "Keyboard EXPL+ALT+CTRL+4", _L("save position as slot 4")},
-    {"TRUCK_SAVE_POS5", EV_TRUCK_SAVE_POS05, "Keyboard EXPL+ALT+CTRL+5", _L("save position as slot 5")},
-    {"TRUCK_SAVE_POS6", EV_TRUCK_SAVE_POS06, "Keyboard EXPL+ALT+CTRL+6", _L("save position as slot 6")},
-    {"TRUCK_SAVE_POS7", EV_TRUCK_SAVE_POS07, "Keyboard EXPL+ALT+CTRL+7", _L("save position as slot 7")},
-    {"TRUCK_SAVE_POS8", EV_TRUCK_SAVE_POS08, "Keyboard EXPL+ALT+CTRL+8", _L("save position as slot 8")},
-    {"TRUCK_SAVE_POS9", EV_TRUCK_SAVE_POS09, "Keyboard EXPL+ALT+CTRL+9", _L("save position as slot 9")},
-    {"TRUCK_SAVE_POS10", EV_TRUCK_SAVE_POS10, "Keyboard EXPL+ALT+CTRL+0", _L("save position as slot 10")},
-
-    {"TRUCK_LOAD_POS1", EV_TRUCK_LOAD_POS01, "Keyboard EXPL+ALT+1", _L("load position under slot 1")},
-    {"TRUCK_LOAD_POS2", EV_TRUCK_LOAD_POS02, "Keyboard EXPL+ALT+2", _L("load position under slot 2")},
-    {"TRUCK_LOAD_POS3", EV_TRUCK_LOAD_POS03, "Keyboard EXPL+ALT+3", _L("load position under slot 3")},
-    {"TRUCK_LOAD_POS4", EV_TRUCK_LOAD_POS04, "Keyboard EXPL+ALT+4", _L("load position under slot 4")},
-    {"TRUCK_LOAD_POS5", EV_TRUCK_LOAD_POS05, "Keyboard EXPL+ALT+5", _L("load position under slot 5")},
-    {"TRUCK_LOAD_POS6", EV_TRUCK_LOAD_POS06, "Keyboard EXPL+ALT+6", _L("load position under slot 6")},
-    {"TRUCK_LOAD_POS7", EV_TRUCK_LOAD_POS07, "Keyboard EXPL+ALT+7", _L("load position under slot 7")},
-    {"TRUCK_LOAD_POS8", EV_TRUCK_LOAD_POS08, "Keyboard EXPL+ALT+8", _L("load position under slot 8")},
-    {"TRUCK_LOAD_POS9", EV_TRUCK_LOAD_POS09, "Keyboard EXPL+ALT+9", _L("load position under slot 9")},
-    {"TRUCK_LOAD_POS10", EV_TRUCK_LOAD_POS10, "Keyboard EXPL+ALT+0", _L("load position under slot 10")},
-
-    {"DOF_TOGGLE", EV_DOF_TOGGLE, "Keyboard EXPL+CTRL+D", _L("turn on Depth of Field on or off")},
-    {"DOF_DEBUG", EV_DOF_DEBUG, "Keyboard EXPL+ALT+D", _L("turn on the Depth of field debug view")},
-    {"DOF_DEBUG_TOGGLE_FOCUS_MODE", EV_DOF_DEBUG_TOGGLE_FOCUS_MODE, "Keyboard EXPL+SPACE", _L("toggle the DOF focus mode")},
-    {"DOF_DEBUG_ZOOM_IN", EV_DOF_DEBUG_ZOOM_IN, "Keyboard EXPL+Q", _L("zoom in")},
-    {"DOF_DEBUG_ZOOM_OUT", EV_DOF_DEBUG_ZOOM_OUT, "Keyboard EXPL+Z", _L("zoom in")},
-    {"DOF_DEBUG_APERTURE_MORE", EV_DOF_DEBUG_APERTURE_MORE, "Keyboard EXPL+1", _L("more aperture")},
-    {"DOF_DEBUG_APERTURE_LESS", EV_DOF_DEBUG_APERTURE_LESS, "Keyboard EXPL+2", _L("less aperture")},
-    {"DOF_DEBUG_FOCUS_IN", EV_DOF_DEBUG_FOCUS_IN, "Keyboard EXPL+3", _L("move focus in")},
-    {"DOF_DEBUG_FOCUS_OUT", EV_DOF_DEBUG_FOCUS_OUT, "Keyboard EXPL+4", _L("move focus out")},
-
-    {"TRUCKEDIT_RELOAD", EV_TRUCKEDIT_RELOAD, "Keyboard EXPL+SHIFT+CTRL+R", _L("reload truck")},
-
-    {"TOGGLESHADERS", EV_TOGGLESHADERS, "Keyboard EXPL+SHIFT+CTRL+S", _L("toggle shader usage")},
-
-    // the end, DO NOT MODIFY
-    {"", -1, "", ""},
-};
 
 #if OGRE_PLATFORM == OGRE_PLATFORM_APPLE
 #define strnlen(str,len) strlen(str)
