@@ -69,29 +69,19 @@ FlexBody::FlexBody(
     Vector3 position = Vector3::ZERO;
     Quaternion orientation = Quaternion::ZERO;
 
-    if (ref >= 0)
-    {
-        Vector3 diffX = m_nodes[nx].AbsPosition-m_nodes[ref].AbsPosition;
-        Vector3 diffY = m_nodes[ny].AbsPosition-m_nodes[ref].AbsPosition;
+    Vector3 diffX = m_nodes[nx].AbsPosition-m_nodes[ref].AbsPosition;
+    Vector3 diffY = m_nodes[ny].AbsPosition-m_nodes[ref].AbsPosition;
 
-        normal = fast_normalise(diffY.crossProduct(diffX));
+    normal = fast_normalise(diffY.crossProduct(diffX));
 
-        // position
-        position = m_nodes[ref].AbsPosition + def->offset.x * diffX + def->offset.y * diffY;
-        position = position + def->offset.z * normal;
+    // position
+    position = m_nodes[ref].AbsPosition + def->offset.x * diffX + def->offset.y * diffY;
+    position = position + def->offset.z * normal;
 
-        // orientation
-        Vector3 refX = fast_normalise(diffX);
-        Vector3 refY = refX.crossProduct(normal);
-        orientation  = Quaternion(refX, normal, refY) * rot;
-    }
-    else
-    {
-        // special case!
-        normal = Vector3::UNIT_Y;
-        position = m_nodes[0].AbsPosition + def->offset;
-        orientation = rot;
-    }
+    // orientation
+    Vector3 refX = fast_normalise(diffX);
+    Vector3 refY = refX.crossProduct(normal);
+    orientation  = Quaternion(refX, normal, refY) * rot;
 
     TIMER_SNAPSHOT(stat_mesh_ready_time);
     FLEXBODY_PROFILER_ENTER("Check texcoord presence")
