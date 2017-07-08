@@ -63,25 +63,15 @@ FlexBody::FlexBody(
     TIMER_CREATE();
     FLEXBODY_PROFILER_START("Compute pos + orientation");
 
-    Ogre::Vector3* vertices = nullptr;
-
-    Vector3 normal = Vector3::UNIT_Y;
-    Vector3 position = Vector3::ZERO;
-    Quaternion orientation = Quaternion::ZERO;
-
-    Vector3 diffX = m_nodes[nx].AbsPosition-m_nodes[ref].AbsPosition;
-    Vector3 diffY = m_nodes[ny].AbsPosition-m_nodes[ref].AbsPosition;
-
-    normal = fast_normalise(diffY.crossProduct(diffX));
-
-    // position
-    position = m_nodes[ref].AbsPosition + def->offset.x * diffX + def->offset.y * diffY;
-    position = position + def->offset.z * normal;
+    const Ogre::Vector3 diffX    = m_nodes[nx].AbsPosition - m_nodes[ref].AbsPosition;
+    const Ogre::Vector3 diffY    = m_nodes[ny].AbsPosition - m_nodes[ref].AbsPosition;
+    const Ogre::Vector3 normal   = fast_normalise(diffY.crossProduct(diffX));
+    const Ogre::Vector3 position = m_nodes[ref].AbsPosition + (def->offset.x * diffX) + (def->offset.y * diffY) + (def->offset.z * normal);
 
     // orientation
-    Vector3 refX = fast_normalise(diffX);
-    Vector3 refY = refX.crossProduct(normal);
-    orientation  = Quaternion(refX, normal, refY) * rot;
+    const Vector3 refX = fast_normalise(diffX);
+    const Vector3 refY = refX.crossProduct(normal);
+    const Quaternion orientation  = Quaternion(refX, normal, refY) * rot;
 
     TIMER_SNAPSHOT(stat_mesh_ready_time);
     FLEXBODY_PROFILER_ENTER("Check texcoord presence")
@@ -312,7 +302,7 @@ FlexBody::FlexBody(
     else
     {
         FLEXBODY_PROFILER_ENTER("Alloc buffers")
-        vertices=(Vector3*)malloc(sizeof(Vector3)*m_vertex_count);
+        Ogre::Vector3* const vertices=(Vector3*)malloc(sizeof(Vector3)*m_vertex_count);
         m_dst_pos=(Vector3*)malloc(sizeof(Vector3)*m_vertex_count);
         m_src_normals=(Vector3*)malloc(sizeof(Vector3)*m_vertex_count);
         m_dst_normals=(Vector3*)malloc(sizeof(Vector3)*m_vertex_count);
@@ -345,7 +335,7 @@ FlexBody::FlexBody(
                 m_shared_vbuf_color->writeData(0, mesh->sharedVertexData->vertexCount*sizeof(ARGB), (void*)m_src_colors);
             }
         }
-        int cursubmesh=0;
+        int cursubmesh = 0;
         for (int i=0; i<num_submeshes; i++)
         {
             const Ogre::SubMesh* submesh = mesh->getSubMesh(i);
@@ -373,7 +363,7 @@ FlexBody::FlexBody(
                 m_submesh_vbufs_color[cursubmesh] = vertex_data->vertexBufferBinding->getBuffer(source);
                 m_submesh_vbufs_color[cursubmesh]->writeData(0, vertex_count*sizeof(ARGB), (void*)m_src_colors);
             }
-            cursubmesh++;
+            ++cursubmesh;
         }
         TIMER_SNAPSHOT_REF(stat_manual_buffers_created_time);
 
@@ -408,7 +398,7 @@ FlexBody::FlexBody(
                 LOG("FLEXBODY ERROR on mesh "+def->mesh_name+": REF node not found");
                 closest_node_index = 0;
             }
-            m_locators[i].ref=closest_node_index;            
+            m_locators[i].ref=closest_node_index;
 
             //search the second nearest node as the X vector
             closest_node_distance=1000000.0;
@@ -481,6 +471,7 @@ FlexBody::FlexBody(
             // that's it!
         }
         TIMER_SNAPSHOT_REF(stat_located_time);
+        delete vertices;
 
     } // if (preloaded_from_cache == nullptr)
 
@@ -530,7 +521,7 @@ FlexBody::FlexBody(
         }
     }
 
-    if (vertices != nullptr) { free(vertices); }
+    
 
     TIMER_SNAPSHOT(stat_euclidean2_time);
     FLEXBODY_PROFILER_ENTER("Printing time stats");
