@@ -595,11 +595,11 @@ FlexBody::~FlexBody()
 
 void FlexBody::setEnabled(bool e)
 {
-    setVisible(e);
+    this->SetVisible(e);
     m_is_enabled = e;
 }
 
-void FlexBody::setVisible(bool visible)
+void FlexBody::SetVisible(bool visible)
 {
     if (!m_is_enabled) return;
     if (m_scene_node)
@@ -645,7 +645,7 @@ void FlexBody::printMeshInfo(Mesh* mesh)
     }
 }
 
-bool FlexBody::flexitPrepare()
+bool FlexBody::FlexitPrepare()
 {
     if (!m_is_enabled) return false; // TODO: This is a horrid mechanism! Fix it! ~ only_a_ptr, 02/2017
     if (m_has_texture_blend) updateBlend();
@@ -671,7 +671,7 @@ bool FlexBody::flexitPrepare()
     return true;
 }	
 
-void FlexBody::flexitCompute()
+void FlexBody::FlexitCompute()
 {
     for (int i=0; i<(int)m_vertex_count; i++)
     {
@@ -708,7 +708,7 @@ void FlexBody::flexitCompute()
 #endif
 }
 
-Vector3 FlexBody::flexitFinal()
+Vector3 FlexBody::FlexitFinal()
 {
     Vector3 *ppt = m_dst_pos;
     Vector3 *npt = m_dst_normals;

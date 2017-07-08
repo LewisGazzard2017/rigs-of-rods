@@ -269,12 +269,12 @@ Vector3 FlexMesh::updateVertices()
     return center;
 }
 
-void FlexMesh::flexitCompute()
+void FlexMesh::FlexitCompute()
 {
     m_flexit_center = updateVertices();
 }
 
-Vector3 FlexMesh::flexitFinal()
+Vector3 FlexMesh::FlexitFinal()
 {
     m_hw_vbuf->writeData(0, m_hw_vbuf->getSizeInBytes(), m_vertices, true);
     return m_flexit_center;

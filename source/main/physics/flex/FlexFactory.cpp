@@ -232,16 +232,16 @@ void FlexBodyFileIO::ReadFlexbodyHeader(FlexBodyCacheData* data)
 void FlexBodyFileIO::WriteFlexbodyLocatorList(FlexBody* flexbody)
 {
     FLEX_DEBUG_LOG(__FUNCTION__);
-    this->WriteToFile((void*)flexbody->m_locators, sizeof(Locator_t) * flexbody->m_vertex_count);
+    this->WriteToFile((void*)flexbody->m_locators, sizeof(FlexBody::Locator_t) * flexbody->m_vertex_count);
 }
 
 void FlexBodyFileIO::ReadFlexbodyLocatorList(FlexBodyCacheData* data)
 {
     FLEX_DEBUG_LOG(__FUNCTION__);
     // Alloc. Use <new> - experiment
-    data->locators = new Locator_t[data->header.vertex_count];
+    data->locators = new FlexBody::Locator_t[data->header.vertex_count];
     // Read
-    this->ReadFromFile((void*)data->locators, sizeof(Locator_t) * data->header.vertex_count);
+    this->ReadFromFile((void*)data->locators, sizeof(FlexBody::Locator_t) * data->header.vertex_count);
 }
 
 void FlexBodyFileIO::WriteFlexbodyNormalsBuffer(FlexBody* flexbody)

@@ -34,7 +34,7 @@
 namespace RoR { class FlexFactory; }
 
 /// Consists of static mesh, representing the rim, and dynamic mesh, representing the tire.
-class FlexMeshWheel: public Flexable
+class FlexMeshWheel: public RoR::FlexableMesh
 {
     friend class RoR::FlexFactory;
 
@@ -47,12 +47,11 @@ public:
 
     Ogre::Vector3 updateVertices();
 
-    // Flexable
-    bool flexitPrepare();
-    void flexitCompute();
-    Ogre::Vector3 flexitFinal();
-
-    void setVisible(bool visible);
+    // FlexableMesh
+    bool               FlexitPrepare() override;
+    void               FlexitCompute() override;
+    Ogre::Vector3      FlexitFinal() override;
+    void               SetVisible(bool visible);
 
 private:
 

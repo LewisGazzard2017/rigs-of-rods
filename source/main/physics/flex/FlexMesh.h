@@ -23,7 +23,7 @@
 
 #include "RoRPrerequisites.h"
 
-#include "Flexable.h"
+#include "GfxFlexingMeshes.h"
 
 #include <OgreString.h>
 #include <OgreEntity.h>
@@ -32,7 +32,8 @@
 #include <OgreSubMesh.h>
 #include <OgreHardwareBuffer.h>
 
-class FlexMesh: public Flexable
+/// Generated mesh for wheels, see 'RigSpawner::CreateWheelVisuals()' - Used by truckfile sections "wheels", "wheels2", 
+class FlexMesh: public RoR::FlexableMesh
 {
 public:
 
@@ -53,12 +54,11 @@ public:
 
     Ogre::Vector3 updateVertices();
 
-    // Flexable
-    bool flexitPrepare() { return true; };
-    void flexitCompute();
-    Ogre::Vector3 flexitFinal();
-
-    void setVisible(bool visible) {} // Nothing to do here
+    // FlexableMesh
+    bool               FlexitPrepare() override { return true; }
+    void               FlexitCompute() override;
+    Ogre::Vector3      FlexitFinal() override;
+    void               SetVisible(bool visible) {} // Nothing to do here
 
 private:
 

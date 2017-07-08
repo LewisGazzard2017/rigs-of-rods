@@ -2,7 +2,7 @@
     This source file is part of Rigs of Rods
     Copyright 2005-2012 Pierre-Michel Ricordel
     Copyright 2007-2012 Thomas Fischer
-    Copyright 2013+     Petr Ohlidal & contributors
+    Copyright 2013-2017 Petr Ohlidal & contributors
 
     For more information, see http://www.rigsofrods.org/
 
@@ -19,12 +19,12 @@
     along with Rigs of Rods. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
-    @file   ForwardDeclarations.h
-    @brief  Global forward declarations.
-    @author Petr Ohlidal
-    @date   12/2013
-*/
+
+/// @file   ForwardDeclarations.h
+/// @brief  Global forward declarations.
+/// @author Petr Ohlidal
+/// @date   12/2013
+
 
 #pragma once
 
@@ -32,6 +32,7 @@ namespace RoR
 {
     class  BeamFactory;
     class  ContentManager;
+    class  FlexableMesh;
     class  GfxActor;
     class  GUIManager;
     struct GuiManagerImpl;
@@ -139,7 +140,6 @@ class DustPool;
 class DustManager;
 class Editor;
 class Envmap;
-class Flexable;
 class FlexAirfoil;
 class FlexBody;
 class FlexMesh;
@@ -179,7 +179,6 @@ class SkyManager;
 class SlideNode;
 class ShadowManager;
 class SoundManager;
-class RigInspector; // Debug utility; located in [root]/tools/rig_inspector
 class SoundScriptInstance;
 class SoundScriptManager;
 class Streamable;

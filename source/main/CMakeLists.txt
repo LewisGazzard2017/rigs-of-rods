@@ -52,6 +52,7 @@ set( SOURCE_FILES
   gfx/DynamicRenderable.{h,cpp}
   gfx/EnvironmentMap.{h,cpp}
   gfx/GfxActor.{h,cpp}
+  gfx/GfxFlexingMeshes.{h,cpp}
   gfx/GlowMaterialListener.h
   gfx/HDRListener.{h,cpp}
   gfx/Heathaze.{h,cpp}
@@ -172,14 +173,12 @@ set( SOURCE_FILES
   physics/collision/DynamicCollisions.{h,cpp}
   physics/collision/PointColDetector.{h,cpp}
   physics/collision/Triangle.h
-  physics/flex/Flexable.h
   physics/flex/FlexAirfoil.{h,cpp}
   physics/flex/FlexBody.{h,cpp}
   physics/flex/FlexFactory.{h,cpp}
   physics/flex/FlexMesh.{h,cpp}
   physics/flex/FlexMeshWheel.{h,cpp}
   physics/flex/FlexObj.{h,cpp}
-  physics/flex/Locator_t.h
   physics/mplatform/MPlatformBase.{h,cpp}
   physics/mplatform/MPlatformFD.{h,cpp}
   physics/utils/BeamStats.{h,cpp}

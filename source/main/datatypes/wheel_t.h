@@ -65,7 +65,7 @@ struct vwheel_t
 {
     node_t *p1;
     node_t *p2;
-    Flexable *fm;
+    RoR::FlexableMesh *fm;
     Ogre::SceneNode *cnode;
     bool meshwheel;
 };

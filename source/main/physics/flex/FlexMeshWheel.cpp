@@ -207,12 +207,12 @@ Vector3 FlexMeshWheel::updateVertices()
     return center;
 }
 
-void FlexMeshWheel::setVisible(bool visible)
+void FlexMeshWheel::SetVisible(bool visible)
 {
     if (m_rim_scene_node) m_rim_scene_node->setVisible(visible);
 }
 
-bool FlexMeshWheel::flexitPrepare()
+bool FlexMeshWheel::FlexitPrepare()
 {
     Vector3 center = (m_all_nodes[m_axis_node0_idx].AbsPosition + m_all_nodes[m_axis_node1_idx].AbsPosition) / 2.0;
     m_rim_scene_node->setPosition(center);
@@ -230,12 +230,12 @@ bool FlexMeshWheel::flexitPrepare()
     return true;
 }
 
-void FlexMeshWheel::flexitCompute()
+void FlexMeshWheel::FlexitCompute()
 {
     m_flexit_center = updateVertices();
 }
 
-Vector3 FlexMeshWheel::flexitFinal()
+Vector3 FlexMeshWheel::FlexitFinal()
 {
     m_hw_vbuf->writeData(0, m_hw_vbuf->getSizeInBytes(), m_vertices, true);
     return m_flexit_center;

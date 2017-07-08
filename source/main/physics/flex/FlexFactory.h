@@ -29,8 +29,8 @@
 
 #include "BitFlags.h"
 #include "ForwardDeclarations.h"
-#include "Locator_t.h"
 #include "RigDef_Prerequisites.h"
+#include "FlexBody.h" // For FlexBody::Locator_t
 
 #include <OgreVector3.h>
 #include <OgreColourValue.h>
@@ -80,7 +80,7 @@ struct FlexBodyCacheData
     Ogre::Vector3*    dst_pos;
     Ogre::Vector3*    src_normals;
     Ogre::ARGB*       src_colors;
-    Locator_t*        locators; //!< 1 loc per vertex
+    FlexBody::Locator_t*  locators; //!< 1 loc per vertex
 };
 
 /// Enables saving and loading flexbodies from/to binary file.

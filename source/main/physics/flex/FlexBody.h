@@ -23,8 +23,7 @@
 
 #include "RigDef_Prerequisites.h"
 #include "RoRPrerequisites.h"
-#include "Flexable.h"
-#include "Locator_t.h"
+#include "GfxFlexingMeshes.h"
 
 #include <OgreVector3.h>
 #include <OgreQuaternion.h>
@@ -39,7 +38,8 @@ namespace RoR
     struct FlexBodyCacheData;
 }
 
-class FlexBody : public Flexable
+/// Used by truckfile sections "flexbodies" and "flexbodywheels". Built using `FlexFactory`
+class FlexBody : public RoR::FlexableMesh
 {
     friend class RoR::FlexFactory;
     friend class RoR::FlexBodyFileIO;
@@ -59,6 +59,15 @@ class FlexBody : public Flexable
 
 public:
 
+    struct Locator_t
+    {
+        int ref;
+        int nx;
+        int ny;
+        int nz;
+        Ogre::Vector3 coords;
+    };
+
     ~FlexBody();
 
     void printMeshInfo(Ogre::Mesh* mesh);
@@ -76,12 +85,11 @@ public:
     void setCameraMode(int mode) { m_camera_mode = mode; };
     int getCameraMode() { return m_camera_mode; };
 
-    // Flexable
-    bool flexitPrepare();
-    void flexitCompute();
-    Ogre::Vector3 flexitFinal();
-
-    void setVisible(bool visible);
+    // FlexableMesh
+    bool               FlexitPrepare() override;
+    void               FlexitCompute() override;
+    Ogre::Vector3      FlexitFinal() override;
+    void               SetVisible(bool visible) override;
 
 private:
 

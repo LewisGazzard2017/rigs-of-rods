@@ -3498,13 +3498,13 @@ void Beam::updateFlexbodiesPrepare()
         flexmesh_prepare.reset();
         for (int i = 0; i < free_wheel; i++)
         {
-            flexmesh_prepare.set(i, vwheels[i].cnode && vwheels[i].fm->flexitPrepare());
+            flexmesh_prepare.set(i, vwheels[i].cnode && vwheels[i].fm->FlexitPrepare());
         }
 
         flexbody_prepare.reset();
         for (int i = 0; i < free_flexbody; i++)
         {
-            flexbody_prepare.set(i, flexbodies[i]->flexitPrepare());
+            flexbody_prepare.set(i, flexbodies[i]->FlexitPrepare());
         }
 
         // Push tasks into thread pool
@@ -3514,7 +3514,7 @@ void Beam::updateFlexbodiesPrepare()
             {
                 auto func = std::function<void()>([this, i]()
                     {
-                        flexbodies[i]->flexitCompute();
+                        flexbodies[i]->FlexitCompute();
                     });
                 auto task_handle = gEnv->threadPool->RunTask(func);
                 flexbody_tasks.push_back(task_handle);
@@ -3526,7 +3526,7 @@ void Beam::updateFlexbodiesPrepare()
             {
                 auto func = std::function<void()>([this, i]()
                     {
-                        vwheels[i].fm->flexitCompute();
+                        vwheels[i].fm->FlexitCompute();
                     });
                 auto task_handle = gEnv->threadPool->RunTask(func);
                 flexbody_tasks.push_back(task_handle);
@@ -3537,18 +3537,18 @@ void Beam::updateFlexbodiesPrepare()
     {
         for (int i = 0; i < free_wheel; i++)
         {
-            if (vwheels[i].cnode && vwheels[i].fm->flexitPrepare())
+            if (vwheels[i].cnode && vwheels[i].fm->FlexitPrepare())
             {
-                vwheels[i].fm->flexitCompute();
-                vwheels[i].cnode->setPosition(vwheels[i].fm->flexitFinal());
+                vwheels[i].fm->FlexitCompute();
+                vwheels[i].cnode->setPosition(vwheels[i].fm->FlexitFinal());
             }
         }
         for (int i = 0; i < free_flexbody; i++)
         {
-            if (flexbodies[i]->flexitPrepare())
+            if (flexbodies[i]->FlexitPrepare())
             {
-                flexbodies[i]->flexitCompute();
-                flexbodies[i]->flexitFinal();
+                flexbodies[i]->FlexitCompute();
+                flexbodies[i]->FlexitFinal();
             }
         }
     }
@@ -3764,12 +3764,12 @@ void Beam::updateFlexbodiesFinal()
         for (int i = 0; i < free_wheel; i++)
         {
             if (flexmesh_prepare[i])
-                vwheels[i].cnode->setPosition(vwheels[i].fm->flexitFinal());
+                vwheels[i].cnode->setPosition(vwheels[i].fm->FlexitFinal());
         }
         for (int i = 0; i < free_flexbody; i++)
         {
             if (flexbody_prepare[i])
-                flexbodies[i]->flexitFinal();
+                flexbodies[i]->FlexitFinal();
         }
     }
 
@@ -3818,7 +3818,7 @@ void Beam::showSkeleton(bool meshes, bool linked)
             vwheels[i].cnode->setVisible(false);
 
         if (vwheels[i].fm)
-            vwheels[i].fm->setVisible(false);
+            vwheels[i].fm->SetVisible(false);
     }
 
     for (int i = 0; i < free_prop; i++)
@@ -3891,7 +3891,7 @@ void Beam::hideSkeleton(bool linked)
             vwheels[i].cnode->setVisible(true);
 
         if (vwheels[i].fm)
-            vwheels[i].fm->setVisible(true);
+            vwheels[i].fm->SetVisible(true);
     }
     for (int i = 0; i < free_prop; i++)
     {
@@ -4047,7 +4047,7 @@ void Beam::setMeshVisibility(bool visible)
     }
     for (int i = 0; i < free_flexbody; i++)
     {
-        flexbodies[i]->setVisible(visible);
+        flexbodies[i]->SetVisible(visible);
     }
     for (int i = 0; i < free_wheel; i++)
     {
@@ -4057,7 +4057,7 @@ void Beam::setMeshVisibility(bool visible)
         }
         if (vwheels[i].fm)
         {
-            vwheels[i].fm->setVisible(visible);
+            vwheels[i].fm->SetVisible(visible);
         }
     }
     if (cabNode)
