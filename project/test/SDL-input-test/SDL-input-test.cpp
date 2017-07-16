@@ -4,12 +4,17 @@
 #include "stdafx.h"
 
 // ### http://wiki.libsdl.org/MigrationGuide
+// ### http://lazyfoo.net/tutorials/SDL/19_gamepads_and_joysticks/index.php
+
+//Analog joystick dead zone
+const int JOYSTICK_DEAD_ZONE = 8000;
 
 int main()
 {
+    std::cout << "Hello SDL!"<<std::endl;
     SDL_SetMainReady();
     // Initialize the SDL
-    if (SDL_Init(0) != 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0)
     {
         std::cerr << "SDL_Init() Failed: " << SDL_GetError() << std::endl;
         return 1;
@@ -47,10 +52,15 @@ int main()
         return 1;
     }
 
-    // Fill the window black
-    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+    // Fill the window dark blue
+    SDL_SetRenderDrawColor(sdlRenderer, 0, 20, 60, 255);
     SDL_RenderClear(sdlRenderer);
     SDL_RenderPresent(sdlRenderer);
+
+    //Game Controller 1 handler
+    SDL_Joystick* gGameController = NULL;
+    int num_joy = SDL_NumJoysticks();
+    std::cout <<"Num joysticks: " << num_joy <<std::endl;
 
     // Main loop
     SDL_Event event;
