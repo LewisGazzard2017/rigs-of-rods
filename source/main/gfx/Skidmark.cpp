@@ -235,13 +235,13 @@ void Skidmark::setPointInt(unsigned short index, const Vector3& value, Real fsiz
 
 void Skidmark::updatePoint()
 {
-    Vector3 thisPoint = m_wheel->lastContactType ? m_wheel->lastContactOuter : m_wheel->lastContactInner;
-    Vector3 axis = m_wheel->lastContactType ? (m_wheel->wh_axis_node_1->RelPosition - m_wheel->wh_axis_node_0->RelPosition) : (m_wheel->wh_axis_node_0->RelPosition - m_wheel->wh_axis_node_1->RelPosition);
+    Vector3 thisPoint = m_wheel->wh_last_contact_was_outer ? m_wheel->wh_last_contact_outer : m_wheel->wh_last_contact_inner;
+    Vector3 axis = m_wheel->wh_last_contact_was_outer ? (m_wheel->wh_axis_node_1->RelPosition - m_wheel->wh_axis_node_0->RelPosition) : (m_wheel->wh_axis_node_0->RelPosition - m_wheel->wh_axis_node_1->RelPosition);
     Vector3 thisPointAV = thisPoint + axis * 0.5f;
     Real distance = 0;
     Real maxDist = m_max_distance;
     String texture = "none";
-    m_config->getTexture("default", m_wheel->lastGroundModel->name, m_wheel->lastSlip, texture);
+    m_config->getTexture("default", m_wheel->wh_last_ground_model->name, m_wheel->wh_last_slip, texture);
 
     // dont add points with no texture
     if (texture == "none")
@@ -264,7 +264,6 @@ void Skidmark::updatePoint()
         // too near to update?
         if (distance < m_min_distance)
         {
-            //LOG("E: too near for update");
             return;
         }
 
@@ -321,17 +320,17 @@ void Skidmark::updatePoint()
     // tactics: we always choose the latest point and then create two points
 
     // choose node m_wheel by the latest added point
-    if (!m_wheel->lastContactType)
+    if (!m_wheel->wh_last_contact_was_outer)
     {
         // choose inner
-        this->addPoint(m_wheel->lastContactInner - (axis * overaxis), distance, texture);
-        this->addPoint(m_wheel->lastContactInner + axis + (axis * overaxis), distance, texture);
+        this->addPoint(m_wheel->wh_last_contact_inner - (axis * overaxis), distance, texture);
+        this->addPoint(m_wheel->wh_last_contact_inner + axis + (axis * overaxis), distance, texture);
     }
     else
     {
         // choose outer
-        this->addPoint(m_wheel->lastContactOuter + axis + (axis * overaxis), distance, texture);
-        this->addPoint(m_wheel->lastContactOuter - (axis * overaxis), distance, texture);
+        this->addPoint(m_wheel->wh_last_contact_outer + axis + (axis * overaxis), distance, texture);
+        this->addPoint(m_wheel->wh_last_contact_outer - (axis * overaxis), distance, texture);
     }
 
     // save as last point (in the middle of the m_wheel)
@@ -342,7 +341,6 @@ void Skidmark::addPoint(const Vector3& value, Real fsize, String texture)
 {
     if (m_objects.back().pos >= m_length)
     {
-        //LOG("E: boundary protection hit");
         return;
     }
     setPointInt(m_objects.back().pos, value, fsize, texture);
