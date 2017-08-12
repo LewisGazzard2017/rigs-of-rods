@@ -829,7 +829,8 @@ void CLASS::FrameEntered(float dt)
     }
 
     std::string combo;
-    int keys = RoR::App::GetInputEngine()->getCurrentKeyCombo(&combo);
+   // DISABLED FOR <libSDL> REWRITE // int keys = RoR::App::GetInputEngine()->getCurrentKeyCombo(&combo);
+    int keys = 0; // dummy for line above
     if (keys != 0)
     {
         endTime = Timer + 5000;

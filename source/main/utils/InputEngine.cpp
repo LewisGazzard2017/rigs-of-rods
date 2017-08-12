@@ -351,7 +351,7 @@ GameInputEvent    EV_DOF_DEBUG_FOCUS_OUT           ("DOF_DEBUG_FOCUS_OUT",      
 GameInputEvent    EV_TRUCKEDIT_RELOAD              ("TRUCKEDIT_RELOAD",             "Keyboard EXPL+SHIFT+CTRL+R");    ///< reload truck
 GameInputEvent    EV_TOGGLESHADERS                 ("TOGGLESHADERS",                "Keyboard EXPL+SHIFT+CTRL+S");    ///< toggle shader usage
 
-} // namespace RoR
+//} // namespace RoR --- postponed
 
 //                                                             @@@@@@@@@
 // ############################################################## OLD #############################################################
@@ -1354,6 +1354,7 @@ bool InputEngine::isKeyDownValueBounce(OIS::KeyCode mod, float time)
     }
 }
 
+/* DEADCODE IN ROR
 String InputEngine::getDeviceName(event_trigger_t evt)
 {
     switch (evt.eventtype)
@@ -1377,7 +1378,7 @@ String InputEngine::getDeviceName(event_trigger_t evt)
     }
     return "unknown";
 }
-
+*/
 String InputEngine::getEventTypeName(int type)
 {
     switch (type)
@@ -1425,6 +1426,33 @@ void InputEngine::updateEvent(int eventID, event_trigger_t t)
         events[eventID].clear();
     }
     events[eventID].push_back(t);
+}
+
+void InputEngine::ProcessConfigLine(char* line, int device_id)
+{
+    // Trim leading whitespace
+    while (isblank(line[0]))
+        ++line;
+
+    // Check comment
+    if (line[0] == ';')
+        return;
+
+    // Detect event type
+    char ev_name[301] = {0};
+    char ev_type[301] = {0};
+    sscanf(line, "%s %s", ev_name, ev_type);
+    ev_name[300] = '\0';
+    ev_type[300] = '\0';
+
+    if (strcmp(ev_name, "Keyboard") == 0)
+    {
+        KeyboardTrigger kb_trig;
+        kb_trig.key_code = OIS::KC_UNASSIGNED;
+
+        char key_def[301] = {0};
+        sscanf(line, "%s %s", ev_name, ev_type, key_def);
+    }
 }
 
 bool InputEngine::processLine(char* line, int deviceID)
@@ -1770,6 +1798,7 @@ bool InputEngine::processLine(char* line, int deviceID)
     }
 }
 
+/****** deadcode in RoR
 int InputEngine::getCurrentJoyButton(int& joystickNumber, int& button)
 {
     for (int j = 0; j < free_joysticks; j++)
@@ -1785,7 +1814,7 @@ int InputEngine::getCurrentJoyButton(int& joystickNumber, int& button)
         }
     }
     return 0;
-}
+}****** */
 
 int InputEngine::getCurrentPovValue(int& joystickNumber, int& pov, int& povdir)
 {
@@ -1812,12 +1841,13 @@ event_trigger_t InputEngine::newEvent()
     return res;
 }
 
+/***************** deadcode in RoR
 int InputEngine::getJoyComponentCount(OIS::ComponentType type, int joystickNumber)
 {
     if (joystickNumber > free_joysticks || !mJoy[joystickNumber])
         return 0;
     return mJoy[joystickNumber]->getNumberOfComponents(type);
-}
+}*****************/
 
 std::string InputEngine::getJoyVendor(int joystickNumber)
 {
@@ -1826,12 +1856,13 @@ std::string InputEngine::getJoyVendor(int joystickNumber)
     return mJoy[joystickNumber]->vendor();
 }
 
+/****** deadcode in RoR
 JoyStickState* InputEngine::getCurrentJoyState(int joystickNumber)
 {
     if (joystickNumber > free_joysticks)
         return 0;
     return &joyState[joystickNumber];
-}
+}**** */
 
 int InputEngine::getCurrentKeyCombo(String* combo)
 {

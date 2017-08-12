@@ -35,6 +35,7 @@ class GameInputEvent
 {
     friend class InputEngine;
 public:
+
     GameInputEvent(const char* _name, const char* _def_conf):
         m_name(_name), m_default_setting(_def_conf), m_value_analog(0.f), m_value_bool(false), m_is_bool_fresh(false)
     {}
@@ -381,6 +382,126 @@ extern GameInputEvent    EV_DOF_DEBUG_FOCUS_OUT;
 extern GameInputEvent    EV_TRUCKEDIT_RELOAD;
 extern GameInputEvent    EV_TOGGLESHADERS;
 
+#include "OISEvents.h"
+#include "OISForceFeedback.h"
+#include "OISInputManager.h"
+#include "OISJoyStick.h"
+#include "OISKeyboard.h"
+#include "OISMouse.h"
+
+class InputEngine :
+    public OIS::MouseListener,
+    public OIS::KeyListener,
+    public OIS::JoyStickListener
+{
+    InputEngine();
+    ~InputEngine();
+
+    // ========== Old interface - temporary, to postpone editing of simulation code ~ only_a_ptr, 08/2017 ==========
+
+    enum ValueSource // ET_ANY=digital and analog devices, ET_DIGITAL=only digital, ET_ANALOG=only analog
+    {
+        ET_ANY,
+        ET_DIGITAL,
+        ET_ANALOG
+    };
+
+    float       getEventValue            (GameInputEvent & ev, bool pure = false, int valueSource = ET_ANY);
+    bool        getEventBoolValue        (GameInputEvent & ev);
+    bool        getEventBoolValueBounce  (GameInputEvent & ev, float time = 0.2f);
+    float       getEventBounceTime       (GameInputEvent & ev);
+    std::string getKeyForCommand         (GameInputEvent & ev);
+    bool        isKeyDown                (OIS::KeyCode mod);
+    bool        isKeyDownValueBounce     (OIS::KeyCode mod, float time = 0.2f);
+    void        resetKeys                ();
+    void        smoothValue              (float& ref, float value, float rate);
+    std::string getEventCommand          (GameInputEvent & ev);
+    static int  resolveEventName         (Ogre::String eventName);
+    bool        isEventDefined           (GameInputEvent & ev);
+    bool        getInputsChanged         ();
+    OIS::MouseState getMouseState        ();
+
+    // JoyStickListener
+    bool        buttonReleased           (const OIS::JoyStickEvent& arg, int button) override;
+    bool        buttonPressed            (const OIS::JoyStickEvent& arg, int button) override;
+    bool        axisMoved                (const OIS::JoyStickEvent& arg, int axis) override;
+    bool        sliderMoved              (const OIS::JoyStickEvent&, int) override;
+    bool        povMoved                 (const OIS::JoyStickEvent&, int) override;
+
+    // KeyListener
+    bool        keyPressed               (const OIS::KeyEvent& arg) override;
+    bool        keyReleased              (const OIS::KeyEvent& arg) override;
+
+    // MouseListener
+    bool        mouseMoved               (const OIS::MouseEvent& arg) override;
+    bool        mousePressed             (const OIS::MouseEvent& arg, OIS::MouseButtonID id) override;
+    bool        mouseReleased            (const OIS::MouseEvent& arg, OIS::MouseButtonID id) override;
+
+    // New interface
+    void        ProcessConfigLine        (char* line, int device_id = -1);
+
+private:
+
+    struct MouseTrigger
+    {
+        enum class Type { INVALID, BUTTON, AXIS_X, AXIS_Y, AXIS_Z };
+
+        Type  type;
+        int   mouse_button;
+    };
+
+    struct KeyboardTrigger
+    {
+        OIS::KeyCode  key_code;
+        bool          is_explicit:1;
+        bool          needs_ctrl:1;
+        bool          needs_shift:1;
+        bool          needs_alt:1;
+    };
+
+    struct JoystickTrigger
+    {
+        enum class Type { INVALID, AXIS_ABS, AXIS_REL, POV, SLIDER_X, SLIDER_Y, BUTTON };
+
+        int   joy_number;
+        Type  type;
+        // Axis
+        int   axis_number;
+        float axis_deadzone;
+        float axis_linearity;
+        float axis_region;
+        bool  axis_reverse;
+        bool  axis_half;
+        bool  axis_use_digital;
+        // POV
+        int   pov_number;
+        int   pov_direction;
+        // Slider
+        int   slider_number;
+        int   slider_reverse;
+        int   slider_region;
+    };
+
+    std::vector<MouseTrigger>       m_triggers_mouse;
+    std::vector<KeyboardTrigger>    m_triggers_keyboard;
+    std::vector<JoystickTrigger>    m_triggers_joystick;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //} // namespace RoR // See TODO above.
 
 
@@ -388,6 +509,8 @@ extern GameInputEvent    EV_TOGGLESHADERS;
 //                                                             @@@@@@@@@
 // ############################################################## OLD #############################################################
 //                                                             @@@@@@@@@
+
+#if 0
 
 #include "RoRPrerequisites.h"
 #include "RoRWindowEventUtilities.h"
@@ -838,17 +961,23 @@ public:
 
     std::map<int, std::vector<event_trigger_t>>& getEvents() { return events; };
 
-    Ogre::String getDeviceName(event_trigger_t evt);
-    std::string getEventTypeName(int type);
+  /// DEADCODE IN ROR  Ogre::String getDeviceName(event_trigger_t evt);
+private:
+    std::string getEventTypeName(int type); // only used internally in exporter
+public:
 
     int getCurrentKeyCombo(std::string* combo);
-    int getCurrentJoyButton(int& joystickNumber, int& button);
-    int getCurrentPovValue(int& joystickNumber, int& pov, int& povdir);
+   // deadcode in ROR int getCurrentJoyButton(int& joystickNumber, int& button);
+ // Deadcode in RoR   int getCurrentPovValue(int& joystickNumber, int& pov, int& povdir);
+private:
     std::string getKeyNameForKeyCode(OIS::KeyCode keycode);
+public:
     void resetKeys();
-    OIS::JoyStickState* getCurrentJoyState(int joystickNumber);
-    int getJoyComponentCount(OIS::ComponentType type, int joystickNumber);
+   // deadcode OIS::JoyStickState* getCurrentJoyState(int joystickNumber);
+    /// deadcode      int getJoyComponentCount(OIS::ComponentType type, int joystickNumber);
+private:
     std::string getJoyVendor(int joystickNumber);
+public:
     void smoothValue(float& ref, float value, float rate);
     bool saveMapping(std::string outfile = CONFIGFILENAME, Ogre::String hwnd = 0, int joyNum = -10);
     bool appendLineToConfig(std::string line, std::string outfile = CONFIGFILENAME);
@@ -859,14 +988,14 @@ public:
     Ogre::String getEventCommand(int eventID);
     static int resolveEventName(Ogre::String eventName);
     static Ogre::String eventIDToName(int eventID);
-    event_trigger_t* getEventBySUID(int suid);
+ // deadcode   event_trigger_t* getEventBySUID(int suid);
 
     void setupDefault(Ogre::String inputhwnd = "");
 
     bool isEventDefined(int eventID);
     void addEvent(int eventID, event_trigger_t t);
-    void updateEvent(int eventID, event_trigger_t t);
-    bool deleteEventBySUID(int suid);
+ // deadcode   void updateEvent(int eventID, event_trigger_t t);
+// deadcode    bool deleteEventBySUID(int suid);
     bool getInputsChanged() { return inputsChanged; };
     void prepareShutdown();
     OIS::MouseState getMouseState();
@@ -963,3 +1092,5 @@ protected:
 
     event_trigger_t newEvent();
 };
+
+#endif // #if 0 - skipped
