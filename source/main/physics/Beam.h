@@ -57,19 +57,19 @@ public:
             cache_entry_id(-1), loads_with_map(false), is_free_positioned(false), is_machine(false)
         {}
 
-        int                       actor_id;
-        int                       cache_entry_id;     ///< Needed for flexbody caching. Pass -1 if unavailable (flexbody caching will be disabled)
-        RoR::Str<200>             filename;
-        bool                      loads_with_map;     ///< Is this actor being pre-loaded along with terrain?
-        bool                      is_free_positioned; ///< Disables automatic position adjustments
-        bool                      is_net_remote;      ///< Networking; this is a remote instance
-        bool                      is_machine;
-        Ogre::Vector3             position;
-        Ogre::Quaternion          rotation;
-        collision_box_t*          spawn_box;
-        RoR::SkinDef*             skin;
-        RoR::RigLoadingProfiler*           profiler;
-        const std::vector<Ogre::String> *  module_config;
+        int                             actor_id;
+        int                             cache_entry_id;     ///< Needed for flexbody caching. Pass -1 if unavailable (flexbody caching will be disabled)
+        RoR::Str<200>                   filename;
+        bool                            loads_with_map;     ///< Is this actor being pre-loaded along with terrain?
+        bool                            is_free_positioned; ///< Disables automatic position adjustments
+        bool                            is_net_remote;      ///< Networking; this is a remote instance
+        bool                            is_machine;
+        Ogre::Vector3                   position;
+        Ogre::Quaternion                rotation;
+        collision_box_t*                spawn_box;
+        RoR::SkinDef*                   skin;
+        RoR::RigLoadingProfiler*        profiler;
+        const std::vector<std::string>* module_config;
     };
 
     Beam() {}; // for wrapper, DO NOT USE!

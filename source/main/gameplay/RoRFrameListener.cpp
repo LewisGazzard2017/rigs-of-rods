@@ -1334,12 +1334,7 @@ bool RoRFrameListener::UpdateInputEvents(float dt)
         {
             if (m_last_cache_selection != nullptr)
             {
-                /* We load an extra truck */
-                std::vector<String>* config_ptr = nullptr;
-                if (m_last_vehicle_configs.size() > 0)
-                {
-                    config_ptr = & m_last_vehicle_configs;
-                }
+                // We load an extra truck
 
                 Beam* current_truck = m_beam_factory.getCurrentTruck();
                 if (current_truck != nullptr)
@@ -1356,7 +1351,14 @@ bool RoRFrameListener::UpdateInputEvents(float dt)
                     m_reload_pos = gEnv->player->getPosition();
                 }
 
-                Beam* local_truck = m_beam_factory.CreateLocalRigInstance(m_reload_pos, m_reload_dir, m_last_cache_selection->fname, m_last_cache_selection->number, 0, false, config_ptr, m_last_skin_selection);
+                Beam::SpawnContext context;
+                context.position       = m_reload_pos;
+                context.rotation       = m_reload_dir;
+                context.filename       = m_last_cache_selection->fname.c_str();
+                context.cache_entry_id = m_last_cache_selection->number;
+                context.module_config  = (m_last_vehicle_configs.size() > 0) ? &m_last_vehicle_configs : nullptr;
+                context.skin           = m_last_skin_selection;
+                Beam* local_truck = m_beam_factory.CreateLocalActor(context);
 
                 this->FinalizeTruckSpawning(local_truck, current_truck);
             }
@@ -1375,17 +1377,12 @@ bool RoRFrameListener::UpdateInputEvents(float dt)
                 RoR::SkinDef* skin = App::GetGuiManager()->GetMainSelector()->GetSelectedSkin();
                 if (selection != nullptr)
                 {
-                    /* We load an extra truck */
-                    std::vector<String>* config_ptr = nullptr;
-                    std::vector<String> config = App::GetGuiManager()->GetMainSelector()->GetVehicleConfigs();
-                    if (config.size() > 0)
-                    {
-                        config_ptr = & config;
-                    }
+                    // We load an extra truck
+                    std::vector<String> module_config = App::GetGuiManager()->GetMainSelector()->GetVehicleConfigs();
 
                     m_last_cache_selection = selection;
                     m_last_skin_selection = skin;
-                    m_last_vehicle_configs = config;
+                    m_last_vehicle_configs = module_config;
 
                     Beam* current_truck = m_beam_factory.getCurrentTruck();
 
@@ -1406,7 +1403,14 @@ bool RoRFrameListener::UpdateInputEvents(float dt)
                         }
                     }
 
-                    Beam* local_truck = m_beam_factory.CreateLocalRigInstance(m_reload_pos, m_reload_dir, selection->fname, selection->number, m_reload_box, false, config_ptr, skin);
+                    Beam::SpawnContext context;
+                    context.position       = m_reload_pos;
+                    context.rotation       = m_reload_dir;
+                    context.filename       = selection->fname.c_str();
+                    context.cache_entry_id = selection->number;
+                    context.spawn_box      = m_reload_box;
+                    context.module_config  = (module_config.size() > 0) ? &module_config : nullptr;
+                    Beam* local_truck = m_beam_factory.CreateLocalActor(context);
 
                     this->FinalizeTruckSpawning(local_truck, current_truck);
                 }
@@ -1979,7 +1983,11 @@ void RoRFrameListener::ReloadPlayerActor()
         return;
 
     // try to load the same truck again
-    Beam* newBeam = m_beam_factory.CreateLocalRigInstance(m_reload_pos, m_reload_dir, curr_truck->realtruckfilename, -1);
+    Beam::SpawnContext context;
+    context.position = m_reload_pos;
+    context.rotation = m_reload_dir;
+    context.filename = curr_truck->realtruckfilename.c_str();
+    Beam* newBeam = m_beam_factory.CreateLocalActor(context);
 
     if (!newBeam)
     {
