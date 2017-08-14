@@ -4995,8 +4995,6 @@ Beam::Beam(
     bool ismachine, /* = false  */
     const std::vector<Ogre::String>* truckconfig, /* = nullptr */
     RoR::SkinDef* skin, /* = nullptr */
-    bool freeposition, /* = false */
-    bool preloaded_with_terrain, /* = false */
     int cache_entry_number /* = -1 */
 ) 
     : GUIFeaturesChanged(false)
@@ -5097,7 +5095,6 @@ Beam::Beam(
     /* struct <rig_t> parameters */
 
     trucknum = truck_number;
-    freePositioned = freeposition;
     usedSkin = skin;
     networking = _networking;
     memset(truckname, 0, 256);
