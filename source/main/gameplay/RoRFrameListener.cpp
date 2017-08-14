@@ -2522,5 +2522,11 @@ void RoRFrameListener::EnterGameplayLoop()
 
 Beam*  RoRFrameListener::SpawnActorWithMap(const char* filename, Ogre::Vector3 position, Ogre::Quaternion rotation, bool is_machine, bool free_positioned)
 {
+    Beam::SpawnContext context;
+    context.position = position;
+    context.rotation = rotation;
+    context.is_machine = is_machine;
+    context.is_free_positioned = free_positioned;
 
+    return m_beam_factory.CreateLocalActor(context);
 }

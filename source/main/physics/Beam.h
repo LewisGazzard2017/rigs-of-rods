@@ -49,24 +49,24 @@ public:
     /// All info necessary to spawn and configure an actor.
     /// Historically, the spawning was very convoluted and involved multiple functions with too many arguments. This struct helps to clean it up.
     /// NOTE: This is not an ideal place to define the struct, but it best fits existing code. ~ only_a_ptr, 08/2017
-    struct SpawnConfig
+    struct SpawnContext
     {
-        SpawnConfig():
-            actor_id(-1), position(Ogre::Vector3::ZERO), rotation(Ogre::Quaternion::IDENTITY),
-            profiler(nullptr), collision_box(nullptr), skin(nullptr), module_config(nullptr),
+        SpawnContext():
+            actor_id(-1), position(Ogre::Vector3::ZERO), rotation(Ogre::Quaternion::ZERO),
+            profiler(nullptr), spawn_box(nullptr), skin(nullptr), module_config(nullptr),
             cache_entry_id(-1), loads_with_map(false), is_free_positioned(false), is_machine(false)
         {}
 
         int                       actor_id;
         int                       cache_entry_id;     ///< Needed for flexbody caching. Pass -1 if unavailable (flexbody caching will be disabled)
-        Str<200>                  filename;
+        RoR::Str<200>             filename;
         bool                      loads_with_map;     ///< Is this actor being pre-loaded along with terrain?
         bool                      is_free_positioned; ///< Disables automatic position adjustments
         bool                      is_net_remote;      ///< Networking; this is a remote instance
         bool                      is_machine;
         Ogre::Vector3             position;
         Ogre::Quaternion          rotation;
-        collision_box_t*          collision_box;
+        collision_box_t*          spawn_box;
         RoR::SkinDef*             skin;
         RoR::RigLoadingProfiler*           profiler;
         const std::vector<Ogre::String> *  module_config;
@@ -75,7 +75,7 @@ public:
     Beam() {}; // for wrapper, DO NOT USE!
     ~Beam();
 
-    Beam(SpawnConfig const & config);
+    Beam(SpawnContext & context);
 
 #ifdef USE_ANGELSCRIPT
     // we have to add this to be able to use the class as reference inside scripts
@@ -538,10 +538,8 @@ public:
 
 private:
 
-    bool LoadTruck( ///< Spawn helper; invoked from constructor
-        Ogre::SceneNode *parent_scene_node,
-        SpawnConfig const & config
-    );
+    /// Spawn helper; invoked from constructor
+    bool LoadTruck(Ogre::SceneNode *parent_scene_node, SpawnContext& context);
 
     /**
     * TIGHT LOOP; Physics & sound;

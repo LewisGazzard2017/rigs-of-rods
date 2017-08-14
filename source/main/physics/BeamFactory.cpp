@@ -207,20 +207,11 @@ BeamFactory::~BeamFactory()
 
 #define LOADRIG_PROFILER_CHECKPOINT(ENTRY_ID) rig_loading_profiler.Checkpoint(RoR::RigLoadingProfiler::ENTRY_ID);
 
-Beam* BeamFactory::CreateLocalRigInstance(
-    Ogre::Vector3 pos,
-    Ogre::Quaternion rot,
-    Ogre::String fname,
-    int cache_entry_number, // = -1,
-    collision_box_t* spawnbox /* = nullptr */,
-    bool ismachine /* = false */,
-    const std::vector<Ogre::String>* truckconfig /* = nullptr */,
-    RoR::SkinDef* skin /* = nullptr */,
-    bool freePosition, /* = false */
-    bool preloaded_with_terrain /* = false */
-)
+Beam* BeamFactory::CreateLocalActor(Beam::SpawnContext& context)
 {
     RoR::RigLoadingProfiler rig_loading_profiler;
+    context.profiler = &rig_loading_profiler;
+
 #ifdef ROR_PROFILE_RIG_LOADING
     ::Profiler::reset();
 #endif
@@ -232,25 +223,9 @@ Beam* BeamFactory::CreateLocalRigInstance(
         return 0;
     }
 
-    Beam* b = new Beam(
-        m_sim_controller,
-        truck_num,
-        pos,
-        rot,
-        fname.c_str(),
-        &rig_loading_profiler,
-        false, // networked
-        (RoR::App::mp_state.GetActive() == RoR::MpState::CONNECTED), // networking
-        spawnbox,
-        ismachine,
-        truckconfig,
-        skin,
-        freePosition,
-        preloaded_with_terrain,
-        cache_entry_number
-    );
+    Beam* b = new Beam(context);
 
-    if (b->state == INVALID)
+    if (b->state == INVALID) // TODO: create a proper beam factory function so we don't need hacks like this ~ only_a_ptr, 08/2017
     {
         this->DeleteTruck(b);
         return nullptr;
@@ -314,33 +289,26 @@ int BeamFactory::CreateRemoteInstance(RoRnet::TruckStreamRegister* reg)
         truckconfig.push_back(String(reg->truckconfig[t]));
     }
 
-    // DO NOT spawn the truck far off anywhere
-    // the truck parsing will break flexbodies initialization when using huge numbers here
-    Vector3 pos = Vector3::ZERO;
-
     int truck_num = this->GetFreeTruckSlot();
     if (truck_num == -1)
     {
         LOG("ERROR: could not add beam to main list");
         return -1;
     }
-    RoR::RigLoadingProfiler p; // TODO: Placeholder. Use it
-    Beam* b = new Beam(
-        m_sim_controller,
-        truck_num,
-        pos,
-        Quaternion::ZERO,
-        reg->name,
-        &p,
-        true, // networked
-        (RoR::App::mp_state.GetActive() == RoR::MpState::CONNECTED), // networking
-        nullptr, // spawnbox
-        false, // ismachine
-        &truckconfig,
-        nullptr // skin
-    );
+    RoR::RigLoadingProfiler profiler; // TODO: Placeholder. Use it
 
-    if (b->state == INVALID)
+    Beam::SpawnContext context;
+    context.filename = reg->name;
+    context.actor_id = truck_num;
+    context.position = Vector3::ZERO;
+    context.rotation = Quaternion::ZERO;
+    context.profiler = &profiler;
+    context.is_net_remote = true;
+    context.module_config = &truckconfig;
+
+    Beam* b = new Beam(context);
+
+    if (b->state == INVALID) // TODO: create a proper beam factory function so we don't need hacks like this ~ only_a_ptr, 08/2017
     {
         this->DeleteTruck(b);
         return -1;

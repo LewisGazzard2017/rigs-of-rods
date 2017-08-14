@@ -87,7 +87,7 @@
 // DEBUG UTILITY
 //#include "d:\Projects\Git\rigs-of-rods\tools\rig_inspector\RoR_RigInspector.h"
 
-#define LOAD_RIG_PROFILE_CHECKPOINT(ENTRY) config.profiler->Checkpoint(RoR::RigLoadingProfiler::ENTRY);
+#define LOAD_RIG_PROFILE_CHECKPOINT(ENTRY) context.profiler->Checkpoint(RoR::RigLoadingProfiler::ENTRY);
 
 #include "RigDef_Parser.h"
 #include "RigDef_Validator.h"
@@ -924,7 +924,7 @@ void Beam::determineLinkedBeams()
 
     lookup_table.insert(std::pair<Beam*, bool>(this, false));
     
-    auto interTruckLinks = m_sim_controller->GetBeamFactory()->interTruckLinks;
+    auto interTruckLinks = App::GetSimController()->GetBeamFactory()->interTruckLinks;
 
     while (found)
     {
@@ -993,8 +993,8 @@ Vector3 Beam::calculateCollisionOffset(Vector3 direction)
     Real max_distance = direction.length();
     direction.normalise();
 
-    Beam** trucks = m_sim_controller->GetBeamFactory()->getTrucks();
-    int trucksnum = m_sim_controller->GetBeamFactory()->getTruckCount();
+    Beam** trucks = App::GetSimController()->GetBeamFactory()->getTrucks();
+    int trucksnum = App::GetSimController()->GetBeamFactory()->getTruckCount();
 
     if (intraPointCD)
         intraPointCD->update(this, true);
@@ -2899,11 +2899,11 @@ void Beam::prepareInside(bool inside)
 
 void Beam::lightsToggle()
 {
-    Beam** trucks = m_sim_controller->GetBeamFactory()->getTrucks();
-    int trucksnum = m_sim_controller->GetBeamFactory()->getTruckCount();
+    Beam** trucks = App::GetSimController()->GetBeamFactory()->getTrucks();
+    int trucksnum = App::GetSimController()->GetBeamFactory()->getTruckCount();
 
     // export light command
-    Beam* current_truck = m_sim_controller->GetBeamFactory()->getCurrentTruck();
+    Beam* current_truck = App::GetSimController()->GetBeamFactory()->getCurrentTruck();
     if (state == SIMULATED && this == current_truck && forwardcommands)
     {
         for (int i = 0; i < trucksnum; i++)
@@ -3162,7 +3162,7 @@ void Beam::updateFlares(float dt, bool isCurrent)
         }
         else if (flares[i].type == 'u' && flares[i].controlnumber != -1)
         {
-            if (state == SIMULATED && this == m_sim_controller->GetBeamFactory()->getCurrentTruck()) // no network!!
+            if (state == SIMULATED && this == App::GetSimController()->GetBeamFactory()->getCurrentTruck()) // no network!!
             {
                 // networked customs are set directly, so skip this
                 if (RoR::App::GetInputEngine()->getEventBoolValue(EV_TRUCK_LIGHTTOGGLE01 + (flares[i].controlnumber - 1)) && mTimeUntilNextToggle <= 0)
@@ -3747,7 +3747,7 @@ void Beam::addInterTruckBeam(beam_t* beam, Beam* a, Beam* b)
     }
 
     std::pair<Beam*, Beam*> truck_pair(a, b);
-    m_sim_controller->GetBeamFactory()->interTruckLinks[beam] = truck_pair;
+    App::GetSimController()->GetBeamFactory()->interTruckLinks[beam] = truck_pair;
 
     a->determineLinkedBeams();
     for (auto truck : a->linkedBeams)
@@ -3766,11 +3766,11 @@ void Beam::removeInterTruckBeam(beam_t* beam)
         interTruckBeams.erase(pos);
     }
 
-    auto it = m_sim_controller->GetBeamFactory()->interTruckLinks.find(beam);
-    if (it != m_sim_controller->GetBeamFactory()->interTruckLinks.end())
+    auto it = App::GetSimController()->GetBeamFactory()->interTruckLinks.find(beam);
+    if (it != App::GetSimController()->GetBeamFactory()->interTruckLinks.end())
     {
         auto truck_pair = it->second;
-        m_sim_controller->GetBeamFactory()->interTruckLinks.erase(it);
+        App::GetSimController()->GetBeamFactory()->interTruckLinks.erase(it);
 
         truck_pair.first->determineLinkedBeams();
         for (auto truck : truck_pair.first->linkedBeams)
@@ -3785,7 +3785,7 @@ void Beam::removeInterTruckBeam(beam_t* beam)
 void Beam::disjoinInterTruckBeams()
 {
     interTruckBeams.clear();
-    auto interTruckLinks = &m_sim_controller->GetBeamFactory()->interTruckLinks;
+    auto interTruckLinks = &App::GetSimController()->GetBeamFactory()->interTruckLinks;
     for (auto it = interTruckLinks->begin(); it != interTruckLinks->end();)
     {
         auto truck_pair = it->second;
@@ -3812,11 +3812,11 @@ void Beam::disjoinInterTruckBeams()
 
 void Beam::tieToggle(int group)
 {
-    Beam** trucks = m_sim_controller->GetBeamFactory()->getTrucks();
-    int trucksnum = m_sim_controller->GetBeamFactory()->getTruckCount();
+    Beam** trucks = App::GetSimController()->GetBeamFactory()->getTrucks();
+    int trucksnum = App::GetSimController()->GetBeamFactory()->getTruckCount();
 
     // export tie commands
-    Beam* current_truck = m_sim_controller->GetBeamFactory()->getCurrentTruck();
+    Beam* current_truck = App::GetSimController()->GetBeamFactory()->getCurrentTruck();
     if (state == SIMULATED && this == current_truck && forwardcommands)
     {
         for (int i = 0; i < trucksnum; i++)
@@ -3936,8 +3936,8 @@ void Beam::tieToggle(int group)
 
 void Beam::ropeToggle(int group)
 {
-    Beam** trucks = m_sim_controller->GetBeamFactory()->getTrucks();
-    int trucksnum = m_sim_controller->GetBeamFactory()->getTruckCount();
+    Beam** trucks = App::GetSimController()->GetBeamFactory()->getTrucks();
+    int trucksnum = App::GetSimController()->GetBeamFactory()->getTruckCount();
 
     // iterate over all ropes
     for (std::vector<rope_t>::iterator it = ropes.begin(); it != ropes.end(); it++)
@@ -4005,8 +4005,8 @@ void Beam::ropeToggle(int group)
 
 void Beam::hookToggle(int group, hook_states mode, int node_number)
 {
-    Beam** trucks = m_sim_controller->GetBeamFactory()->getTrucks();
-    int trucksnum = m_sim_controller->GetBeamFactory()->getTruckCount();
+    Beam** trucks = App::GetSimController()->GetBeamFactory()->getTrucks();
+    int trucksnum = App::GetSimController()->GetBeamFactory()->getTruckCount();
 
     // iterate over all hooks
     for (std::vector<hook_t>::iterator it = hooks.begin(); it != hooks.end(); it++)
@@ -4982,7 +4982,7 @@ void Beam::engineTriggerHelper(int engineNumber, int type, float triggerValue)
     }
 }
 
-Beam::Beam(SpawnConfig const & config)
+Beam::Beam(SpawnContext& context)
     : GUIFeaturesChanged(false)
     , aileron(0)
     , avichatter_timer(11.0f) // some pseudo random number,  doesn't matter
@@ -5015,13 +5015,13 @@ Beam::Beam(SpawnConfig const & config)
     , hydroelevatorstate(0)
     , hydroruddercommand(0)
     , hydrorudderstate(0)
-    , iPosition(config.position)
+    , iPosition(context.position)
     , increased_accuracy(false)
     , interPointCD()
     , intraPointCD()
     , isInside(false)
     , lastNetUpdateTime(0)
-    , lastposition(config.position)
+    , lastposition(context.position)
     , leftMirrorAngle(0.52)
     , lights(1)
     , locked(0)
@@ -5049,7 +5049,7 @@ Beam::Beam(SpawnConfig const & config)
     , oldreplaypos(-1)
     , parkingbrake(0)
     , posStorage(0)
-    , position(config.position)
+    , position(context.position)
     , previousGear(0)
     , refpressure(50.0)
     , replay(0)
@@ -5072,37 +5072,38 @@ Beam::Beam(SpawnConfig const & config)
     , watercontact(false)
     , watercontactold(false)
 {
-    RoR::LogFormat(" ===== LOADING VEHICLE: %s ===== ", config.filename.ToCStr());
+    RoR::LogFormat(" ===== LOADING VEHICLE: %s ===== ", context.filename.ToCStr());
 
     high_res_wheelnode_collisions = BSETTING("HighResWheelNodeCollisions", false);
     useSkidmarks                  = RoR::App::gfx_skidmarks_mode.GetActive() == 1;
-    trucknum                      = config.actor_id;
-    usedSkin                      = config.skin;
+    trucknum                      = context.actor_id;
+    usedSkin                      = context.skin;
     networking                    = App::mp_state.GetActive() == RoR::MpState::CONNECTED;
-    driveable                     = (config.is_machine) ? MACHINE : NOT_DRIVEABLE;
-    realtruckfilename             = config.filename.ToCStr();
+    driveable                     = (context.is_machine) ? MACHINE : NOT_DRIVEABLE;
+    realtruckfilename             = context.filename.ToCStr();
 
     memset(truckname, 0, 256);
     sprintf(truckname, "t%i", trucknum);
 
     // copy truck config
-    if (config.module_config != nullptr && config.module_config->size() > 0u)
+    if (context.module_config != nullptr && context.module_config->size() > 0u)
     {
-        for (std::vector<Ogre::String>::const_iterator it = config.module_config->begin(); it != config.module_config->end(); ++it)
+        for (std::vector<Ogre::String>::const_iterator it = context.module_config->begin(); it != context.module_config->end(); ++it)
         {
             m_truck_config.push_back(*it);
         }
     }
 
+    // TODO: per guidelines, spawning OGRE objects should be deferred to `RigSpawner::FinalizeGfxSetup()`.
     Ogre::SceneNode* beams_parent = gEnv->sceneManager->getRootSceneNode()->createChildSceneNode();
 
     LOAD_RIG_PROFILE_CHECKPOINT(ENTRY_BEAM_CTOR_PREPARE_LOADTRUCK);
 
-    if (config.filename.GetLength()) // TODO: why is such a check even here? ~ only_a_ptr, 08/2017
+    if (context.filename.GetLength()) // TODO: why is such a check even here? ~ only_a_ptr, 08/2017
     {
-        if (! LoadTruck(config.profiler, config.filename.ToCStr(), beams_parent, config.position, config.rotation, spawnbox, cache_entry_number))
+        if (! LoadTruck(beams_parent, context))
         {
-            LOG(" ===== FAILED LOADING VEHICLE: " + Ogre::String(fname));
+            RoR::LogFormat(" ===== FAILED TO LOAD VEHICLE: %s =====", context.filename.ToCStr());
             state = INVALID;
             return;
         }
@@ -5113,7 +5114,7 @@ Beam::Beam(SpawnConfig const & config)
 
     // setup replay mode
 
-    if (App::sim_replay_enabled.GetActive() && !config.is_net_remote && !networking)
+    if (App::sim_replay_enabled.GetActive() && !context.is_net_remote && !networking)
     {
         replaylen = App::sim_replay_length.GetActive();
         replay = new Replay(this, replaylen);
@@ -5178,7 +5179,7 @@ Beam::Beam(SpawnConfig const & config)
     state = SLEEPING;
 
     // start network stuff
-    if (config.is_net_remote)
+    if (context.is_net_remote)
     {
         state = NETWORKED;
         // malloc memory
@@ -5238,30 +5239,25 @@ Beam::Beam(SpawnConfig const & config)
 
     mCamera = gEnv->mainCamera;
 
-    // DEBUG UTILITY
-    // RigInspector::InspectRig(this, "d:\\Projects\\Rigs of Rods\\rig-inspection\\NextStable.log");
-
     LOG(" ===== DONE LOADING VEHICLE");
 }
 
-bool Beam::LoadTruck(
-    Ogre::SceneNode* parent_scene_node,
-    SpawnConfig const & config)
+bool Beam::LoadTruck(Ogre::SceneNode* parent_scene_node, SpawnContext & context)
 {
-    /* add custom include path */
+    // add custom include path
     if (!SSETTING("resourceIncludePath", "").empty())
     {
         Ogre::ResourceGroupManager::getSingleton().addResourceLocation(SSETTING("resourceIncludePath", ""), "FileSystem", "customInclude");
     }
 
-    /* initialize custom include path */
+    // initialize custom include path
     if (!SSETTING("resourceIncludePath", "").empty())
     {
         Ogre::ResourceBackgroundQueue::getSingleton().initialiseResourceGroup("customInclude");
     }
 
     Ogre::DataStreamPtr ds = Ogre::DataStreamPtr();
-    Ogre::String fixed_file_name = config.filename;
+    Ogre::String fixed_file_name = context.filename.ToCStr();
     Ogre::String found_resource_group;
     Ogre::String errorStr;
 
@@ -5301,7 +5297,7 @@ bool Beam::LoadTruck(
 
     /* PARSING */
 
-    std::string file_name = config.filename; // TODO: temporary mess while refactoring. Clean up! ~ only_a_ptr, 08/2017
+    std::string file_name = context.filename.ToCStr(); // TODO: temporary alias helper for refactoring. Clean up! ~ only_a_ptr, 08/2017
     LOG(" == Parsing vehicle file: " + file_name);
 
     RigDef::Parser parser;
@@ -5370,7 +5366,7 @@ bool Beam::LoadTruck(
     LOG(" == Spawning vehicle: " + parser.GetFile()->name);
 
     RigSpawner spawner(App::GetSimController());
-    spawner.Setup(this, parser.GetFile(), parent_scene_node, config.position, config.cache_entry_id);
+    spawner.Setup(this, parser.GetFile(), parent_scene_node, context.position, context.cache_entry_id);
     LOAD_RIG_PROFILE_CHECKPOINT(ENTRY_BEAM_LOADTRUCK_SPAWNER_SETUP);
     /* Setup modules */
     spawner.AddModule(parser.GetFile()->root_module);
@@ -5418,14 +5414,14 @@ bool Beam::LoadTruck(
     // Apply spawn position & spawn rotation
     for (int i = 0; i < free_node; i++)
     {
-        nodes[i].AbsPosition = config.position + config.rotation * (nodes[i].AbsPosition - config.position);
+        nodes[i].AbsPosition = context.position + context.rotation * (nodes[i].AbsPosition - context.position);
         nodes[i].RelPosition = nodes[i].AbsPosition - origin;
     };
 
     /* Place correctly */
     if (! parser.GetFile()->HasFixes())
     {
-        Ogre::Vector3 vehicle_position = config.position;
+        Ogre::Vector3 vehicle_position = context.position;
 
         // check if over-sized
         RigSpawner::RecalculateBoundingBoxes(this);
@@ -5439,28 +5435,31 @@ bool Beam::LoadTruck(
             miny = vehicle_position.y;
         }
 
-        if (spawn_box != nullptr)
+        if (context.spawn_box != nullptr)
         {
-            miny = spawn_box->relo.y + spawn_box->center.y;
+            miny = context.spawn_box->relo.y + context.spawn_box->center.y;
         }
 
-        if (config.is_free_positioned)
+        if (context.is_free_positioned)
             resetPosition(vehicle_position, true);
         else
             resetPosition(vehicle_position.x, vehicle_position.z, true, miny);
 
-        if (spawn_box != nullptr)
+        if (context.spawn_box != nullptr)
         {
             bool inside = true;
 
             for (int i = 0; i < free_node; i++)
-                inside = (inside && gEnv->collisions->isInside(nodes[i].AbsPosition, spawn_box, 0.2f));
+                inside = (inside && gEnv->collisions->isInside(nodes[i].AbsPosition, context.spawn_box, 0.2f));
 
             if (!inside)
             {
                 Vector3 gpos = Vector3(vehicle_position.x, 0.0f, vehicle_position.z);
 
-                gpos -= config.rotation * Vector3((spawn_box->hi.x - spawn_box->lo.x + boundingBox.getMaximum().x - boundingBox.getMinimum().x) * 0.6f, 0.0f, 0.0f);
+                gpos -= context.rotation * Vector3(
+                    (context.spawn_box->hi.x - context.spawn_box->lo.x + boundingBox.getMaximum().x - boundingBox.getMinimum().x) * 0.6f,
+                    0.0f,
+                    0.0f);
 
                 resetPosition(gpos.x, gpos.z, true, miny);
             }
@@ -5468,7 +5467,7 @@ bool Beam::LoadTruck(
     }
     else
     {
-        resetPosition(config.position, true);
+        resetPosition(context.position, true);
     }
     LOAD_RIG_PROFILE_CHECKPOINT(ENTRY_BEAM_LOADTRUCK_FIXES);
 

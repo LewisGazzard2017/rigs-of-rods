@@ -130,17 +130,8 @@ private:
 
     void RemoveActorByCollisionBox(Collisions* collisions, const Ogre::String& inst, const Ogre::String& box); ///< Only for scripting
     void removeTruck(int truck); ///< Internal+friends use only; see `RoRFrameListener::*Actor*()` functions.
-    
-    /// @param cache_entry_number Needed for flexbody caching. Pass -1 if unavailable (flexbody caching will be disabled)
-    Beam* CreateLocalRigInstance(
-        Ogre::Vector3 pos,
-        Ogre::Quaternion rot,
-        Ogre::String fname,
-        int cache_entry_number = -1,
-        collision_box_t* spawnbox = NULL,
-        bool ismachine = false,
-        const std::vector<Ogre::String>* truckconfig = nullptr,
-        RoR::SkinDef* skin = nullptr);
+
+    Beam* CreateLocalActor(Beam::SpawnContext& context);
 
     /// Returns whether or not the two (scaled) bounding boxes intersect.
     bool intersectionAABB(Ogre::AxisAlignedBox a, Ogre::AxisAlignedBox b, float scale = 1.0f);
