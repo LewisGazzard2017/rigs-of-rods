@@ -54,7 +54,7 @@ public:
         SpawnConfig():
             actor_id(-1), position(Ogre::Vector3::ZERO), rotation(Ogre::Quaternion::IDENTITY),
             profiler(nullptr), collision_box(nullptr), skin(nullptr), module_config(nullptr),
-            cache_entry_id(-1), loads_with_map(false), is_free_positioned(false)
+            cache_entry_id(-1), loads_with_map(false), is_free_positioned(false), is_machine(false)
         {}
 
         int                       actor_id;
@@ -63,6 +63,7 @@ public:
         bool                      loads_with_map;     ///< Is this actor being pre-loaded along with terrain?
         bool                      is_free_positioned; ///< Disables automatic position adjustments
         bool                      is_net_remote;      ///< Networking; this is a remote instance
+        bool                      is_machine;
         Ogre::Vector3             position;
         Ogre::Quaternion          rotation;
         collision_box_t*          collision_box;
@@ -125,19 +126,6 @@ public:
      * Return the rotation center of the truck
      */
     Ogre::Vector3 getRotationCenter();
-
-    /**
-    * Spawns vehicle.
-    */
-    bool LoadTruck(
-        RoR::RigLoadingProfiler* rig_loading_profiler,
-        Ogre::String const & file_name,
-        Ogre::SceneNode *parent_scene_node,
-        Ogre::Vector3 const & spawn_position,
-        Ogre::Quaternion & spawn_rotation,
-        collision_box_t *spawn_box,
-        int cache_entry_number = -1
-    );
 
     inline VehicleAI*    getVehicleAI()                   { return vehicle_ai; }
     inline bool          IsNodeIdValid(int id) const      { return (id > 0) && (id < free_node); }
@@ -548,7 +536,12 @@ public:
 
     void UpdatePropAnimations(const float dt);
 
-protected:
+private:
+
+    bool LoadTruck( ///< Spawn helper; invoked from constructor
+        Ogre::SceneNode *parent_scene_node,
+        SpawnConfig const & config
+    );
 
     /**
     * TIGHT LOOP; Physics & sound;

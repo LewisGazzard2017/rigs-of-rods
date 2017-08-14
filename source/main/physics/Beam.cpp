@@ -87,7 +87,7 @@
 // DEBUG UTILITY
 //#include "d:\Projects\Git\rigs-of-rods\tools\rig_inspector\RoR_RigInspector.h"
 
-#define LOAD_RIG_PROFILE_CHECKPOINT(ENTRY) rig_loading_profiler->Checkpoint(RoR::RigLoadingProfiler::ENTRY);
+#define LOAD_RIG_PROFILE_CHECKPOINT(ENTRY) config.profiler->Checkpoint(RoR::RigLoadingProfiler::ENTRY);
 
 #include "RigDef_Parser.h"
 #include "RigDef_Validator.h"
@@ -4982,10 +4982,8 @@ void Beam::engineTriggerHelper(int engineNumber, int type, float triggerValue)
     }
 }
 
-Beam::Beam(SpawnConfig const & config
-) 
+Beam::Beam(SpawnConfig const & config)
     : GUIFeaturesChanged(false)
-    , m_sim_controller(App::GetSimController())
     , aileron(0)
     , avichatter_timer(11.0f) // some pseudo random number,  doesn't matter
     , m_beacon_light_is_active(false)
@@ -5017,13 +5015,13 @@ Beam::Beam(SpawnConfig const & config
     , hydroelevatorstate(0)
     , hydroruddercommand(0)
     , hydrorudderstate(0)
-    , iPosition(pos)
+    , iPosition(config.position)
     , increased_accuracy(false)
     , interPointCD()
     , intraPointCD()
     , isInside(false)
     , lastNetUpdateTime(0)
-    , lastposition(pos)
+    , lastposition(config.position)
     , leftMirrorAngle(0.52)
     , lights(1)
     , locked(0)
@@ -5032,7 +5030,6 @@ Beam::Beam(SpawnConfig const & config
     , m_custom_camera_node(-1)
     , m_hide_own_net_label(BSETTING("HideOwnNetLabel", false))
     , m_is_cinecam_rotation_center(false)
-    , m_preloaded_with_terrain(preloaded_with_terrain)
     , m_reset_request(REQUEST_RESET_NONE)
     , m_source_id(0)
     , m_spawn_rotation(0.0)
@@ -5052,7 +5049,7 @@ Beam::Beam(SpawnConfig const & config
     , oldreplaypos(-1)
     , parkingbrake(0)
     , posStorage(0)
-    , position(pos)
+    , position(config.position)
     , previousGear(0)
     , refpressure(50.0)
     , replay(0)
@@ -5075,30 +5072,23 @@ Beam::Beam(SpawnConfig const & config
     , watercontact(false)
     , watercontactold(false)
 {
+    RoR::LogFormat(" ===== LOADING VEHICLE: %s ===== ", config.filename.ToCStr());
+
     high_res_wheelnode_collisions = BSETTING("HighResWheelNodeCollisions", false);
-    useSkidmarks = RoR::App::gfx_skidmarks_mode.GetActive() == 1;
-    LOG(" ===== LOADING VEHICLE: " + Ogre::String(fname));
+    useSkidmarks                  = RoR::App::gfx_skidmarks_mode.GetActive() == 1;
+    trucknum                      = config.actor_id;
+    usedSkin                      = config.skin;
+    networking                    = App::mp_state.GetActive() == RoR::MpState::CONNECTED;
+    driveable                     = (config.is_machine) ? MACHINE : NOT_DRIVEABLE;
+    realtruckfilename             = config.filename.ToCStr();
 
-    /* struct <rig_t> parameters */
-
-    trucknum = truck_number;
-    usedSkin = skin;
-    networking = _networking;
     memset(truckname, 0, 256);
-    sprintf(truckname, "t%i", truck_number);
-    driveable = NOT_DRIVEABLE;
-    if (ismachine)
-    {
-        driveable = MACHINE;
-    }
-
-    /* class <Beam> parameters */
-    realtruckfilename = Ogre::String(fname);
+    sprintf(truckname, "t%i", trucknum);
 
     // copy truck config
-    if (truckconfig != nullptr && truckconfig->size() > 0u)
+    if (config.module_config != nullptr && config.module_config->size() > 0u)
     {
-        for (std::vector<Ogre::String>::const_iterator it = truckconfig->begin(); it != truckconfig->end(); ++it)
+        for (std::vector<Ogre::String>::const_iterator it = config.module_config->begin(); it != config.module_config->end(); ++it)
         {
             m_truck_config.push_back(*it);
         }
@@ -5108,9 +5098,9 @@ Beam::Beam(SpawnConfig const & config
 
     LOAD_RIG_PROFILE_CHECKPOINT(ENTRY_BEAM_CTOR_PREPARE_LOADTRUCK);
 
-    if (strnlen(fname, 200) > 0)
+    if (config.filename.GetLength()) // TODO: why is such a check even here? ~ only_a_ptr, 08/2017
     {
-        if (! LoadTruck(rig_loading_profiler, fname, beams_parent, pos, rot, spawnbox, cache_entry_number))
+        if (! LoadTruck(config.profiler, config.filename.ToCStr(), beams_parent, config.position, config.rotation, spawnbox, cache_entry_number))
         {
             LOG(" ===== FAILED LOADING VEHICLE: " + Ogre::String(fname));
             state = INVALID;
@@ -5123,7 +5113,7 @@ Beam::Beam(SpawnConfig const & config
 
     // setup replay mode
 
-    if (App::sim_replay_enabled.GetActive() && !_networked && !networking)
+    if (App::sim_replay_enabled.GetActive() && !config.is_net_remote && !networking)
     {
         replaylen = App::sim_replay_length.GetActive();
         replay = new Replay(this, replaylen);
@@ -5188,7 +5178,7 @@ Beam::Beam(SpawnConfig const & config
     state = SLEEPING;
 
     // start network stuff
-    if (_networked)
+    if (config.is_net_remote)
     {
         state = NETWORKED;
         // malloc memory
@@ -5255,22 +5245,14 @@ Beam::Beam(SpawnConfig const & config
 }
 
 bool Beam::LoadTruck(
-    RoR::RigLoadingProfiler* rig_loading_profiler,
-    Ogre::String const& file_name,
     Ogre::SceneNode* parent_scene_node,
-    Ogre::Vector3 const& spawn_position,
-    Ogre::Quaternion& spawn_rotation,
-    collision_box_t* spawn_box,
-    int cache_entry_number // = -1
-)
+    SpawnConfig const & config)
 {
     /* add custom include path */
     if (!SSETTING("resourceIncludePath", "").empty())
     {
         Ogre::ResourceGroupManager::getSingleton().addResourceLocation(SSETTING("resourceIncludePath", ""), "FileSystem", "customInclude");
     }
-
-    //ScopeLog scope_log("beam_"+filename);
 
     /* initialize custom include path */
     if (!SSETTING("resourceIncludePath", "").empty())
@@ -5279,7 +5261,7 @@ bool Beam::LoadTruck(
     }
 
     Ogre::DataStreamPtr ds = Ogre::DataStreamPtr();
-    Ogre::String fixed_file_name = file_name;
+    Ogre::String fixed_file_name = config.filename;
     Ogre::String found_resource_group;
     Ogre::String errorStr;
 
@@ -5319,6 +5301,7 @@ bool Beam::LoadTruck(
 
     /* PARSING */
 
+    std::string file_name = config.filename; // TODO: temporary mess while refactoring. Clean up! ~ only_a_ptr, 08/2017
     LOG(" == Parsing vehicle file: " + file_name);
 
     RigDef::Parser parser;
@@ -5386,8 +5369,8 @@ bool Beam::LoadTruck(
 
     LOG(" == Spawning vehicle: " + parser.GetFile()->name);
 
-    RigSpawner spawner(m_sim_controller);
-    spawner.Setup(this, parser.GetFile(), parent_scene_node, spawn_position, cache_entry_number);
+    RigSpawner spawner(App::GetSimController());
+    spawner.Setup(this, parser.GetFile(), parent_scene_node, config.position, config.cache_entry_id);
     LOAD_RIG_PROFILE_CHECKPOINT(ENTRY_BEAM_LOADTRUCK_SPAWNER_SETUP);
     /* Setup modules */
     spawner.AddModule(parser.GetFile()->root_module);
@@ -5435,14 +5418,14 @@ bool Beam::LoadTruck(
     // Apply spawn position & spawn rotation
     for (int i = 0; i < free_node; i++)
     {
-        nodes[i].AbsPosition = spawn_position + spawn_rotation * (nodes[i].AbsPosition - spawn_position);
+        nodes[i].AbsPosition = config.position + config.rotation * (nodes[i].AbsPosition - config.position);
         nodes[i].RelPosition = nodes[i].AbsPosition - origin;
     };
 
     /* Place correctly */
     if (! parser.GetFile()->HasFixes())
     {
-        Ogre::Vector3 vehicle_position = spawn_position;
+        Ogre::Vector3 vehicle_position = config.position;
 
         // check if over-sized
         RigSpawner::RecalculateBoundingBoxes(this);
@@ -5461,7 +5444,7 @@ bool Beam::LoadTruck(
             miny = spawn_box->relo.y + spawn_box->center.y;
         }
 
-        if (freePositioned)
+        if (config.is_free_positioned)
             resetPosition(vehicle_position, true);
         else
             resetPosition(vehicle_position.x, vehicle_position.z, true, miny);
@@ -5477,7 +5460,7 @@ bool Beam::LoadTruck(
             {
                 Vector3 gpos = Vector3(vehicle_position.x, 0.0f, vehicle_position.z);
 
-                gpos -= spawn_rotation * Vector3((spawn_box->hi.x - spawn_box->lo.x + boundingBox.getMaximum().x - boundingBox.getMinimum().x) * 0.6f, 0.0f, 0.0f);
+                gpos -= config.rotation * Vector3((spawn_box->hi.x - spawn_box->lo.x + boundingBox.getMaximum().x - boundingBox.getMinimum().x) * 0.6f, 0.0f, 0.0f);
 
                 resetPosition(gpos.x, gpos.z, true, miny);
             }
@@ -5485,7 +5468,7 @@ bool Beam::LoadTruck(
     }
     else
     {
-        resetPosition(spawn_position, true);
+        resetPosition(config.position, true);
     }
     LOAD_RIG_PROFILE_CHECKPOINT(ENTRY_BEAM_LOADTRUCK_FIXES);
 
