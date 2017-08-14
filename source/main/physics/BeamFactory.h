@@ -38,30 +38,18 @@ class ThreadPool;
 namespace RoR {
 
 /// Builds and manages softbody actors; Manages multithreading.
+/// Historical usage: It was a singleton, actor-management interface was public.
+///                   Interactions with existing simulation needed to be resolved by external code --> often duplicate, fragmented and/or badly placed.
+/// Current usage (refactor in progress): Actor management interface was moved to SimController (class `RoRFrameListener`)
+///                   BeamFactory's interface will be gradually made private, with a friend-relation to SimController.
 class BeamFactory
 {
     friend class GameScript; // needs to call RemoveActorByCollisionBox()
-    friend class ::RoRFrameListener; // Needs to call removeTruck() and RemoveActorByCollisionBox()
+    friend class ::RoRFrameListener; // Functions: removeTruck(); RemoveActorByCollisionBox(); CreateLocalRigInstance()
 public:
 
     BeamFactory(RoRFrameListener* sim_controller);
     ~BeamFactory();
-
-    /**
-    * @param cache_entry_number Needed for flexbody caching. Pass -1 if unavailable (flexbody caching will be disabled)
-    */
-    Beam* CreateLocalRigInstance(
-        Ogre::Vector3 pos,
-        Ogre::Quaternion rot,
-        Ogre::String fname,
-        int cache_entry_number = -1,
-        collision_box_t* spawnbox = NULL,
-        bool ismachine = false,
-        const std::vector<Ogre::String>* truckconfig = nullptr,
-        RoR::SkinDef* skin = nullptr,
-        bool freePosition = false,
-        bool preloaded_with_terrain = false
-    );
 
     void update(float dt);
 
@@ -138,10 +126,23 @@ public:
     // A list of all beams interconnecting two trucks
     std::map<beam_t*, std::pair<Beam*, Beam*>> interTruckLinks;
 
-protected:
+private:
 
     void RemoveActorByCollisionBox(Collisions* collisions, const Ogre::String& inst, const Ogre::String& box); ///< Only for scripting
     void removeTruck(int truck); ///< Internal+friends use only; see `RoRFrameListener::*Actor*()` functions.
+    
+    /// @param cache_entry_number Needed for flexbody caching. Pass -1 if unavailable (flexbody caching will be disabled)
+    Beam* CreateLocalRigInstance(
+        Ogre::Vector3 pos,
+        Ogre::Quaternion rot,
+        Ogre::String fname,
+        int cache_entry_number = -1,
+        collision_box_t* spawnbox = NULL,
+        bool ismachine = false,
+        const std::vector<Ogre::String>* truckconfig = nullptr,
+        RoR::SkinDef* skin = nullptr,
+        bool freePosition = false,
+        bool preloaded_with_terrain = false);
 
     /// Returns whether or not the two (scaled) bounding boxes intersect.
     bool intersectionAABB(Ogre::AxisAlignedBox a, Ogre::AxisAlignedBox b, float scale = 1.0f);

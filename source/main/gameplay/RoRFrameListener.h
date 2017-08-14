@@ -59,6 +59,7 @@ public:
     Beam*  GetPlayerActor        ()                        { return m_beam_factory.getCurrentTruck(); }
     void   ReloadPlayerActor     ();
     void   RemovePlayerActor     ();
+    Beam*  SpawnActorWithMap     (const char* name, Ogre::Vector3 position, Ogre::Quaternion rotation, bool is_machine, bool free_positioned);
     void   RemoveActorByCollisionBox(std::string const & ev_src_instance_name, std::string const & box_name); ///< Scripting utility. TODO: Does anybody use it? ~ only_a_ptr, 08/2017
 
     // Scripting interface

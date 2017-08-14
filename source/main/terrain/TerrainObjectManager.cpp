@@ -1376,24 +1376,17 @@ void TerrainObjectManager::loadPreloadedTrucks()
 
     for (unsigned int i = 0; i < truck_preload.size(); i++)
     {
-        Vector3 pos = Vector3(truck_preload[i].px, truck_preload[i].py, truck_preload[i].pz);
-        Beam* b = terrainManager->GetSimController()->GetBeamFactory()->CreateLocalRigInstance(
-            pos,
-            truck_preload[i].rotation,
+        Beam* b = RoR::App::GetSimController()->SpawnActorWithMap(
             truck_preload[i].name,
-            -1,
-            nullptr, /* spawnbox */
+            Ogre::Vector3(truck_preload[i].px, truck_preload[i].py, truck_preload[i].pz),
+            truck_preload[i].rotation,
             truck_preload[i].ismachine,
-            nullptr, /* truckconfig */
-            nullptr, /* skin */
-            truck_preload[i].freePosition,
-            true /* preloaded_with_terrain */
-        );
+            truck_preload[i].freePosition);
 
-        if (b && gEnv->surveyMap)
+        if ((b != nullptr) && (gEnv->surveyMap != nullptr))
         {
             SurveyMapEntity* e = gEnv->surveyMap->createNamedMapEntity("Truck" + TOSTRING(b->trucknum), SurveyMapManager::getTypeByDriveable(b->driveable));
-            if (e)
+            if (e != nullptr)
             {
                 e->setState(SIMULATED);
                 e->setVisibility(true);

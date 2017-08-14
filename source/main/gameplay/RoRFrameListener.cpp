@@ -2519,3 +2519,8 @@ void RoRFrameListener::EnterGameplayLoop()
     // DO NOT: App::GetOverlayWrapper()->SetSimController(nullptr); -- already deleted via App::DestroyOverlayWrapper(); // TODO: de-globalize that object!
     gEnv->cameraManager->SetSimController(nullptr);  // TODO: de-globalize that object!
 }
+
+Beam*  RoRFrameListener::SpawnActorWithMap(const char* filename, Ogre::Vector3 position, Ogre::Quaternion rotation, bool is_machine, bool free_positioned)
+{
+
+}
