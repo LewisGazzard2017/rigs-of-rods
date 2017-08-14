@@ -140,9 +140,7 @@ private:
         collision_box_t* spawnbox = NULL,
         bool ismachine = false,
         const std::vector<Ogre::String>* truckconfig = nullptr,
-        RoR::SkinDef* skin = nullptr,
-        bool freePosition = false,
-        bool preloaded_with_terrain = false);
+        RoR::SkinDef* skin = nullptr);
 
     /// Returns whether or not the two (scaled) bounding boxes intersect.
     bool intersectionAABB(Ogre::AxisAlignedBox a, Ogre::AxisAlignedBox b, float scale = 1.0f);

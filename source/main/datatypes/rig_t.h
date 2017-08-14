@@ -267,7 +267,6 @@ struct rig_t ///< A simulation actor; typically a vehicle
     Ogre::AxisAlignedBox predictedBoundingBox;
     std::vector<Ogre::AxisAlignedBox> collisionBoundingBoxes; //!< smart bounding boxes, used for determining the state of a truck (every box surrounds only a subset of nodes)
     std::vector<Ogre::AxisAlignedBox> predictedCollisionBoundingBoxes;
-    bool freePositioned;
     int lowestnode; //!< never updated after truck init!?!
     int lowestcontactingnode;
 

@@ -79,8 +79,6 @@ public:
         , bool ismachine = false
         , const std::vector<Ogre::String> *truckconfig = nullptr
         , RoR::SkinDef *skin = nullptr
-        , bool freeposition = false
-        , bool preloaded_with_terrain = false
         , int cache_entry_number = -1
         );
 
