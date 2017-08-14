@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "Application.h"
 #include "BeamData.h"
 #include "GfxActor.h"
 #include "PerVehicleCameraContext.h"
@@ -42,45 +43,44 @@ class Beam :
     public ZeroedMemoryAllocator
 {
     friend class RigSpawner;
-    friend class RigInspector; // Debug utility class
 
 public:
+
+    /// All info necessary to spawn and configure an actor.
+    /// Historically, the spawning was very convoluted and involved multiple functions with too many arguments. This struct helps to clean it up.
+    /// NOTE: This is not an ideal place to define the struct, but it best fits existing code. ~ only_a_ptr, 08/2017
+    struct SpawnConfig
+    {
+        SpawnConfig():
+            actor_id(-1), position(Ogre::Vector3::ZERO), rotation(Ogre::Quaternion::IDENTITY),
+            profiler(nullptr), collision_box(nullptr), skin(nullptr), module_config(nullptr),
+            cache_entry_id(-1), loads_with_map(false), is_free_positioned(false)
+        {}
+
+        int                       actor_id;
+        int                       cache_entry_id;     ///< Needed for flexbody caching. Pass -1 if unavailable (flexbody caching will be disabled)
+        Str<200>                  filename;
+        bool                      loads_with_map;     ///< Is this actor being pre-loaded along with terrain?
+        bool                      is_free_positioned; ///< Disables automatic position adjustments
+        bool                      is_net_remote;      ///< Networking; this is a remote instance
+        Ogre::Vector3             position;
+        Ogre::Quaternion          rotation;
+        collision_box_t*          collision_box;
+        RoR::SkinDef*             skin;
+        RoR::RigLoadingProfiler*           profiler;
+        const std::vector<Ogre::String> *  module_config;
+    };
+
     Beam() {}; // for wrapper, DO NOT USE!
     ~Beam();
+
+    Beam(SpawnConfig const & config);
 
 #ifdef USE_ANGELSCRIPT
     // we have to add this to be able to use the class as reference inside scripts
     void addRef(){};
     void release(){};
 #endif
-
-    /**
-    * Constructor
-    *
-    * @param tnum Vehicle number (alias Truck Number)
-    * @param pos
-    * @param rot
-    * @param fname Rig file name.
-    * @param ismachine (see BeamData.h)
-    * @param truckconfig Networking related.
-    * @param preloaded_with_terrain Is this rig being pre-loaded along with terrain?
-    * @param cache_entry_number Needed for flexbody caching. Pass -1 if unavailable (flexbody caching will be disabled)
-    */
-    Beam(
-          RoRFrameListener* sim_controller
-        , int tnum
-        , Ogre::Vector3 pos
-        , Ogre::Quaternion rot
-        , const char* fname
-        , RoR::RigLoadingProfiler* rig_loading_profiler
-        , bool networked = false
-        , bool networking = false
-        , collision_box_t *spawnbox = nullptr
-        , bool ismachine = false
-        , const std::vector<Ogre::String> *truckconfig = nullptr
-        , RoR::SkinDef *skin = nullptr
-        , int cache_entry_number = -1
-        );
 
     /**
     * Parses network data; fills truck data buffers and flips them. Called by the network thread.
@@ -631,7 +631,6 @@ protected:
     float stabsleep;
     Replay *replay;
     PositionStorage *posStorage;
-    RoRFrameListener* m_sim_controller; // Temporary ~ only_a_ptr, 01/2017
     std::shared_ptr<RigDef::File> m_definition;
     std::unique_ptr<RoR::GfxActor> m_gfx_actor;
 

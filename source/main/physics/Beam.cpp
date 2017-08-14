@@ -4982,23 +4982,10 @@ void Beam::engineTriggerHelper(int engineNumber, int type, float triggerValue)
     }
 }
 
-Beam::Beam(
-    RoRFrameListener* sim_controller,
-    int truck_number,
-    Ogre::Vector3 pos,
-    Ogre::Quaternion rot,
-    const char* fname,
-    RoR::RigLoadingProfiler* rig_loading_profiler,
-    bool _networked, /* = false  */
-    bool _networking, /* = false  */
-    collision_box_t* spawnbox, /* = nullptr */
-    bool ismachine, /* = false  */
-    const std::vector<Ogre::String>* truckconfig, /* = nullptr */
-    RoR::SkinDef* skin, /* = nullptr */
-    int cache_entry_number /* = -1 */
+Beam::Beam(SpawnConfig const & config
 ) 
     : GUIFeaturesChanged(false)
-    , m_sim_controller(sim_controller)
+    , m_sim_controller(App::GetSimController())
     , aileron(0)
     , avichatter_timer(11.0f) // some pseudo random number,  doesn't matter
     , m_beacon_light_is_active(false)
