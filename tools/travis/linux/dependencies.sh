@@ -90,7 +90,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$DEPS_INSTALL_DIR \
 -DCMAKE_CXX_FLAGS="-w -O0 -pipe" \
 .
 make -s -j2 
-cp -r ../../lib/libangelscript.a $DEPS_INSTALL_DIR/lib/libangelscript.a
+cp -r libangelscript.a $DEPS_INSTALL_DIR/lib/libangelscript.a
 cp -r ../../include $DEPS_INSTALL_DIR
 
 ls $DEPS_INSTALL_DIR/lib
