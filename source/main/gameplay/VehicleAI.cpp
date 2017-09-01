@@ -70,7 +70,8 @@ void VehicleAI::AddWaypoints(AngelScript::CScriptDictionary& d)
     {
         Ogre::Vector3* point;
         item.GetValue(point, item.GetTypeId());
-        AddWaypoint(Ogre::String(item.GetKey()), (*point));
+        Ogre::String key(item.GetKey());
+        this->AddWaypoint(key, (*point));
     }
 }
 
