@@ -664,12 +664,26 @@ int ScriptEngine::addFunction(const String &arg)
 
 int ScriptEngine::functionExists(const String &arg)
 {
-    if (!engine) return -1;
-    if (!context) context = engine->CreateContext();
+    if (!engine) // WTF? If the scripting engine failed to start, how would it invoke this function?
+        return -1; // ... OK, I guess the author wanted the fn. to be usable both within script and C++, but IMO that's bad design (generally good, but bad for a game.. bad for RoR), really ~ only_a_ptr, 09/2017
+
+    if (!context)
+        context = engine->CreateContext(); // Same as above, I don't think this is a good design ~ only_a_ptr, 09/2017
+
     AngelScript::asIScriptModule *mod = engine->GetModule(moduleName, AngelScript::asGM_ONLY_IF_EXISTS);
 
-    if (mod == 0) return AngelScript::asNO_FUNCTION;
-    else return mod->GetFunctionByDecl(arg.c_str())->GetId();
+    if (mod == 0)
+    {
+        return AngelScript::asNO_FUNCTION; // Nope, it's an internal error, not a "function not found" case ~ only_a_ptr, 09/2017
+    }
+    else
+    {
+        AngelScript::asIScriptFunction* fn = mod->GetFunctionByDecl(arg.c_str());
+        if (fn != nullptr)
+            return fn->GetId();
+        else
+            return AngelScript::asNO_FUNCTION;
+    }
 }
 
 int ScriptEngine::deleteFunction(const String &arg)
@@ -714,6 +728,8 @@ int ScriptEngine::deleteFunction(const String &arg)
 
         if ( defaultEventCallbackFunctionPtr == func )
             defaultEventCallbackFunctionPtr = nullptr;
+
+        return func->GetId();
     }
     else
     {
@@ -721,8 +737,6 @@ int ScriptEngine::deleteFunction(const String &arg)
         sprintf(tmp, "An error occurred while trying to remove a function ('%s') from script module '%s'.", arg.c_str(), moduleName);
         SLOG(tmp);
     }
-
-    return func->GetId();
 }
 
 int ScriptEngine::addVariable(const String &arg)
