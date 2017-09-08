@@ -378,17 +378,24 @@ void GameScript::spawnObject(const String& objectName, const String& instanceNam
             return;
         }
 
-        AngelScript::asIScriptFunction* handler_func = module->GetFunctionByName(eventhandler.c_str());
-        if (handler_func == nullptr)
+        int handler_func_id = -1; // no function
+        if (!eventhandler.empty())
         {
-            this->logFormat("spawnObject(): Failed to find handler function '%s' in script module '%s'",
-                eventhandler.c_str(), mse->moduleName);
-            return;
+            AngelScript::asIScriptFunction* handler_func = module->GetFunctionByName(eventhandler.c_str());
+            if (handler_func != nullptr)
+            {
+                handler_func_id = handler_func->GetId();
+            }
+            else
+            {
+                this->logFormat("spawnObject(): Warning; Failed to find handler function '%s' in script module '%s'",
+                    eventhandler.c_str(), mse->moduleName);
+            }
         }
 
         SceneNode* bakeNode = gEnv->sceneManager->getRootSceneNode()->createChildSceneNode();
         const String type = "";
-        gEnv->terrainManager->getObjectManager()->loadObject(objectName, pos, rot, bakeNode, instanceName, type, true, handler_func->GetId(), uniquifyMaterials);
+        gEnv->terrainManager->getObjectManager()->loadObject(objectName, pos, rot, bakeNode, instanceName, type, true, handler_func_id, uniquifyMaterials);
     }
     catch (std::exception e)
     {
